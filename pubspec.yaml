@@ -1,0 +1,24 @@
+name: uniflow_mobile
+description: UniFlow Mobile Application.
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.4.0
+  go_router: ^14.0.0
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.17
+  connectivity_plus: ^5.0.2
+  workmanager: ^0.5.2
+  livekit_client: ^1.4.0
+  dio: ^5.4.0
+  freezed_annotation: ^2.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  drift_dev: ^2.14.0
+  build_runner: ^2.4.8
