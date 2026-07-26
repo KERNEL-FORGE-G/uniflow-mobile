@@ -1,8 +1,7 @@
-name: uniflow
+name: uniflow_mobile
 description: UniFlow - Gestion académique (Flutter)
 publish_to: 'none'
 version: 1.0.0+1
-
 environment:
   sdk: '>=3.3.0 <4.0.0'
   flutter: ">=3.19.0"
@@ -14,9 +13,20 @@ dependencies:
   go_router: ^14.2.0
   flutter_riverpod: ^2.5.1
   google_fonts: ^6.2.1
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.17
+  connectivity_plus: ^5.0.2
+  workmanager: ^0.5.2
+  livekit_client: ^1.4.0
+  dio: ^5.4.0
+  freezed_annotation: ^2.4.1
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^4.0.0
+  drift_dev: ^2.14.0
+  build_runner: ^2.4.8
 
 flutter:
   uses-material-design: true
