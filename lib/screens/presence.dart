@@ -6,9 +6,10 @@ class PresenceScreen extends StatelessWidget {
   const PresenceScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        GradientHeader(title: 'Présence', subtitle: 'Suivi des présences en cours'),
+    return const Column(
+      children: [
+        GradientHeader(
+            title: 'Présence', subtitle: 'Suivi des présences en cours'),
         Expanded(
           child: Center(
             child: Padding(

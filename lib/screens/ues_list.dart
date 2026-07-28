@@ -32,7 +32,8 @@ class UEsListScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
               final u = list[i];
-              final c = Color(int.parse('FF${u.colorHex.substring(1)}', radix: 16));
+              final c =
+                  Color(int.parse('FF${u.colorHex.substring(1)}', radix: 16));
               return InkWell(
                 onTap: () => context.go('/ues/${u.id}'),
                 borderRadius: BorderRadius.circular(14),
@@ -40,25 +41,35 @@ class UEsListScreen extends ConsumerWidget {
                   child: Row(
                     children: [
                       Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(color: c.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                            color: c.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10)),
                         alignment: Alignment.center,
                         child: Text(u.code.substring(0, 3),
-                            style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12)),
+                            style: TextStyle(
+                                color: c,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12)),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(u.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                            Text(u.title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600)),
                             const SizedBox(height: 2),
                             Text('${u.code} · ${u.credits} crédits',
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(
+                                    color: AppColors.textMuted, fontSize: 12)),
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      const Icon(Icons.chevron_right,
+                          color: AppColors.textMuted),
                     ],
                   ),
                 ),

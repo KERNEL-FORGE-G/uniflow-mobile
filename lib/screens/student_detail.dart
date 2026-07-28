@@ -14,7 +14,8 @@ class StudentDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = findStudent(ref, id);
     if (s == null) return const Center(child: Text('Étudiant introuvable'));
-    final ues = ref.watch(uesProvider).where((u) => s.ueIds.contains(u.id)).toList();
+    final ues =
+        ref.watch(uesProvider).where((u) => s.ueIds.contains(u.id)).toList();
     return Column(
       children: [
         GradientHeader(
@@ -38,9 +39,13 @@ class StudentDetailScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(s.fullName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                          Text(s.fullName,
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 4),
-                          Text('${s.filiere} · ${s.niveau}', style: const TextStyle(color: AppColors.textMuted)),
+                          Text('${s.filiere} · ${s.niveau}',
+                              style:
+                                  const TextStyle(color: AppColors.textMuted)),
                           const SizedBox(height: 8),
                           StatusBadge(label: s.status),
                         ],
@@ -54,7 +59,8 @@ class StudentDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Informations', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text('Informations',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 12),
                     _row(Icons.email_outlined, s.email),
                     const SizedBox(height: 8),
@@ -69,13 +75,19 @@ class StudentDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('UEs inscrites (${ues.length})', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Text('UEs inscrites (${ues.length})',
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
                     ...ues.map((u) => ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
-                            backgroundColor: _hex(u.colorHex).withOpacity(0.15),
-                            child: Text(u.code.substring(0, 3), style: TextStyle(color: _hex(u.colorHex), fontSize: 11, fontWeight: FontWeight.w700)),
+                            backgroundColor:
+                                _hex(u.colorHex).withValues(alpha: 0.15),
+                            child: Text(u.code.substring(0, 3),
+                                style: TextStyle(
+                                    color: _hex(u.colorHex),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700)),
                           ),
                           title: Text(u.title),
                           subtitle: Text('${u.code} · ${u.credits} crédits'),

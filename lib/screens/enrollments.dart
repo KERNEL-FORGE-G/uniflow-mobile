@@ -30,7 +30,9 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
             preferredSize: const Size.fromHeight(44),
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
                   _tab('Semaine actuelle', 0),
@@ -42,15 +44,20 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
         ),
         Expanded(
           child: list.isEmpty
-              ? const Center(child: Text('Aucune inscription', style: TextStyle(color: AppColors.textMuted)))
+              ? const Center(
+                  child: Text('Aucune inscription',
+                      style: TextStyle(color: AppColors.textMuted)))
               : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: list.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, i) {
                     final e = list[i];
-                    final s = ref.read(studentsProvider).firstWhere((x) => x.id == e.studentId);
-                    final u = ref.read(uesProvider).firstWhere((x) => x.id == e.ueId);
+                    final s = ref
+                        .read(studentsProvider)
+                        .firstWhere((x) => x.id == e.studentId);
+                    final u =
+                        ref.read(uesProvider).firstWhere((x) => x.id == e.ueId);
                     return SectionCard(
                       child: Row(
                         children: [
@@ -60,10 +67,14 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(s.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                Text(s.fullName,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 2),
                                 Text('${u.code} · ${u.title}',
-                                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                    style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 12)),
                               ],
                             ),
                           ),
@@ -93,7 +104,8 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
           child: Text(label,
               style: TextStyle(
                   color: active ? AppColors.teal : Colors.white,
-                  fontWeight: FontWeight.w600, fontSize: 12)),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12)),
         ),
       ),
     );

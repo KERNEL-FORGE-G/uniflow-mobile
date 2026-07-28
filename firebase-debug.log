@@ -1,0 +1,36 @@
+[debug] [2026-07-28T05:27:12.732Z] ----------------------------------------------------------------------
+[debug] [2026-07-28T05:27:12.737Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\E-Stores\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:list --json
+[debug] [2026-07-28T05:27:12.738Z] CLI Version:   15.24.0
+[debug] [2026-07-28T05:27:12.738Z] Platform:      win32
+[debug] [2026-07-28T05:27:12.739Z] Node Version:  v22.14.0
+[debug] [2026-07-28T05:27:12.739Z] Detected Agent: unknown
+[debug] [2026-07-28T05:27:12.739Z] Time:          Tue Jul 28 2026 06:27:12 GMT+0100 (heure normale d’Afrique de l’Ouest)
+[debug] [2026-07-28T05:27:12.740Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-28T05:27:12.755Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-28T05:27:12.755Z] > authorizing via signed-in user (oceannemandeng@gmail.com)
+[debug] [2026-07-28T05:27:12.795Z] Checked if tokens are valid: false, expires at: 1757953682451
+[debug] [2026-07-28T05:27:12.796Z] Checked if tokens are valid: false, expires at: 1757953682451
+[debug] [2026-07-28T05:27:12.797Z] > refreshing access token with scopes: []
+[debug] [2026-07-28T05:27:12.806Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-07-28T05:27:12.807Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-28T05:27:13.833Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 400
+[debug] [2026-07-28T05:27:13.833Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-28T05:27:13.833Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-07-28T05:27:14.502Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 401
+[debug] [2026-07-28T05:27:14.502Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2026-07-28T05:27:14.503Z] Got a 401 Unauthenticated error for a call that required authentication. Refreshing tokens.
+[debug] [2026-07-28T05:27:14.503Z] Checked if tokens are valid: false, expires at: 1757953682451
+[debug] [2026-07-28T05:27:14.503Z] Checked if tokens are valid: false, expires at: 1757953682451
+[debug] [2026-07-28T05:27:14.503Z] > refreshing access token with scopes: []
+[debug] [2026-07-28T05:27:14.505Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-07-28T05:27:14.505Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-28T05:27:14.740Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 400
+[debug] [2026-07-28T05:27:14.741Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-28T05:27:14.744Z] Request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000 had HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+[debug] [2026-07-28T05:27:15.402Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000 had HTTP Error: 401, Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.
+    at responseToError (C:\Users\E-Stores\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:53:12)
+    at RetryOperation._fn (C:\Users\E-Stores\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:415:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[error] 
+[error] Error: Failed to list Firebase projects. See firebase-debug.log for more info.
