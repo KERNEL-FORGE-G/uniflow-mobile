@@ -27,7 +27,7 @@ class AppShell extends StatelessWidget {
       body: child,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: AppColors.teal,
+          color: AppColors.secondary,
           boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, -2))],
         ),
         child: SafeArea(
@@ -64,3 +64,4 @@ class AppShell extends StatelessWidget {
     );
   }
 }
+

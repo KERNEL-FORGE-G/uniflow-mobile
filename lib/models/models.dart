@@ -1,93 +1,79 @@
-class Student {
-  final String id;
-  final String matricule;
-  final String firstName;
-  final String lastName;
-  final String filiere;
-  final String niveau;
-  final String status; // Actif / Suspendu
-  final String email;
-  final String phone;
-  final List<String> ueIds;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Student({
-    required this.id,
-    required this.matricule,
-    required this.firstName,
-    required this.lastName,
-    required this.filiere,
-    required this.niveau,
-    required this.status,
-    required this.email,
-    required this.phone,
-    required this.ueIds,
-  });
+part 'models.freezed.dart';
+part 'models.g.dart';
 
-  String get fullName => '$firstName $lastName';
-  String get initials =>
-      '${firstName.isNotEmpty ? firstName[0] : ''}${lastName.isNotEmpty ? lastName[0] : ''}';
-}
+@freezed
+class Student with _$Student {
+  const Student._();
 
-class Teacher {
-  final String id;
-  final String firstName;
-  final String lastName;
-  final String status; // Permanent / Vacataire
-  final String email;
-  final String department;
-  final List<String> ueIds;
+  const factory Student({
+    required String id,
+    required String matricule,
+    required String firstName,
+    required String lastName,
+    required String filiere,
+    required String niveau,
+    required String status, // Actif / Suspendu
+    required String email,
+    required String phone,
+    @Default([]) List<String> ueIds,
+  }) = _Student;
 
-  const Teacher({
-    required this.id,
-    required this.firstName,
-    required this.lastName,
-    required this.status,
-    required this.email,
-    required this.department,
-    required this.ueIds,
-  });
+  factory Student.fromJson(Map<String, dynamic> json) => _$StudentFromJson(json);
 
   String get fullName => '$firstName $lastName';
   String get initials =>
       '${firstName.isNotEmpty ? firstName[0] : ''}${lastName.isNotEmpty ? lastName[0] : ''}';
 }
 
-class UE {
-  final String id;
-  final String code;
-  final String title;
-  final int credits;
-  final int cm;
-  final int td;
-  final int tp;
-  final String description;
-  final String colorHex;
+@freezed
+class Teacher with _$Teacher {
+  const Teacher._();
 
-  const UE({
-    required this.id,
-    required this.code,
-    required this.title,
-    required this.credits,
-    required this.cm,
-    required this.td,
-    required this.tp,
-    required this.description,
-    required this.colorHex,
-  });
+  const factory Teacher({
+    required String id,
+    required String firstName,
+    required String lastName,
+    required String status, // Permanent / Vacataire
+    required String email,
+    required String department,
+    @Default([]) List<String> ueIds,
+  }) = _Teacher;
+
+  factory Teacher.fromJson(Map<String, dynamic> json) => _$TeacherFromJson(json);
+
+  String get fullName => '$firstName $lastName';
+  String get initials =>
+      '${firstName.isNotEmpty ? firstName[0] : ''}${lastName.isNotEmpty ? lastName[0] : ''}';
 }
 
-class Enrollment {
-  final String id;
-  final String studentId;
-  final String ueId;
-  final String status; // En attente / Validée / Rejetée
-  final DateTime date;
+@freezed
+class UE with _$UE {
+  const factory UE({
+    required String id,
+    required String code,
+    required String title,
+    required int credits,
+    required int cm,
+    required int td,
+    required int tp,
+    required String description,
+    required String colorHex,
+  }) = _UE;
 
-  const Enrollment({
-    required this.id,
-    required this.studentId,
-    required this.ueId,
-    required this.status,
-    required this.date,
-  });
+  factory UE.fromJson(Map<String, dynamic> json) => _$UEFromJson(json);
+}
+
+@freezed
+class Enrollment with _$Enrollment {
+  const factory Enrollment({
+    required String id,
+    required String studentId,
+    required String ueId,
+    required String status, // En attente / Validée / Rejetée
+    required DateTime date,
+  }) = _Enrollment;
+
+  factory Enrollment.fromJson(Map<String, dynamic> json) => _$EnrollmentFromJson(json);
 }

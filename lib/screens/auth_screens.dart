@@ -131,7 +131,7 @@ class RegisterScreen extends StatelessWidget {
                       TextSpan(
                         text: "Conditions d'utilisation",
                         style: TextStyle(
-                          color: AppColors.teal,
+                          color: AppColors.secondary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -139,14 +139,14 @@ class RegisterScreen extends StatelessWidget {
                       TextSpan(
                         text: 'Politique de confidentialité',
                         style: TextStyle(
-                          color: AppColors.teal,
+                          color: AppColors.secondary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                   style: TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppColors.textMutedLight,
                     fontSize: 12,
                     height: 1.35,
                   ),
@@ -214,7 +214,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                   'Vérifiez votre boîte mail',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: AppColors.textPrimaryLight,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -224,7 +224,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                   'Le lien de réinitialisation expire dans 15 minutes.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppColors.textMutedLight,
                     fontSize: 12,
                     height: 1.35,
                   ),
@@ -296,7 +296,7 @@ class AuthTitle extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            color: AppColors.teal,
+            color: AppColors.secondary,
             fontSize: 24,
             fontWeight: FontWeight.w800,
           ),
@@ -305,7 +305,7 @@ class AuthTitle extends StatelessWidget {
         Text(
           subtitle,
           style: const TextStyle(
-            color: AppColors.textMuted,
+            color: AppColors.textMutedLight,
             fontSize: 13,
             height: 1.35,
           ),
@@ -339,7 +339,7 @@ class AuthTextField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            color: AppColors.textPrimary,
+            color: AppColors.textPrimaryLight,
             fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
@@ -350,12 +350,12 @@ class AuthTextField extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, size: 19, color: AppColors.textMuted),
+            prefixIcon: Icon(icon, size: 19, color: AppColors.textMutedLight),
             suffixIcon: obscureText
                 ? const Icon(
                     Icons.visibility_off_outlined,
                     size: 19,
-                    color: AppColors.textMuted,
+                    color: AppColors.textMutedLight,
                   )
                 : null,
             filled: true,
@@ -374,7 +374,7 @@ class AuthTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.teal, width: 1.4),
+              borderSide: const BorderSide(color: AppColors.secondary, width: 1.4),
             ),
           ),
         ),
@@ -401,7 +401,7 @@ class AuthPrimaryButton extends StatelessWidget {
       child: FilledButton(
         onPressed: onPressed ?? () {},
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.teal,
+          backgroundColor: AppColors.secondary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -429,7 +429,7 @@ class AuthDivider extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(
-              color: AppColors.textMuted,
+              color: AppColors.textMutedLight,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -461,7 +461,7 @@ class SocialButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: () {},
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textPrimary,
+          foregroundColor: AppColors.textPrimaryLight,
           side: const BorderSide(color: Color(0xFFE2E8F0)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -512,7 +512,7 @@ class AuthFooter extends StatelessWidget {
           child: Text(
             text,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+            style: const TextStyle(color: AppColors.textMutedLight, fontSize: 12),
           ),
         ),
         TextButton(
@@ -525,7 +525,7 @@ class AuthFooter extends StatelessWidget {
           child: Text(
             action,
             style: const TextStyle(
-              color: AppColors.teal,
+              color: AppColors.secondary,
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
@@ -535,3 +535,199 @@ class AuthFooter extends StatelessWidget {
     );
   }
 }
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) context.go('/onboarding');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.school, size: 80, color: Colors.white), // Owl placeholder
+            const SizedBox(height: 16),
+            const Text(
+              'UniFlow',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 48),
+            const CircularProgressIndicator(color: AppColors.secondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  int _currentPage = 0;
+  final PageController _pageController = PageController();
+
+  final List<Map<String, String>> _pages = [
+    {
+      'title': 'Smart Scheduling',
+      'subtitle': 'Génération automatique des emplois du temps',
+      'icon': 'calendar_today',
+    },
+    {
+      'title': 'Easy Attendance',
+      'subtitle': 'Check-in QR code et listes par délégués',
+      'icon': 'qr_code',
+    },
+    {
+      'title': 'Live Classes',
+      'subtitle': 'Visioconférence LAN et Internet',
+      'icon': 'video_call',
+    },
+    {
+      'title': 'Works Offline',
+      'subtitle': 'Mode hors ligne avec sync automatique',
+      'icon': 'cloud_off',
+    },
+  ];
+
+  IconData _getIconData(String name) {
+    switch (name) {
+      case 'calendar_today':
+        return Icons.calendar_today;
+      case 'qr_code':
+        return Icons.qr_code;
+      case 'video_call':
+        return Icons.video_call;
+      case 'cloud_off':
+        return Icons.cloud_off;
+      default:
+        return Icons.info;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                itemCount: _pages.length,
+                itemBuilder: (context, index) {
+                  final page = _pages[index];
+                  return Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _getIconData(page['icon']!),
+                          size: 120,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(height: 40),
+                        Text(
+                          page['title']!,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimaryLight,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          page['subtitle']!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: AppColors.textMutedLight,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: List.generate(
+                      _pages.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        height: 8,
+                        width: _currentPage == index ? 24 : 8,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index
+                              ? AppColors.secondary
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_currentPage == _pages.length - 1) {
+                        context.go('/login');
+                      } else {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeIn,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                    ),
+                    child: Text(_currentPage == _pages.length - 1
+                        ? 'Commencer'
+                        : 'Suivant'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

@@ -14,7 +14,8 @@ class TeacherDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = findTeacher(ref, id);
     if (t == null) return const Center(child: Text('Enseignant introuvable'));
-    final ues = ref.watch(uesProvider).where((u) => t.ueIds.contains(u.id)).toList();
+    final uesAsync = ref.watch(uesProvider);
+    final ues = uesAsync.value?.items.where((u) => t.ueIds.contains(u.id)).toList() ?? [];
     return Column(
       children: [
         GradientHeader(
@@ -39,7 +40,7 @@ class TeacherDetailScreen extends ConsumerWidget {
                       children: [
                         Text(t.fullName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
-                        Text(t.email, style: const TextStyle(color: AppColors.textMuted)),
+                        Text(t.email, style: const TextStyle(color: AppColors.textMutedLight)),
                         const SizedBox(height: 8),
                         StatusBadge(label: t.status),
                       ],
@@ -56,7 +57,7 @@ class TeacherDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     ...ues.map((u) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.book_outlined, color: AppColors.teal),
+                          leading: const Icon(Icons.book_outlined, color: AppColors.secondary),
                           title: Text(u.title),
                           subtitle: Text('${u.code} · ${u.credits} crédits'),
                           trailing: const Icon(Icons.chevron_right),
@@ -72,3 +73,4 @@ class TeacherDetailScreen extends ConsumerWidget {
     );
   }
 }
+

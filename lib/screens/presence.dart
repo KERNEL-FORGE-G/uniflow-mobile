@@ -16,7 +16,7 @@ class PresenceScreen extends StatelessWidget {
               padding: EdgeInsets.all(24),
               child: Text('Module de présence bientôt disponible.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMuted)),
+                  style: TextStyle(color: AppColors.textMutedLight)),
             ),
           ),
         ),
@@ -24,3 +24,4 @@ class PresenceScreen extends StatelessWidget {
     );
   }
 }
+

@@ -14,8 +14,8 @@ class StudentDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = findStudent(ref, id);
     if (s == null) return const Center(child: Text('Étudiant introuvable'));
-    final ues =
-        ref.watch(uesProvider).where((u) => s.ueIds.contains(u.id)).toList();
+    final uesAsync = ref.watch(uesProvider);
+    final ues = uesAsync.value?.items.where((u) => s.ueIds.contains(u.id)).toList() ?? [];
     return Column(
       children: [
         GradientHeader(
@@ -45,7 +45,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text('${s.filiere} · ${s.niveau}',
                               style:
-                                  const TextStyle(color: AppColors.textMuted)),
+                                  const TextStyle(color: AppColors.textMutedLight)),
                           const SizedBox(height: 8),
                           StatusBadge(label: s.status),
                         ],
@@ -105,10 +105,11 @@ class StudentDetailScreen extends ConsumerWidget {
   }
 
   Widget _row(IconData i, String t) => Row(children: [
-        Icon(i, size: 18, color: AppColors.textMuted),
+        Icon(i, size: 18, color: AppColors.textMutedLight),
         const SizedBox(width: 8),
         Expanded(child: Text(t)),
       ]);
 
   Color _hex(String h) => Color(int.parse('FF${h.substring(1)}', radix: 16));
 }
+

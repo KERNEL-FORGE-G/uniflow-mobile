@@ -18,7 +18,7 @@ class GradientHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-            colors: [AppColors.teal, AppColors.tealDark],
+            colors: [AppColors.secondary, AppColors.secondary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight),
       ),
@@ -72,7 +72,7 @@ class SearchField extends StatelessWidget {
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+        prefixIcon: const Icon(Icons.search, color: AppColors.textMutedLight),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -101,7 +101,7 @@ class StatusBadge extends StatelessWidget {
       case 'vacataire':
         return AppColors.info.withValues(alpha: 0.12);
       default:
-        return AppColors.textMuted.withValues(alpha: 0.12);
+        return AppColors.textMutedLight.withValues(alpha: 0.12);
     }
   }
 
@@ -118,7 +118,7 @@ class StatusBadge extends StatelessWidget {
       case 'vacataire':
         return AppColors.info;
       default:
-        return AppColors.textMuted;
+        return AppColors.textMutedLight;
     }
   }
 
@@ -143,7 +143,7 @@ class Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.teal;
+    final c = color ?? AppColors.secondary;
     return Container(
       width: size,
       height: size,
@@ -174,3 +174,4 @@ class SectionCard extends StatelessWidget {
     );
   }
 }
+

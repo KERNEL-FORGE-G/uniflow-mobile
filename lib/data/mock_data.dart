@@ -29,3 +29,4 @@ final mockEnrollments = <Enrollment>[
   Enrollment(id: 'e3', studentId: 's5', ueId: 'ue2', status: 'En attente', date: DateTime(2026, 7, 23)),
   Enrollment(id: 'e4', studentId: 's4', ueId: 'ue3', status: 'Rejetée', date: DateTime(2026, 7, 18)),
 ];
+

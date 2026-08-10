@@ -38,7 +38,7 @@ class UEDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(u.description,
                         style: const TextStyle(
-                            color: AppColors.textMuted, height: 1.4)),
+                            color: AppColors.textMutedLight, height: 1.4)),
                   ],
                 ),
               ),
@@ -83,9 +83,10 @@ class UEDetailScreen extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(label,
                   style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 12)),
+                      color: AppColors.textMutedLight, fontSize: 12)),
             ],
           ),
         ),
       );
 }
+
