@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
+import '../models/extra_models.dart';
 import '../services/api_services.dart';
+import '../services/extra_services.dart';
 
 class PaginatedState<T> {
   final List<T> items;
@@ -176,13 +178,11 @@ class EnrollmentsNotifier extends AsyncNotifier<PaginatedState<Enrollment>> {
 
 final enrollmentsProvider = AsyncNotifierProvider<EnrollmentsNotifier, PaginatedState<Enrollment>>(EnrollmentsNotifier.new);
 
-// --- Search Providers (unchanged conceptually) ---
+// --- Search Providers ---
 final studentSearchProvider = StateProvider<String>((ref) => '');
 final teacherSearchProvider = StateProvider<String>((ref) => '');
 final ueSearchProvider = StateProvider<String>((ref) => '');
 
-// We can remove filtered providers here since we will filter on backend or they won't work simply if we only have current page.
-// If backend doesn't support search, we'll only search locally within the loaded items.
 final filteredStudentsProvider = Provider<List<Student>>((ref) {
   final q = ref.watch(studentSearchProvider).toLowerCase();
   final paginatedState = ref.watch(studentsProvider).value;
@@ -221,3 +221,52 @@ UE? findUE(WidgetRef ref, String id) =>
 extension _FirstOrNull<E> on Iterable<E> {
   E? get firstOrNull => isEmpty ? null : first;
 }
+
+// ──────────────────────────────────────────────────
+// Schedules, Courses, Classrooms, Notifications, Stats
+// ──────────────────────────────────────────────────
+
+// --- Schedules ---
+final schedulesProvider = FutureProvider<List<Schedule>>((ref) async {
+  final service = ref.watch(scheduleServiceProvider);
+  return service.getSchedules();
+});
+
+final mySchedulesProvider = FutureProvider<List<Schedule>>((ref) async {
+  final service = ref.watch(scheduleServiceProvider);
+  return service.getMySchedules();
+});
+
+// --- Courses ---
+final coursesProvider = FutureProvider<List<Course>>((ref) async {
+  final service = ref.watch(courseServiceProvider);
+  return service.getCourses();
+});
+
+final myCoursesProvider = FutureProvider<List<Course>>((ref) async {
+  final service = ref.watch(courseServiceProvider);
+  return service.getMyCourses();
+});
+
+// --- Classrooms ---
+final classroomsProvider = FutureProvider<List<Classroom>>((ref) async {
+  final service = ref.watch(classroomServiceProvider);
+  return service.getClassrooms();
+});
+
+// --- Notifications ---
+final notificationsProvider = FutureProvider<List<AppNotification>>((ref) async {
+  final service = ref.watch(notificationServiceProvider);
+  return service.getNotifications();
+});
+
+final unreadNotificationsCountProvider = FutureProvider<int>((ref) async {
+  final service = ref.watch(notificationServiceProvider);
+  return service.getUnreadCount();
+});
+
+// --- Stats Overview ---
+final statsOverviewProvider = FutureProvider<StatsOverview>((ref) async {
+  final service = ref.watch(statsServiceProvider);
+  return service.getOverview();
+});

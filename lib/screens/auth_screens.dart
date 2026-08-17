@@ -1,171 +1,387 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final route = await ref.read(authProvider.notifier).login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (route != null) {
+      context.go(route);
+    } else {
+      final error = ref.read(authProvider).error;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return AuthScaffold(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const AuthTitle(
-              title: 'Connexion', subtitle: 'Bienvenue de retour !'),
-          const SizedBox(height: 22),
-          const AuthTextField(
-            label: 'Email',
-            hint: 'exemple@gmail.com',
-            icon: Icons.mail_outline,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          const AuthTextField(
-            label: 'Mot de passe',
-            hint: '********',
-            icon: Icons.lock_outline,
-            obscureText: true,
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () => context.go('/forgot-password'),
-              child: const Text('Mot de passe oublié ?'),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AuthTitle(
+                title: 'Connexion', subtitle: 'Bienvenue de retour !'),
+            const SizedBox(height: 22),
+            AuthTextField(
+              label: 'Email',
+              hint: 'exemple@gmail.com',
+              icon: Icons.mail_outline,
+              keyboardType: TextInputType.emailAddress,
+              controller: _emailController,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Email requis';
+                if (!value.contains('@')) return 'Email invalide';
+                return null;
+              },
             ),
-          ),
-          const SizedBox(height: 6),
-          AuthPrimaryButton(
-            label: 'Se connecter',
-            onPressed: () => context.go('/etudiants'),
-          ),
-          const SizedBox(height: 20),
-          const AuthDivider(label: 'ou continuer avec'),
-          const SizedBox(height: 16),
-          const SocialButton(
-            label: 'Continuer avec Google',
-            iconText: 'G',
-            iconColor: Color(0xFF4285F4),
-          ),
-          const SizedBox(height: 10),
-          const SocialButton(
-            label: 'Continuer avec Microsoft',
-            iconText: 'M',
-            iconColor: Color(0xFF00A4EF),
-          ),
-          const SizedBox(height: 24),
-          AuthFooter(
-            text: 'Pas encore de compte ?',
-            action: "S'inscrire",
-            onPressed: () => context.go('/register'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            AuthTextField(
+              label: 'Mot de passe',
+              hint: '********',
+              icon: Icons.lock_outline,
+              obscureText: _obscurePassword,
+              controller: _passwordController,
+              onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Mot de passe requis';
+                return null;
+              },
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => context.go('/forgot-password'),
+                child: const Text('Mot de passe oublié ?'),
+              ),
+            ),
+            const SizedBox(height: 6),
+            AuthPrimaryButton(
+              label: 'Se connecter',
+              isLoading: authState.isLoading,
+              onPressed: authState.isLoading ? null : _handleLogin,
+            ),
+            const SizedBox(height: 20),
+            const AuthDivider(label: 'ou continuer avec'),
+            const SizedBox(height: 16),
+            const SocialButton(
+              label: 'Continuer avec Google',
+              iconText: 'G',
+              iconColor: Color(0xFF4285F4),
+            ),
+            const SizedBox(height: 10),
+            const SocialButton(
+              label: 'Continuer avec Microsoft',
+              iconText: 'M',
+              iconColor: Color(0xFF00A4EF),
+            ),
+            const SizedBox(height: 24),
+            AuthFooter(
+              text: 'Pas encore de compte ?',
+              action: "S'inscrire",
+              onPressed: () => context.go('/register'),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+  bool _acceptedTerms = false;
+  String _selectedRole = 'ETUDIANT';
+
+  static const _roles = <String, String>{
+    'ETUDIANT': 'Étudiant',
+    'ENSEIGNANT': 'Enseignant',
+    'DELEGUE': 'Délégué',
+    'ADMIN': 'Administrateur',
+    'SECRETARIAT': 'Secrétariat',
+    'DIRECTION': 'Direction',
+  };
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Veuillez accepter les conditions d'utilisation"),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+
+    final route = await ref.read(authProvider.notifier).register(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      role: _selectedRole,
+    );
+
+    if (!mounted) return;
+
+    if (route != null) {
+      context.go(route);
+    } else {
+      final error = ref.read(authProvider).error;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error), backgroundColor: AppColors.danger),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return AuthScaffold(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const AuthTitle(
-            title: 'Créer un compte',
-            subtitle: 'Rejoignez UniFlow dès maintenant',
-          ),
-          const SizedBox(height: 22),
-          const AuthTextField(
-            label: 'Nom complet',
-            hint: 'Votre nom complet',
-            icon: Icons.person_outline,
-          ),
-          const SizedBox(height: 14),
-          const AuthTextField(
-            label: 'Email',
-            hint: 'exemple@gmail.com',
-            icon: Icons.mail_outline,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 14),
-          const AuthTextField(
-            label: 'Mot de passe',
-            hint: '********',
-            icon: Icons.lock_outline,
-            obscureText: true,
-          ),
-          const SizedBox(height: 14),
-          const AuthTextField(
-            label: 'Confirmer le mot de passe',
-            hint: '********',
-            icon: Icons.lock_outline,
-            obscureText: true,
-          ),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: false,
-                  onChanged: (_) {},
-                  side: const BorderSide(color: Color(0xFFCBD5E1)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    text: "J'accepte les ",
-                    children: [
-                      TextSpan(
-                        text: "Conditions d'utilisation",
-                        style: TextStyle(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextSpan(text: ' et la '),
-                      TextSpan(
-                        text: 'Politique de confidentialité',
-                        style: TextStyle(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AuthTitle(
+              title: 'Créer un compte',
+              subtitle: 'Rejoignez UniFlow dès maintenant',
+            ),
+            const SizedBox(height: 22),
+
+            // Role selector
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Profil',
                   style: TextStyle(
-                    color: AppColors.textMutedLight,
+                    color: AppColors.textPrimaryLight,
                     fontSize: 12,
-                    height: 1.35,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          AuthPrimaryButton(
-            label: "S'inscrire",
-            onPressed: () => context.go('/etudiants'),
-          ),
-          const SizedBox(height: 24),
-          AuthFooter(
-            text: 'Vous avez déjà un compte ?',
-            action: 'Se connecter',
-            onPressed: () => context.go('/login'),
-          ),
-        ],
+                const SizedBox(height: 7),
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedRole,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.badge_outlined, size: 19, color: AppColors.textMutedLight),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.secondary, width: 1.4),
+                    ),
+                  ),
+                  items: _roles.entries.map((e) => DropdownMenuItem(
+                    value: e.key,
+                    child: Text(e.value, style: const TextStyle(fontSize: 13)),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _selectedRole = v!),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // First + Last Name in a row
+            Row(
+              children: [
+                Expanded(
+                  child: AuthTextField(
+                    label: 'Prénom',
+                    hint: 'Prénom',
+                    icon: Icons.person_outline,
+                    controller: _firstNameController,
+                    validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: AuthTextField(
+                    label: 'Nom',
+                    hint: 'Nom',
+                    icon: Icons.person_outline,
+                    controller: _lastNameController,
+                    validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            AuthTextField(
+              label: 'Email',
+              hint: 'exemple@gmail.com',
+              icon: Icons.mail_outline,
+              keyboardType: TextInputType.emailAddress,
+              controller: _emailController,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Email requis';
+                if (!v.contains('@')) return 'Email invalide';
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            AuthTextField(
+              label: 'Mot de passe',
+              hint: '********',
+              icon: Icons.lock_outline,
+              obscureText: _obscurePassword,
+              controller: _passwordController,
+              onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Mot de passe requis';
+                if (v.length < 6) return '6 caractères minimum';
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            AuthTextField(
+              label: 'Confirmer le mot de passe',
+              hint: '********',
+              icon: Icons.lock_outline,
+              obscureText: _obscureConfirm,
+              controller: _confirmPasswordController,
+              onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
+              validator: (v) {
+                if (v != _passwordController.text) return 'Les mots de passe ne correspondent pas';
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _acceptedTerms,
+                    onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
+                    activeColor: AppColors.secondary,
+                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      text: "J'accepte les ",
+                      children: [
+                        TextSpan(
+                          text: "Conditions d'utilisation",
+                          style: TextStyle(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        TextSpan(text: ' et la '),
+                        TextSpan(
+                          text: 'Politique de confidentialité',
+                          style: TextStyle(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    style: TextStyle(
+                      color: AppColors.textMutedLight,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            AuthPrimaryButton(
+              label: "S'inscrire",
+              isLoading: authState.isLoading,
+              onPressed: authState.isLoading ? null : _handleRegister,
+            ),
+            const SizedBox(height: 24),
+            AuthFooter(
+              text: 'Vous avez déjà un compte ?',
+              action: 'Se connecter',
+              onPressed: () => context.go('/login'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -321,6 +537,9 @@ class AuthTextField extends StatelessWidget {
   final IconData icon;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
+  final VoidCallback? onToggleObscure;
 
   const AuthTextField({
     super.key,
@@ -329,6 +548,9 @@ class AuthTextField extends StatelessWidget {
     required this.icon,
     this.obscureText = false,
     this.keyboardType,
+    this.controller,
+    this.validator,
+    this.onToggleObscure,
   });
 
   @override
@@ -345,17 +567,22 @@ class AuthTextField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 7),
-        TextField(
+        TextFormField(
+          controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon, size: 19, color: AppColors.textMutedLight),
-            suffixIcon: obscureText
-                ? const Icon(
-                    Icons.visibility_off_outlined,
-                    size: 19,
-                    color: AppColors.textMutedLight,
+            suffixIcon: onToggleObscure != null
+                ? GestureDetector(
+                    onTap: onToggleObscure,
+                    child: Icon(
+                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      size: 19,
+                      color: AppColors.textMutedLight,
+                    ),
                   )
                 : null,
             filled: true,
@@ -376,6 +603,14 @@ class AuthTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: AppColors.secondary, width: 1.4),
             ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.danger),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.danger, width: 1.4),
+            ),
           ),
         ),
       ],
@@ -386,11 +621,13 @@ class AuthTextField extends StatelessWidget {
 class AuthPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
   const AuthPrimaryButton({
     super.key,
     required this.label,
     this.onPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -399,16 +636,22 @@ class AuthPrimaryButton extends StatelessWidget {
       width: double.infinity,
       height: 48,
       child: FilledButton(
-        onPressed: onPressed ?? () {},
+        onPressed: isLoading ? null : (onPressed ?? () {}),
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.secondary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+              )
+            : Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
       ),
     );
   }
@@ -616,15 +859,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   IconData _getIconData(String name) {
     switch (name) {
       case 'calendar_today':
-        return Icons.calendar_today;
+        return Icons.calendar_month_rounded;
       case 'qr_code':
-        return Icons.qr_code;
+        return Icons.qr_code_scanner_rounded;
       case 'video_call':
-        return Icons.video_call;
+        return Icons.video_camera_back_rounded;
       case 'cloud_off':
-        return Icons.cloud_off;
+        return Icons.cloud_off_rounded;
       default:
-        return Icons.info;
+        return Icons.info_outline_rounded;
     }
   }
 

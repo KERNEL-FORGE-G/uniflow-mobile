@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/providers.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 
-class StudentDashboardScreen extends StatelessWidget {
+class StudentDashboardScreen extends ConsumerWidget {
   const StudentDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final uesAsync = ref.watch(uesProvider);
+    final authState = ref.watch(authProvider);
+    final userName = authState.user?.firstName ?? 'Étudiant';
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -17,12 +24,12 @@ class StudentDashboardScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Bonjour, Ahmed! 👋', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('Voici ce qui se passe aujourd\'hui', style: TextStyle(color: AppColors.textMutedLight)),
+                      Text('Bonjour, $userName! 👋', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      const Text('Voici ce qui se passe aujourd\'hui', style: TextStyle(color: AppColors.textMutedLight)),
                     ],
                   ),
                   const CircleAvatar(
@@ -55,11 +62,40 @@ class StudentDashboardScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          _buildCourseItem('08:00', '10:00', 'Mathématiques', 'Algèbre linéaire', 'Salle A202', 'En cours', AppColors.secondary.withValues(alpha: 0.1), AppColors.secondary),
-                          const Divider(height: 24),
-                          _buildCourseItem('10:00', '12:00', 'Physique', 'Mécanique du solide', 'Salle B301', 'À venir', AppColors.primary.withValues(alpha: 0.1), AppColors.primary),
-                          const Divider(height: 24),
-                          _buildCourseItem('14:00', '16:00', 'Informatique', 'Structures de données', 'Salle Info 2', 'À venir', AppColors.primary.withValues(alpha: 0.1), AppColors.primary),
+                          uesAsync.when(
+                            data: (state) {
+                              if (state.items.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20),
+                                  child: Center(child: Text('Aucun cours aujourd\'hui', style: TextStyle(color: AppColors.textMutedLight))),
+                                );
+                              }
+                              // Prendre les 3 premiers UEs du backend
+                              final displayUes = state.items.take(3).toList();
+                              return Column(
+                                children: displayUes.map((ue) {
+                                  final isFirst = displayUes.indexOf(ue) == 0;
+                                  return Column(
+                                    children: [
+                                      if (!isFirst) const Divider(height: 24),
+                                      _buildCourseItem(
+                                        '08:00', 
+                                        '10:00', 
+                                        ue.code, 
+                                        ue.title, 
+                                        'Salle B101', 
+                                        isFirst ? 'En cours' : 'À venir', 
+                                        isFirst ? AppColors.secondary.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.1), 
+                                        isFirst ? AppColors.secondary : AppColors.primary
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              );
+                            },
+                            loading: () => const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator())),
+                            error: (err, _) => Center(child: Text('Erreur : $err')),
+                          ),
                         ],
                       ),
                     ),
@@ -174,62 +210,57 @@ class StudentDashboardScreen extends StatelessWidget {
   }
 }
 
-class StudentEdtScreen extends StatelessWidget {
+class StudentEdtScreen extends ConsumerWidget {
   const StudentEdtScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final schedulesAsync = ref.watch(schedulesProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mon EDT', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.calendar_month), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.invalidate(schedulesProvider),
+          ),
         ],
       ),
       body: Column(
         children: [
-          // Sélecteur de semaine
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            color: AppColors.surfaceLight,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(icon: const Icon(Icons.chevron_left), onPressed: () {}),
-                const Text('Semaine 24 (13 - 19 Mai 2024)', style: TextStyle(fontWeight: FontWeight.bold)),
-                IconButton(icon: const Icon(Icons.chevron_right), onPressed: () {}),
-              ],
-            ),
-          ),
-          
-          // Onglets Jours (simplifié pour l'affichage)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            color: AppColors.surfaceLight,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildDayTab('13', 'LUN', false),
-                _buildDayTab('14', 'MAR', true),
-                _buildDayTab('15', 'MER', false),
-                _buildDayTab('16', 'JEU', false),
-                _buildDayTab('17', 'VEN', false),
-                _buildDayTab('18', 'SAM', false),
-              ],
-            ),
-          ),
-          
-          // Timeline des cours
+          // Timeline des cours dynamiques
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildEdtTimeBlock('08:00', '10:00', 'MATH201', 'Algèbre Linéaire', 'CM', 'Amphi A', AppColors.info),
-                _buildEdtTimeBlock('10:00', '12:00', 'INFO101', 'Bases de données', 'TD', 'Salle B204', AppColors.secondary),
-                const SizedBox(height: 60), // Trou dans l'emploi du temps
-                _buildEdtTimeBlock('14:00', '16:00', 'PHYS201', 'Mécanique', 'TP', 'Lab L3', AppColors.warning),
-              ],
+            child: schedulesAsync.when(
+              data: (schedules) {
+                if (schedules.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Text('Aucun cours trouvé dans l\'emploi du temps.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMutedLight)),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: schedules.length,
+                  itemBuilder: (context, index) {
+                    final item = schedules[index];
+                    return _buildEdtTimeBlock(
+                      item.formattedStart,
+                      item.formattedEnd,
+                      item.dayOfWeek,
+                      item.course?.displayName ?? 'Cours',
+                      item.course?.type ?? 'CM',
+                      item.classroom?.name ?? 'Salle non attribuée',
+                      AppColors.primary,
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(child: Text('Erreur: $err')),
             ),
           ),
         ],
@@ -237,25 +268,7 @@ class StudentEdtScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDayTab(String day, String weekday, bool isSelected) {
-    return Column(
-      children: [
-        Text(weekday, style: TextStyle(color: isSelected ? AppColors.secondary : AppColors.textMutedLight, fontSize: 12, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.secondary : Colors.transparent,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(day, style: TextStyle(color: isSelected ? Colors.white : AppColors.textPrimaryLight, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildEdtTimeBlock(String start, String end, String code, String title, String type, String room, Color color) {
     return Padding(
@@ -316,8 +329,108 @@ class StudentEdtScreen extends StatelessWidget {
   }
 }
 
-class StudentCoursesScreen extends StatelessWidget {
+class StudentCoursesScreen extends StatefulWidget {
   const StudentCoursesScreen({super.key});
-  @override Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Cours Étudiant')));
+
+  @override
+  State<StudentCoursesScreen> createState() => _StudentCoursesScreenState();
+}
+
+class _StudentCoursesScreenState extends State<StudentCoursesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final List<Map<String, dynamic>> _courses = [
+    {
+      'code': 'INFO101',
+      'title': 'Algorithmique',
+      'level': 'Licence 1',
+      'credits': '6 ECTS',
+      'volume': '60h',
+      'color': AppColors.primary,
+    },
+    {
+      'code': 'BD202',
+      'title': 'Bases de données',
+      'level': 'Licence 2',
+      'credits': '6 ECTS',
+      'volume': '45h',
+      'color': AppColors.secondary,
+    },
+    {
+      'code': 'RESE301',
+      'title': 'Réseaux informatiques',
+      'level': 'Licence 3',
+      'credits': '6 ECTS',
+      'volume': '60h',
+      'color': AppColors.info,
+    },
+    {
+      'code': 'IA401',
+      'title': 'Intelligence Artificielle',
+      'level': 'Master 1',
+      'credits': '8 ECTS',
+      'volume': '75h',
+      'color': AppColors.warning,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Unités d\'Enseignement', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Rechercher une UE...',
+                prefixIcon: const Icon(Icons.search),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _courses.length,
+              itemBuilder: (context, index) {
+                final course = _courses[index];
+                final color = course['color'] as Color;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.computer_rounded, color: color),
+                    ),
+                    title: Text(
+                      '${course['code']} - ${course['title']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        '${course['level']} • ${course['credits']} • ${course['volume']}',
+                        style: const TextStyle(color: AppColors.textMutedLight),
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {},
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
