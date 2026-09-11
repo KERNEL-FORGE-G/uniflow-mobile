@@ -8,11 +8,10 @@ class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child, required this.location});
 
   static const _tabs = [
-    (icon: Icons.school_outlined, active: Icons.school, label: 'Étudiants', path: '/etudiants'),
-    (icon: Icons.person_outline, active: Icons.person, label: 'Enseignants', path: '/enseignants'),
-    (icon: Icons.book_outlined, active: Icons.book, label: 'UEs', path: '/ues'),
-    (icon: Icons.assignment_outlined, active: Icons.assignment, label: 'Inscriptions', path: '/inscriptions'),
-    (icon: Icons.check_circle_outline, active: Icons.check_circle, label: 'Présence', path: '/presence'),
+    (icon: Icons.home_outlined, active: Icons.home, label: 'Accueil', path: '/accueil'),
+    (icon: Icons.book_outlined, active: Icons.book, label: 'Études', path: '/ues'),
+    (icon: Icons.chat_bubble_outline, active: Icons.chat_bubble, label: 'Messages', path: '/messages'),
+    (icon: Icons.qr_code_scanner, active: Icons.qr_code_scanner, label: 'Présence', path: '/presence'),
     (icon: Icons.settings_outlined, active: Icons.settings, label: 'Réglages', path: '/settings'),
   ];
 

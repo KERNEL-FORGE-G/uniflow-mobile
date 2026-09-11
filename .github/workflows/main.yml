@@ -1,0 +1,40 @@
+name: UniFlow Mobile CI
+
+on:
+  push:
+    branches: [ main, team-fronted-dev-mo ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+        
+      - name: Create .env file
+        run: |
+          echo "APPWRITE_ENDPOINT=${{ secrets.APPWRITE_ENDPOINT }}" >> .env
+          echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}" >> .env
+          echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}" >> .env
+          echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}" >> .env
+          echo "UNIFLOW_API_TOKEN=${{ secrets.UNIFLOW_API_TOKEN }}" >> .env
+          
+      - name: Analyze project source
+        run: flutter analyze
+        
+      - name: Run tests
+        run: flutter test
+        
+      - name: Build APK
+        run: flutter build apk --release --no-pub

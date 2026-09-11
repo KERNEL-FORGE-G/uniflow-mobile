@@ -12,6 +12,7 @@ class AppColors {
   static const info = Color(0xFF2563EB);
   static const warning = Color(0xFFF59E0B);
   static const danger = Color(0xFFDC2626);
+  static const inputFill = Color(0xFFF1F5F9);
 }
 
 class AppTheme {

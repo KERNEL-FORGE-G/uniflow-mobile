@@ -2,27 +2,76 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/mock_data.dart';
 import '../data/uniflow_api.dart';
 import '../models/models.dart';
+import '../models/appwrite_models.dart';
+import '../repositories/academic_repository.dart';
+import '../repositories/auth_repository.dart';
 
 final apiProvider = Provider<UniFlowApi>((ref) => UniFlowApi());
 
-final studentsProvider = StateProvider<List<Student>>((ref) => mockStudents);
-final teachersProvider = StateProvider<List<Teacher>>((ref) => mockTeachers);
-final uesProvider = StateProvider<List<UE>>((ref) => mockUEs);
-final enrollmentsProvider = StateProvider<List<Enrollment>>((ref) => mockEnrollments);
+final studentsProvider = StateProvider<List<Student>>((ref) => []);
+final teachersProvider = StateProvider<List<Teacher>>((ref) => []);
+final uesProvider = StateProvider<List<UE>>((ref) => []);
+final enrollmentsProvider = StateProvider<List<Enrollment>>((ref) => []);
+
+final currentUserProvider = StateProvider<UniFlowUser?>((ref) => null);
 
 final gatewaySyncProvider = FutureProvider<void>((ref) async {
-  final api = ref.read(apiProvider);
+  final academicRepo = ref.read(academicRepositoryProvider);
+  final authRepo = ref.read(authRepositoryProvider);
+
   try {
+    final user = await authRepo.getCurrentUser();
+    ref.read(currentUserProvider.notifier).state = user;
+
     final results = await Future.wait([
-      api.fetchStudents(),
-      api.fetchTeachers(),
-      api.fetchTeachingUnits(),
+      academicRepo.getDirectory(),
+      academicRepo.getCourses(),
     ]);
-    if (results[0].isNotEmpty) ref.read(studentsProvider.notifier).state = results[0] as List<Student>;
-    if (results[1].isNotEmpty) ref.read(teachersProvider.notifier).state = results[1] as List<Teacher>;
-    if (results[2].isNotEmpty) ref.read(uesProvider.notifier).state = results[2] as List<UE>;
-  } catch (_) {
-    // Offline-first : les dernières données locales restent consultables.
+
+    final directory = results[0] as List;
+    final courses = results[1] as List;
+
+    final students = directory.where((e) => e.role == 'STUDENT' || e.role == 'DELEGATE').map((e) => Student(
+      id: e.userId,
+      matricule: e.matricule ?? '',
+      firstName: e.name.split(' ').first,
+      lastName: e.name.split(' ').skip(1).join(' '),
+      filiere: e.program,
+      niveau: e.level,
+      status: e.status ?? 'ACTIVE',
+      email: '', // À compléter via une autre source si besoin
+      phone: '',
+      ueIds: [],
+    )).toList();
+
+    final teachers = directory.where((e) => e.role == 'TEACHER').map((e) => Teacher(
+      id: e.userId,
+      firstName: e.name.split(' ').first,
+      lastName: e.name.split(' ').skip(1).join(' '),
+      status: e.status ?? 'ACTIVE',
+      email: '',
+      department: e.program,
+      ueIds: [],
+    )).toList();
+
+    final ues = courses.map((c) => UE(
+      id: c.id,
+      code: c.code,
+      title: c.name,
+      credits: c.credits ?? 0,
+      cm: 0,
+      td: 0,
+      tp: 0,
+      description: c.description ?? '',
+      colorHex: '#2563EB',
+    )).toList();
+
+    ref.read(studentsProvider.notifier).state = students;
+    ref.read(teachersProvider.notifier).state = teachers;
+    ref.read(uesProvider.notifier).state = ues;
+  } catch (e) {
+    // En cas d'erreur, on peut charger les mocks pour le dev ou garder les données vides
+    print('Erreur lors de la synchro Appwrite: $e');
   }
 });
 

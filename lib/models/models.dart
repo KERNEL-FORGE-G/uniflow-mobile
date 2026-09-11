@@ -41,6 +41,21 @@ class Student {
     );
   }
 
+  factory Student.fromAppwrite(Map<String, dynamic> data) {
+    return Student(
+      id: data['userId'] ?? '',
+      matricule: data['matricule'] ?? '',
+      firstName: (data['name'] ?? '').split(' ').first,
+      lastName: (data['name'] ?? '').split(' ').skip(1).join(' '),
+      filiere: data['program'] ?? '',
+      niveau: data['level'] ?? 'L1',
+      status: data['status'] ?? 'ACTIVE',
+      email: data['email'] ?? '',
+      phone: '',
+      ueIds: [],
+    );
+  }
+
   String get fullName => '$firstName $lastName';
   String get initials => '${firstName.isNotEmpty ? firstName[0] : ''}${lastName.isNotEmpty ? lastName[0] : ''}';
 }

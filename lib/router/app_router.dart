@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/app_shell.dart';
+import '../screens/dashboard.dart';
 import '../screens/students_list.dart';
 import '../screens/student_detail.dart';
 import '../screens/teachers_list.dart';
@@ -12,15 +13,23 @@ import '../screens/ue_detail.dart';
 import '../screens/enrollments.dart';
 import '../screens/presence.dart';
 import '../screens/settings.dart';
+import '../screens/grades.dart';
+import '../screens/assignments.dart';
+import '../screens/library.dart';
+import '../screens/forum.dart';
+import '../screens/messages.dart';
+import '../screens/sentinelle.dart';
+import '../screens/teams.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/etudiants',
+    initialLocation: '/accueil',
     routes: [
       ShellRoute(
         builder: (context, state, child) =>
             AppShell(location: state.uri.path, child: child),
         routes: [
+          GoRoute(path: '/accueil', builder: (_, __) => const DashboardScreen()),
           GoRoute(path: '/etudiants', builder: (_, __) => const StudentsListScreen()),
           GoRoute(path: '/etudiants/:id', builder: (_, s) => StudentDetailScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/enseignants', builder: (_, __) => const TeachersListScreen()),
@@ -29,6 +38,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/ues/:id', builder: (_, s) => UEDetailScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/inscriptions', builder: (_, __) => const EnrollmentsScreen()),
           GoRoute(path: '/presence', builder: (_, __) => const PresenceScreen()),
+          GoRoute(path: '/notes', builder: (_, __) => const GradesScreen()),
+          GoRoute(path: '/devoirs', builder: (_, __) => const AssignmentsScreen()),
+          GoRoute(path: '/bibliotheque', builder: (_, __) => const LibraryScreen()),
+          GoRoute(path: '/forum', builder: (_, __) => const ForumScreen()),
+          GoRoute(path: '/messages', builder: (_, __) => const MessagesScreen()),
+          GoRoute(path: '/sentinelle', builder: (_, __) => const SentinelleScreen()),
+          GoRoute(path: '/equipe', builder: (_, __) => const TeamsScreen()),
           GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
         ],
       ),
