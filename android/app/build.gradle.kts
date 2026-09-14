@@ -13,6 +13,11 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Exigé par `flutter_local_notifications` : le greffon utilise les API
+        // de date/heure de Java 8 (`java.time`), absentes des anciens Android.
+        // Sans cette ligne, la compilation échoue sur
+        // « requires core library desugaring to be enabled ».
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -43,4 +48,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Bibliothèque de « desugaring » : fournit à Android 7 et antérieur les
+    // classes `java.time` que `flutter_local_notifications` attend.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

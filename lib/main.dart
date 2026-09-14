@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/providers.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,11 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
     // Maintient la synchronisation active : elle se relance d'elle-même quand
     // l'état d'authentification change.
     ref.listenManual(gatewaySyncProvider, (_, __) {});
+    // Ouvre l'écoute temps réel des messages urgents. Elle ne fait rien tant
+    // qu'aucun compte n'est connecté, et se relance à chaque changement de
+    // session — une socket laissée ouverte sur le compte précédent enverrait
+    // les alertes du mauvais utilisateur.
+    ref.listenManual(urgentNotificationsProvider, (_, __) {});
   }
 
   @override

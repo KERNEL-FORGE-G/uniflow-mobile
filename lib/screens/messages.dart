@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../repositories/messaging_repository.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
-import '../utils/avatar.dart';
 import '../widgets/common.dart';
 
 class MessagesScreen extends ConsumerWidget {
@@ -21,7 +21,10 @@ class MessagesScreen extends ConsumerWidget {
       body: Column(
         children: [
           const GradientHeader(
-              title: 'Messagerie', subtitle: 'Discussions académiques et privées'),
+            title: 'Messagerie',
+            subtitle: 'Discussions académiques et privées',
+            trailing: _NotificationBell(),
+          ),
           Expanded(
             child: conversationsAsync.when(
               data: (list) {
@@ -84,6 +87,53 @@ class MessagesScreen extends ConsumerWidget {
         SnackBar(content: Text(error.toString())),
       );
     }
+  }
+}
+
+/// Cloche de notifications, avec le nombre de messages urgents non lus.
+///
+/// Le compteur vient du flux temps réel : il s'incrémente à l'arrivée d'une
+/// notification, sans que l'utilisateur ait à revenir sur l'écran.
+class _NotificationBell extends ConsumerWidget {
+  const _NotificationBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(urgentNotificationsProvider).valueOrNull ?? 0;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: () => context.push('/notifications'),
+          icon: const Icon(Icons.notifications_none, color: Colors.white),
+          tooltip: 'Notifications',
+        ),
+        if (unread > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.danger,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              constraints: const BoxConstraints(minWidth: 18),
+              child: Text(
+                unread > 99 ? '99+' : '$unread',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 

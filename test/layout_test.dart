@@ -21,6 +21,8 @@ import 'package:uniflow_mobile/screens/grades.dart';
 import 'package:uniflow_mobile/screens/help.dart';
 import 'package:uniflow_mobile/screens/library.dart';
 import 'package:uniflow_mobile/screens/login.dart';
+import 'package:uniflow_mobile/screens/messages.dart';
+import 'package:uniflow_mobile/screens/notifications.dart';
 import 'package:uniflow_mobile/screens/presence.dart';
 import 'package:uniflow_mobile/screens/sentinelle.dart';
 import 'package:uniflow_mobile/screens/settings.dart';
@@ -63,6 +65,8 @@ void main() {
     'Notes': const GradesScreen(),
     'Devoirs': const AssignmentsScreen(),
     'Bibliothèque': const LibraryScreen(),
+    'Messagerie': const MessagesScreen(),
+    'Notifications': const NotificationsScreen(),
     'Équipe': const TeamsScreen(),
     'Aide': const HelpScreen(),
     'Sentinelle': const SentinelleScreen(),

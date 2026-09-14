@@ -20,6 +20,7 @@ import '../screens/assignments.dart';
 import '../screens/library.dart';
 import '../screens/forum.dart';
 import '../screens/messages.dart';
+import '../screens/notifications.dart';
 import '../screens/conversation.dart';
 import '../repositories/messaging_repository.dart';
 import '../screens/sentinelle.dart';
@@ -62,6 +63,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/devoirs', builder: (_, __) => const AssignmentsScreen()),
           GoRoute(path: '/bibliotheque', builder: (_, __) => const LibraryScreen()),
           GoRoute(path: '/forum', builder: (_, __) => const ForumScreen()),
+          GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
           GoRoute(path: '/messages', builder: (_, __) => const MessagesScreen()),
           // La conversation est transmise par la liste via `extra`, ce qui
           // permet de peindre le fil sans attendre le réseau. Un accès direct

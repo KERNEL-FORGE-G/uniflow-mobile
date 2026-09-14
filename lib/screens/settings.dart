@@ -23,6 +23,91 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _uploading = false;
   String? _photoError;
 
+  /// Vrai pendant l'enregistrement du pseudo.
+  bool _savingUsername = false;
+  String? _usernameError;
+
+  /// Ouvre la boîte de dialogue de création / modification du pseudo.
+  ///
+  /// Le pseudo est l'adresse de la messagerie : il ne peut pas être vide, et
+  /// c'est le serveur qui garantit son unicité.
+  Future<void> _editUsername() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    final controller = TextEditingController(text: user.username ?? '');
+    final submitted = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(user.username == null || user.username!.isEmpty
+            ? 'Créer votre pseudo'
+            : 'Changer de pseudo'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Vos contacts vous trouvent par ce pseudo dans la messagerie.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                prefixText: '@',
+                hintText: 'prenom.nom',
+                helperText: '3 à 32 caractères : lettres, chiffres, . _ -',
+              ),
+              onSubmitted: (value) => Navigator.pop(ctx, value),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (submitted == null || !mounted) return;
+
+    final normalized = normalizeUsername(submitted);
+    if (normalized == null) {
+      setState(() => _usernameError =
+          'Pseudo invalide : 3 à 32 caractères, lettres minuscules, chiffres, '
+          'point, tiret ou souligné, en commençant par une lettre ou un chiffre.');
+      return;
+    }
+    if (normalized == user.username) {
+      setState(() => _usernameError = null);
+      return;
+    }
+
+    setState(() {
+      _savingUsername = true;
+      _usernameError = null;
+    });
+    try {
+      final updated = await ref
+          .read(authRepositoryProvider)
+          .updateUsername(user.id, normalized);
+      if (!mounted) return;
+      ref.read(currentUserProvider.notifier).state = updated;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pseudo enregistré : @$normalized')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _usernameError = error.toString());
+    } finally {
+      if (mounted) setState(() => _savingUsername = false);
+    }
+  }
+
   Future<void> _logout() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -197,6 +282,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                       ],
                     ],
+                    const Divider(height: 24),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.alternate_email, color: AppColors.primaryBlue),
+                      title: const Text('Pseudo de messagerie'),
+                      subtitle: Text(
+                        user == null || user.username == null || user.username!.isEmpty
+                            ? 'Aucun pseudo : vous n\'êtes pas joignable'
+                            : '@${user.username}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: _savingUsername
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                      onTap: user == null || _savingUsername ? null : _editUsername,
+                    ),
+                    if (_usernameError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          _usernameError!,
+                          style: const TextStyle(fontSize: 12, color: AppColors.danger),
+                        ),
+                      ),
                     const Divider(height: 24),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
