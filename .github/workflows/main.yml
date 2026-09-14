@@ -12,7 +12,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
+      # Sans cette etape, le runner utilise un JDK par defaut qui peut depasser
+      # ce que Gradle 8.14 supporte (« Gradle build failed due to Java/Gradle
+      # incompatibility »). On epingle donc explicitement la meme version qu'en local.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -27,8 +36,7 @@ jobs:
           echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}" >> .env
           echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}" >> .env
           echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}" >> .env
-          echo "UNIFLOW_API_TOKEN=${{ secrets.UNIFLOW_API_TOKEN }}" >> .env
-          
+
       - name: Analyze project source
         run: flutter analyze
         

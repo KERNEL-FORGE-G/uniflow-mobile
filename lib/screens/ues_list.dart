@@ -41,7 +41,7 @@ class UEsListScreen extends ConsumerWidget {
                     children: [
                       Container(
                         width: 44, height: 44,
-                        decoration: BoxDecoration(color: c.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+                        decoration: BoxDecoration(color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
                         alignment: Alignment.center,
                         child: Text(u.code.substring(0, 3),
                             style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12)),
@@ -54,11 +54,11 @@ class UEsListScreen extends ConsumerWidget {
                             Text(u.title, style: const TextStyle(fontWeight: FontWeight.w600)),
                             const SizedBox(height: 2),
                             Text('${u.code} · ${u.credits} crédits',
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      const Icon(Icons.chevron_right, color: AppColors.textSecondary),
                     ],
                   ),
                 ),

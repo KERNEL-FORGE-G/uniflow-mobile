@@ -1,4 +1,4 @@
-package com.example.uniflow
+package com.uniflow.kernelforge
 
 import io.flutter.embedding.android.FlutterActivity
 

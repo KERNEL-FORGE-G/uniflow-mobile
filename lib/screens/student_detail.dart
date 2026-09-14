@@ -13,7 +13,13 @@ class StudentDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = findStudent(ref, id);
-    if (s == null) return const Center(child: Text('Étudiant introuvable'));
+    if (s == null) {
+      return const EmptyState(
+        icon: Icons.person_off_outlined,
+        title: 'Étudiant introuvable',
+        message: 'Cet identifiant ne correspond à aucun étudiant.',
+      );
+    }
     final ues = ref.watch(uesProvider).where((u) => s.ueIds.contains(u.id)).toList();
     return Column(
       children: [
@@ -40,7 +46,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         children: [
                           Text(s.fullName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 4),
-                          Text('${s.filiere} · ${s.niveau}', style: const TextStyle(color: AppColors.textMuted)),
+                          Text('${s.filiere} · ${s.niveau}', style: const TextStyle(color: AppColors.textSecondary)),
                           const SizedBox(height: 8),
                           StatusBadge(label: s.status),
                         ],
@@ -74,7 +80,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     ...ues.map((u) => ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
-                            backgroundColor: _hex(u.colorHex).withOpacity(0.15),
+                            backgroundColor: _hex(u.colorHex).withValues(alpha: 0.15),
                             child: Text(u.code.substring(0, 3), style: TextStyle(color: _hex(u.colorHex), fontSize: 11, fontWeight: FontWeight.w700)),
                           ),
                           title: Text(u.title),
@@ -93,7 +99,7 @@ class StudentDetailScreen extends ConsumerWidget {
   }
 
   Widget _row(IconData i, String t) => Row(children: [
-        Icon(i, size: 18, color: AppColors.textMuted),
+        Icon(i, size: 18, color: AppColors.textSecondary),
         const SizedBox(width: 8),
         Expanded(child: Text(t)),
       ]);

@@ -1,33 +1,136 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../services/profile_photo_service.dart';
+import '../utils/avatar.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
+import '../providers/providers.dart';
+import '../repositories/auth_repository.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  late TextEditingController _tokenController;
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _uploading = false;
+  String? _photoError;
 
-  @override
-  void initState() {
-    super.initState();
-    _tokenController = TextEditingController(text: dotenv.get('UNIFLOW_API_TOKEN', fallback: ''));
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Se déconnecter ?'),
+        content: const Text('Vous devrez ressaisir vos identifiants pour revenir.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Se déconnecter', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(authRepositoryProvider).logout();
+    } catch (_) {
+      // Une session déjà expirée côté serveur ne doit pas bloquer la sortie.
+    }
+    ref.read(currentUserProvider.notifier).state = null;
+    ref.read(studentsProvider.notifier).state = const [];
+    ref.read(teachersProvider.notifier).state = const [];
+    ref.read(uesProvider.notifier).state = const [];
+    ref.read(authStatusProvider.notifier).state = AuthStatus.signedOut;
   }
 
-  @override
-  void dispose() {
-    _tokenController.dispose();
-    super.dispose();
+  Future<void> _pickAndUpload() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    setState(() => _photoError = null);
+
+    final ImagePicker picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      // Le redimensionnement évite d'envoyer une photo de 12 Mpx alors que
+      // l'avatar s'affiche au plus en 96 px : le quota du bucket et la
+      // connexion de l'utilisateur en profitent tous les deux.
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 88,
+    );
+    if (picked == null) return;
+
+    final invalid = validateAvatarPath(picked.path);
+    if (invalid != null) {
+      setState(() => _photoError = invalid);
+      return;
+    }
+
+    setState(() => _uploading = true);
+    try {
+      await ref.uploadAvatar(File(picked.path), user);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo de profil mise à jour.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) setState(() => _photoError = error.toString());
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _removePhoto() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null || user.avatarFileId == null || user.avatarFileId!.isEmpty) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Retirer la photo ?'),
+        content: const Text('Vos initiales réapparaîtront à la place.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Retirer', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() {
+      _uploading = true;
+      _photoError = null;
+    });
+    try {
+      await ref.removeAvatar(user);
+    } catch (error) {
+      if (mounted) setState(() => _photoError = error.toString());
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider);
+    final hasPhoto = user?.avatarFileId != null && user!.avatarFileId!.isNotEmpty;
+
     return Column(
       children: [
         const GradientHeader(title: 'Réglages', subtitle: 'Préférences de l\'application'),
@@ -37,55 +140,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               SectionCard(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.person_outline, color: AppColors.teal), title: Text('Profil')),
-                    const Divider(height: 1),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.security_outlined, color: AppColors.teal),
+                      leading: _PhotoAvatar(
+                        initials: user == null ? '?' : initialsOf(user.name),
+                        avatarFileId: user?.avatarFileId,
+                        uploading: _uploading,
+                      ),
+                      title: Text(user?.name ?? 'Non connecté',
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(
+                        user == null
+                            ? 'Aucune session active'
+                            : (user.username == null || user.username!.isEmpty
+                                ? '${user.role} · ${user.email}'
+                                : '@${user.username} · ${user.role}'),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    if (user != null) ...[
+                      const SizedBox(height: 8),
+                      // `Wrap` et non `Row` : « Changer la photo » et « Retirer »
+                      // ne tiennent pas sur une même ligne à 320 px de large, et
+                      // la ligne débordait de 44 px. Ici le second bouton passe
+                      // simplement à la ligne suivante.
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: _uploading ? null : _pickAndUpload,
+                            icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                            label: Text(hasPhoto ? 'Changer la photo' : 'Ajouter une photo'),
+                          ),
+                          if (hasPhoto)
+                            TextButton(
+                              onPressed: _uploading ? null : _removePhoto,
+                              child: const Text('Retirer',
+                                  style: TextStyle(color: AppColors.danger)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'JPEG, PNG ou WebP · 5 Mo maximum',
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                      if (_photoError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _photoError!,
+                          style: const TextStyle(fontSize: 12, color: AppColors.danger),
+                        ),
+                      ],
+                    ],
+                    const Divider(height: 24),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.security_outlined, color: AppColors.primaryBlue),
                       title: const Text('Sentinelle IoT'),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
                       onTap: () => GoRouter.of(context).push('/sentinelle'),
                     ),
                     const Divider(height: 1),
-                    const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.notifications_outlined, color: AppColors.teal), title: Text('Notifications')),
-                    const Divider(height: 1),
-                    const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.lock_outline, color: AppColors.teal), title: Text('Sécurité')),
-                    const Divider(height: 1),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.groups_outlined, color: AppColors.teal),
+                      leading: const Icon(Icons.groups_outlined, color: AppColors.primaryBlue),
                       title: const Text('L\'Équipe KERNEL FORGE'),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
                       onTap: () => GoRouter.of(context).push('/equipe'),
                     ),
-                    const Divider(height: 1),
-                    const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.info_outline, color: AppColors.teal), title: Text('À propos')),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text('DEVELOPPEMENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
-              const SizedBox(height: 8),
-              SectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('UniFlow API Token', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _tokenController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: 'Saisissez votre clé d\'API...',
-                        filled: true,
-                        fillColor: AppColors.inputFill,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    if (user != null) ...[
+                      const Divider(height: 1),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.logout, color: AppColors.danger),
+                        title: const Text('Se déconnecter',
+                            style: TextStyle(color: AppColors.danger)),
+                        onTap: _logout,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Ce jeton est utilisé pour authentifier les requêtes vers les services UniFlow sécurisés.',
-                      style: TextStyle(fontSize: 11, color: AppColors.textMuted),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -93,6 +230,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// L'avatar du profil, surmonté d'un voile pendant le téléversement pour que
+/// l'attente soit visible sans masquer l'image en cours de remplacement.
+class _PhotoAvatar extends StatelessWidget {
+  final String initials;
+  final String? avatarFileId;
+  final bool uploading;
+
+  const _PhotoAvatar({
+    required this.initials,
+    required this.avatarFileId,
+    required this.uploading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final avatar = Avatar(initials: initials, avatarFileId: avatarFileId, size: 52);
+    if (!uploading) return avatar;
+
+    return SizedBox(
+      width: 52,
+      height: 52,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          avatar,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.45),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

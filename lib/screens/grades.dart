@@ -27,7 +27,11 @@ class GradesScreen extends ConsumerWidget {
             child: gradesAsync.when(
               data: (grades) {
                 if (grades.isEmpty) {
-                  return const Center(child: Text('Aucune note enregistrée pour le moment.'));
+                  return const EmptyState(
+                    icon: Icons.grade_outlined,
+                    title: 'Aucune note enregistrée',
+                    message: 'Vos résultats apparaîtront ici dès leur publication.',
+                  );
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -45,7 +49,7 @@ class GradesScreen extends ConsumerWidget {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: (isGood ? AppColors.success : AppColors.danger).withOpacity(0.1),
+                              color: (isGood ? AppColors.success : AppColors.danger).withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             alignment: Alignment.center,
@@ -64,13 +68,13 @@ class GradesScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(grade.evaluationTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                Text(grade.courseCode, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                                Text(grade.courseCode, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                               ],
                             ),
                           ),
                           Text(
                             '/ ${grade.maxScore.toInt()}',
-                            style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w500),
+                            style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -78,8 +82,14 @@ class GradesScreen extends ConsumerWidget {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Erreur: $err')),
+              loading: () => const LoadingView(label: 'Chargement de vos notes…'),
+              error: (err, stack) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: ErrorBanner(
+                  message: 'Vos notes n\'ont pas pu être chargées.\n$err',
+                  onRetry: () => ref.invalidate(gradesListProvider),
+                ),
+              ),
             ),
           ),
         ],

@@ -25,7 +25,11 @@ class ForumScreen extends ConsumerWidget {
             child: postsAsync.when(
               data: (posts) {
                 if (posts.isEmpty) {
-                  return const Center(child: Text('Aucune publication pour le moment.'));
+                  return const EmptyState(
+                    icon: Icons.forum_outlined,
+                    title: 'Aucune publication',
+                    message: 'Lancez la première discussion du forum.',
+                  );
                 }
                 return RefreshIndicator(
                   onRefresh: () => ref.refresh(forumPostsProvider.future),
@@ -48,13 +52,13 @@ class ForumScreen extends ConsumerWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(post.role, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                                      Text(post.role, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                                     ],
                                   ),
                                 ),
                                 Text(
                                   DateFormat('dd/MM HH:mm').format(post.createdAt),
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                               ],
                             ),
@@ -71,7 +75,7 @@ class ForumScreen extends ConsumerWidget {
                                 const Spacer(),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(color: AppColors.teal.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                  decoration: BoxDecoration(color: AppColors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                   child: Text(post.category, style: const TextStyle(fontSize: 10, color: AppColors.teal, fontWeight: FontWeight.bold)),
                                 ),
                               ],
@@ -83,8 +87,8 @@ class ForumScreen extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Erreur: $e')),
+              loading: () => const LoadingView(),
+              error: (e, _) => Padding(padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$e')),
             ),
           ),
         ],
@@ -93,13 +97,13 @@ class ForumScreen extends ConsumerWidget {
         onPressed: () {
           // TODO: Boîte de dialogue pour créer un post
         },
-        backgroundColor: AppColors.teal,
+        backgroundColor: AppColors.primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   Widget _buildInteraction(IconData icon, String count) {
-    return Row(children: [Icon(icon, size: 16, color: AppColors.textMuted), const SizedBox(width: 4), Text(count, style: const TextStyle(fontSize: 12, color: AppColors.textMuted))]);
+    return Row(children: [Icon(icon, size: 16, color: AppColors.textSecondary), const SizedBox(width: 4), Text(count, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))]);
   }
 }

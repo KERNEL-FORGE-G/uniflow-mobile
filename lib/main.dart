@@ -22,17 +22,55 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(gatewaySyncProvider.future));
+    // Résout la session Appwrite stockée sur l'appareil avant de choisir
+    // entre l'écran de connexion et l'application.
+    Future.microtask(() => ref.read(sessionBootstrapProvider.future));
+    // Maintient la synchronisation active : elle se relance d'elle-même quand
+    // l'état d'authentification change.
+    ref.listenManual(gatewaySyncProvider, (_, __) {});
   }
 
   @override
   Widget build(BuildContext context) {
+    // Tant que la session n'est pas résolue, on affiche un écran de garde :
+    // router vers /login ici ferait clignoter la connexion pour un utilisateur
+    // déjà authentifié.
+    if (ref.watch(authStatusProvider) == AuthStatus.unknown) {
+      return MaterialApp(
+        title: 'UniFlow',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: const _SplashScreen(),
+      );
+    }
+
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       title: 'UniFlow',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: router,
+    );
+  }
+}
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: AppColors.teal,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: Colors.white),
+            SizedBox(height: 20),
+            Text('UniFlow', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
     );
   }
 }

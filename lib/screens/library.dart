@@ -24,7 +24,11 @@ class LibraryScreen extends ConsumerWidget {
             child: libraryAsync.when(
               data: (entries) {
                 if (entries.isEmpty) {
-                  return const Center(child: Text('Aucune ressource disponible.'));
+                  return const EmptyState(
+                    icon: Icons.library_books_outlined,
+                    title: 'Aucune ressource disponible',
+                    message: 'Les supports déposés par vos enseignants apparaîtront ici.',
+                  );
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -46,7 +50,7 @@ class LibraryScreen extends ConsumerWidget {
                         leading: Container(
                           width: 44,
                           height: 44,
-                          decoration: BoxDecoration(color: AppColors.teal.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: AppColors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                           child: Icon(fileIcon, color: AppColors.teal),
                         ),
                         title: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -63,8 +67,8 @@ class LibraryScreen extends ConsumerWidget {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Erreur: $err')),
+              loading: () => const LoadingView(),
+              error: (err, stack) => Padding(padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$err')),
             ),
           ),
         ],

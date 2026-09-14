@@ -30,7 +30,7 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
             preferredSize: const Size.fromHeight(44),
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
                   _tab('Semaine actuelle', 0),
@@ -42,7 +42,13 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
         ),
         Expanded(
           child: list.isEmpty
-              ? const Center(child: Text('Aucune inscription', style: TextStyle(color: AppColors.textMuted)))
+              ? EmptyState(
+                  icon: tab == 0 ? Icons.how_to_reg_outlined : Icons.inbox_outlined,
+                  title: tab == 0 ? 'Aucune inscription' : 'Aucune demande en attente',
+                  message: tab == 0
+                      ? 'Les inscriptions de la semaine apparaîtront ici.'
+                      : 'Vous avez traité toutes les demandes.',
+                )
               : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: list.length,
@@ -63,7 +69,7 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
                                 Text(s.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 2),
                                 Text('${u.code} · ${u.title}',
-                                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                               ],
                             ),
                           ),
@@ -92,7 +98,9 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
           alignment: Alignment.center,
           child: Text(label,
               style: TextStyle(
-                  color: active ? AppColors.teal : Colors.white,
+                  // Bleu de marque et non teal : l'onglet actif doit se lire
+                  // comme le reste des éléments actifs de l'application.
+                  color: active ? AppColors.primaryBlue : Colors.white,
                   fontWeight: FontWeight.w600, fontSize: 12)),
         ),
       ),

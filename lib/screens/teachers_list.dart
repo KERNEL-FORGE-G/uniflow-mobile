@@ -47,7 +47,7 @@ class TeachersListScreen extends ConsumerWidget {
                             Text(t.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
                             const SizedBox(height: 2),
                             Text('${t.department} · ${t.ueIds.length} UE',
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                           ],
                         ),
                       ),

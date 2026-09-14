@@ -4,17 +4,40 @@ import 'package:go_router/go_router.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
+import '../utils/avatar.dart';
+// `gradesListProvider` et `assignmentBoardProvider` sont déclarés dans ces deux
+// écrans : l'accueil les réutilise plutôt que de relancer ses propres requêtes.
 import 'grades.dart';
 import 'assignments.dart';
+
+/// Une action rapide : icône, libellé, couleur et route.
+class _QuickAction {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final String route;
+
+  const _QuickAction(this.icon, this.label, this.color, this.route);
+}
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  /// Les quatre raccourcis de l'accueil, déclarés ici pour que la grille et les
+  /// libellés restent cohérents entre eux.
+  static const List<_QuickAction> _actions = [
+    _QuickAction(Icons.calendar_month_outlined, 'Planning', AppColors.primaryBlue, '/notes'),
+    _QuickAction(Icons.library_books_outlined, 'Bibliothèque', AppColors.teal, '/bibliotheque'),
+    _QuickAction(Icons.qr_code_scanner, 'Scanner QR', AppColors.purple, '/presence'),
+    _QuickAction(Icons.forum_outlined, 'Forum', AppColors.info, '/forum'),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final sync = ref.watch(gatewaySyncProvider);
     final gradesAsync = ref.watch(gradesListProvider);
-    final assignmentsAsync = ref.watch(assignmentsListProvider);
+    final assignmentsAsync = ref.watch(assignmentBoardProvider);
 
     return Scaffold(
       body: Column(
@@ -22,27 +45,57 @@ class DashboardScreen extends ConsumerWidget {
           GradientHeader(
             title: 'UniFlow Mobile',
             subtitle: user != null ? 'Bonjour, ${user.name}' : 'Bienvenue sur UniFlow',
-            trailing: SizedBox(
-              width: 40,
-              height: 40,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset('assets/logo.png', fit: BoxFit.cover),
-              ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Affiché seulement si une photo existe : sans elle, l'en-tête
+                // reste exactement celui d'avant, logo compris.
+                if (user?.avatarFileId != null && user!.avatarFileId!.isNotEmpty) ...[
+                  Avatar(
+                    initials: initialsOf(user.name),
+                    avatarFileId: user.avatarFileId,
+                    size: 40,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/logo.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.school_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
               children: [
+                if (sync.hasError) ...[
+                  ErrorBanner(
+                    message: _syncMessage(sync.error),
+                    onRetry: () => ref.invalidate(gatewaySyncProvider),
+                  ),
+                  const SizedBox(height: 18),
+                ],
+                const SectionTitle(title: 'Vue d\'ensemble'),
                 _buildQuickStats(gradesAsync, assignmentsAsync),
-                const SizedBox(height: 20),
-                const Text('Actions Rapides', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
+                const SectionTitle(title: 'Actions rapides'),
                 _buildActionGrid(context),
-                const SizedBox(height: 20),
-                const Text('Prochains Devoirs', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
+                const SectionTitle(title: 'Prochains devoirs'),
                 _buildRecentAssignments(assignmentsAsync),
               ],
             ),
@@ -52,36 +105,62 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  /// Rend visible un échec de synchronisation Appwrite : l'erreur était
+  /// auparavant seulement imprimée en console, l'utilisateur voyait un écran
+  /// vide sans savoir si les données étaient absentes ou la requête refusée.
+  String _syncMessage(Object? error) {
+    final text = error?.toString() ?? '';
+    if (text.contains('SocketException') || text.contains('Failed host lookup')) {
+      return 'Appwrite est injoignable depuis cet appareil.';
+    }
+    if (text.contains('401') || text.contains('Unauthorized')) {
+      return 'Votre session a expiré. Reconnectez-vous.';
+    }
+    if (text.contains('403') || text.contains('not_authorized')) {
+      return 'Accès refusé par Appwrite pour ce compte.';
+    }
+    return 'La synchronisation avec Appwrite a échoué.';
+  }
+
   Widget _buildQuickStats(AsyncValue gradesAsync, AsyncValue assignmentsAsync) {
+    // Pas de `CrossAxisAlignment.stretch` : dans un `ListView` la hauteur est
+    // non bornée, et `stretch` la propage telle quelle aux enfants — Flutter
+    // lève alors « BoxConstraints forces an infinite height ». Les deux cartes
+    // ont la même structure, elles s'alignent donc d'elles-mêmes.
     return Row(
       children: [
         Expanded(
-          child: _StatBox(
-            label: 'Moyenne',
+          child: StatCard(
+            label: 'Moyenne générale',
             value: gradesAsync.when(
               data: (grades) {
                 if (grades.isEmpty) return '--';
-                final avg = grades.map((e) => e.score / e.maxScore).reduce((a, b) => a + b) / grades.length;
+                final avg =
+                    grades.map((e) => e.score / e.maxScore).reduce((a, b) => a + b) /
+                        grades.length;
                 return '${(avg * 20).toStringAsFixed(1)}/20';
               },
               loading: () => '...',
               error: (_, __) => '!',
             ),
             icon: Icons.trending_up,
-            color: Colors.blue,
+            color: AppColors.primaryBlue,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _StatBox(
-            label: 'Devoirs',
+          child: StatCard(
+            label: 'Devoirs en cours',
             value: assignmentsAsync.when(
-              data: (list) => '${list.where((e) => e.status != "DONE").length}',
+              // « En cours » = ce qui reste à rendre, retards compris. Un
+              // devoir manqué n'est pas « en cours », il est manqué — mais le
+              // compter ici évite qu'il disparaisse de l'accueil.
+              data: (board) => '${board.todo.length + board.overdue.length}',
               loading: () => '...',
               error: (_, __) => '!',
             ),
             icon: Icons.assignment_outlined,
-            color: Colors.orange,
+            color: AppColors.warning,
           ),
         ),
       ],
@@ -95,52 +174,151 @@ class DashboardScreen extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 2.5,
+      // 2.5 était trop plat : la cellule descendait sous la hauteur de son
+      // contenu (pastille + libellé sur deux lignes).
+      childAspectRatio: 2.1,
       children: [
-        _ActionCard(icon: Icons.calendar_month, label: 'Planning', color: Colors.indigo, onTap: () {}),
-        _ActionCard(icon: Icons.library_books, label: 'Bibliothèque', color: Colors.teal, onTap: () => context.push('/bibliotheque')),
-        _ActionCard(icon: Icons.qr_code_scanner, label: 'Scanner QR', color: Colors.purple, onTap: () => context.push('/presence')),
-        _ActionCard(icon: Icons.forum_outlined, label: 'Forum', color: Colors.pink, onTap: () => context.push('/forum')),
+        for (final a in _actions)
+          _ActionCard(
+            icon: a.icon,
+            label: a.label,
+            color: a.color,
+            onTap: () => context.push(a.route),
+          ),
       ],
     );
   }
 
-  Widget _buildRecentAssignments(AsyncValue assignmentsAsync) {
-    return assignmentsAsync.when(
-      data: (list) {
-        final pending = list.where((e) => e.status != "DONE").take(3).toList();
-        if (pending.isEmpty) return const SectionCard(child: Center(child: Text('Aucun devoir proche')));
-        return Column(
-          children: pending.map((a) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: SectionCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.circle, size: 10, color: Colors.orange),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(a.title, style: const TextStyle(fontWeight: FontWeight.w500))),
-                  Text(a.courseCode, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                ],
-              ),
+  Widget _buildRecentAssignments(AsyncValue<AssignmentBoard> boardAsync) {
+    return boardAsync.when(
+      data: (board) {
+        // Les retards d'abord : ce sont eux qui appellent une action.
+        final pending = [...board.overdue, ...board.todo].take(3).toList();
+        if (pending.isEmpty) {
+          return const SectionCard(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: EmptyState(
+              icon: Icons.task_alt,
+              title: 'Aucun devoir à rendre',
+              message: 'Vous êtes à jour.',
             ),
-          )).toList(),
+          );
+        }
+        return Column(
+          children: [
+            for (final a in pending)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SectionCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.warning,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // `Expanded` : sans lui, un titre long poussait le code du
+                      // cours hors de la carte — c'est exactement ce qui faisait
+                      // déborder cette ligne.
+                      Expanded(
+                        child: Text(
+                          a.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        a.courseCode.isEmpty ? a.type.label : a.courseCode,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         );
       },
-      loading: () => const LinearProgressIndicator(),
-      error: (_, __) => const Text('Erreur'),
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: LoadingView(),
+      ),
+      error: (_, __) => const SectionCard(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: EmptyState(
+          icon: Icons.cloud_off_outlined,
+          title: 'Devoirs indisponibles',
+          message: 'La liste n\'a pas pu être chargée.',
+        ),
+      ),
     );
   }
 }
 
-class _StatBox extends StatelessWidget {
-  final String label, value; final IconData icon; final Color color;
-  const _StatBox({required this.label, required this.value, required this.icon, required this.color});
-  @override Widget build(BuildContext context) => SectionCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: color, size: 20), const SizedBox(height: 8), Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted))]));
-}
-
+/// Carte d'action rapide : pastille d'icône teintée puis libellé.
 class _ActionCard extends StatelessWidget {
-  final IconData icon; final String label; final Color color; final VoidCallback onTap;
-  const _ActionCard({required this.icon, required this.label, required this.color, required this.onTap});
-  @override Widget build(BuildContext context) => InkWell(onTap: onTap, child: SectionCard(padding: const EdgeInsets.symmetric(horizontal: 12), child: Row(children: [Icon(icon, color: color, size: 22), const SizedBox(width: 10), Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))])));
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+      child: SectionCard(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(width: 10),
+            // `Expanded` + ellipse : ce `Text` n'était souple dans aucune
+            // direction, et « Bibliothèque » débordait de la cellule de grille
+            // sur les écrans étroits.
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                  color: AppColors.textPrimary,
+                  height: 1.2,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
