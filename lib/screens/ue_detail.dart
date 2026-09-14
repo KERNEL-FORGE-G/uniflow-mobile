@@ -35,7 +35,7 @@ class UEDetailScreen extends ConsumerWidget {
                   children: [
                     const Text('Description', style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
-                    Text(u.description, style: const TextStyle(color: AppColors.textMuted, height: 1.4)),
+                    Text(u.description, style: const TextStyle(color: AppColors.textSecondary, height: 1.4)),
                   ],
                 ),
               ),
@@ -68,12 +68,12 @@ class UEDetailScreen extends ConsumerWidget {
   Widget _stat(String label, String value, Color color) => Expanded(
         child: Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
           child: Column(
             children: [
               Text(value, style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 18)),
               const SizedBox(height: 2),
-              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
             ],
           ),
         ),

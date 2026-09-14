@@ -330,6 +330,12 @@ class UniFlowUser {
   final String? level;
   final String? country;
 
+  /// Pseudo unique : c'est le référent de la messagerie.
+  final String? username;
+
+  /// Fichier de la photo de profil dans le bucket Appwrite `uniflow_avatars`.
+  final String? avatarFileId;
+
   UniFlowUser({
     required this.id,
     required this.email,
@@ -340,5 +346,23 @@ class UniFlowUser {
     this.program,
     this.level,
     this.country,
+    this.username,
+    this.avatarFileId,
   });
+
+  UniFlowUser copyWith({String? name, String? username, String? avatarFileId}) {
+    return UniFlowUser(
+      id: id,
+      email: email,
+      name: name ?? this.name,
+      accountType: accountType,
+      role: role,
+      university: university,
+      program: program,
+      level: level,
+      country: country,
+      username: username ?? this.username,
+      avatarFileId: avatarFileId ?? this.avatarFileId,
+    );
+  }
 }

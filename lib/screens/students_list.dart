@@ -47,7 +47,7 @@ class StudentsListScreen extends ConsumerWidget {
                             Text(s.fullName, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                             const SizedBox(height: 2),
                             Text('${s.matricule} · ${s.filiere} · ${s.niveau}',
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                           ],
                         ),
                       ),

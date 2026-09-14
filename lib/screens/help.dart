@@ -26,14 +26,20 @@ class HelpScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text('BESOIN D\'ASSISTANCE ?', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.support_agent),
-                  label: const Text('Contacter le support KERNEL FORGE'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.teal, foregroundColor: Colors.white),
+                const SizedBox(height: 24),
+                const SectionTitle(title: 'Besoin d\'assistance ?'),
+                PrimaryButton(
+                  label: 'Contacter le support KERNEL FORGE',
+                  icon: Icons.support_agent,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Le support est joignable à support@kernelforge.codes.',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -46,7 +52,7 @@ class HelpScreen extends StatelessWidget {
   Widget _buildHelpItem(BuildContext context, IconData icon, String title, String desc) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppColors.teal),
+      leading: Icon(icon, color: AppColors.primaryBlue),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(desc, style: const TextStyle(fontSize: 12)),
       trailing: const Icon(Icons.chevron_right, size: 18),

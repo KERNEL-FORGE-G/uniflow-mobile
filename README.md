@@ -47,14 +47,33 @@ APPWRITE_ENDPOINT=https://appwrite.kernelforge.codes/v1
 APPWRITE_PROJECT_ID=6a959096002a64d9d4e6
 APPWRITE_DATABASE_ID=uniflow
 APPWRITE_STORAGE_BUCKET_ID=uniflow_assets
-UNIFLOW_API_TOKEN=votre_token_secret
 ```
+
+> ⚠️ **Ne jamais mettre de clé d'API serveur (`APPWRITE_API_KEY`) dans ce fichier.**
+> `pubspec.yaml` déclare `.env` comme asset : tout ce qu'il contient est embarqué
+> en clair dans l'APK. Les opérations privilégiées passent par les **Functions
+> Appwrite**, qui détiennent la clé côté serveur.
 
 ## 📦 Build & CI/CD
 Le projet intègre des workflows **GitHub Actions** pour :
 - **Analyse statique** : Vérification de la qualité du code.
 - **Tests** : Exécution des tests unitaires et de widgets.
 - **Build Automatisé** : Génération de l'APK à chaque push sur `main`.
+
+## 🧰 Prérequis outillage
+
+**Java 21 est requis.** Le projet tourne sous Gradle 8.14 / AGP 8.11.1, qui
+**ne supportent pas Java 25**. Si votre `java` par défaut est plus récent, le build
+échoue sur `Gradle build failed due to Java/Gradle incompatibility`. Épinglez le JDK —
+c'est un réglage utilisateur, rien n'est écrit dans le dépôt :
+
+```bash
+flutter config --jdk-dir=/usr/lib/jvm/java-21-openjdk-amd64
+```
+
+> ⚠️ Ne montez **pas** Gradle en 9.x pour « régler » ce problème : AGP 8.11.1 n'est
+> pas compatible avec Gradle 9, il faudrait migrer AGP, Kotlin et les plugins
+> (`flutter_webrtc`, `workmanager`, `drift`, `image_picker`) en même temps.
 
 ---
 © 2026 **KERNEL FORGE** — Numérisons l'avenir académique.
