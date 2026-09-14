@@ -10,6 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uniflow_mobile/models/appwrite_models.dart';
 import 'package:uniflow_mobile/models/models.dart';
 import 'package:uniflow_mobile/providers/providers.dart';
+import 'package:uniflow_mobile/repositories/messaging_repository.dart';
+import 'package:uniflow_mobile/services/notification_service.dart';
 import 'package:uniflow_mobile/theme/app_theme.dart';
 // Ces trois providers sont déclarés dans les écrans eux-mêmes, pas dans
 // `providers.dart` : il faut importer les écrans pour les référencer.
@@ -86,6 +88,12 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
         (ref) async => const AssignmentBoard(assignments: [], submissions: {}),
       ),
       libraryListProvider.overrideWith((ref) async => <AcademicLibraryEntry>[]),
+      // La messagerie et les notifications interrogent la Function Appwrite :
+      // sans ces neutralisations, l'écran de messagerie lancerait un appel
+      // réseau pendant un test de mise en page.
+      conversationsProvider.overrideWith((ref) async => const <Conversation>[]),
+      notificationsProvider.overrideWith((ref) async => const <AppNotification>[]),
+      urgentNotificationsProvider.overrideWith((ref) => Stream.value(0)),
       ...overrides,
     ],
     child: MaterialApp(

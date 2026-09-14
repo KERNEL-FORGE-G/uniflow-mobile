@@ -3,6 +3,12 @@
          sans cette ligne, l'APK release n'a aucun accès réseau et toutes les
          requêtes Appwrite échouent silencieusement. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Android 13+ exige une autorisation explicite pour afficher une
+         notification. Sans cette ligne, les alertes de message urgent sont
+         silencieusement ignorées sur les appareils récents. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Le motif de vibration propre au canal « Messages urgents ». -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:label="uniflow"
         android:name="${applicationName}"
