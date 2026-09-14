@@ -33,6 +33,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Sonde réseau : `flutter test` court-circuite HTTP (tout appel rend 400),
+  # ce qui rend invisible une panne d'API. Ces tests-là s'exécutent sur
+  # l'appareil, avec le vrai réseau, et montrent l'erreur réelle.
+  integration_test:
+    sdk: flutter
   flutter_lints: ^4.0.0
   drift_dev: ^2.14.0
   build_runner: ^2.4.8
