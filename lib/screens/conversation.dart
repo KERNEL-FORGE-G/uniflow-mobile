@@ -146,14 +146,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       final conversation = _conversation;
       var fileId = '';
       if (attachment != null) {
-        if (conversation == null || user == null || conversation.userId.isEmpty) {
+        if (conversation == null || user == null) {
           throw MessagingException(
             'Conversation incomplète : impossible d\'attacher un fichier.',
           );
         }
+        // Pas d'identifiant de correspondant à passer : la lecture au
+        // destinataire est accordée par la Function à l'envoi, Appwrite
+        // refusant qu'un client l'accorde lui-même.
         fileId = await repository.uploadAttachment(
           conversationId: widget.conversationId,
-          otherUserId: conversation.userId,
           myUserId: user.id,
           path: attachment.path!,
           fileName: attachment.name,

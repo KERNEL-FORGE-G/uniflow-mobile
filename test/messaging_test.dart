@@ -265,4 +265,44 @@ void main() {
       expect(decodeExecutionPayload(executionAvec('{"ok":true}')), {'ok': true});
     });
   });
+
+  // Même décalage que ci-dessus, mais sur la réponse de téléversement. Le SDK
+  // 26.2.0 vise Appwrite 2.0.x : son `File.fromMap` réclame `sizeActual`, un
+  // `int` non nullable que ce serveur ne renvoie pas. Le passer au modèle lève
+  // « type 'Null' is not a subtype of type 'int' », et l'utilisateur voit un
+  // échec de téléversement pour un fichier pourtant déposé.
+  group('decodeUploadedFileId', () {
+    // Réponse réelle d'Appwrite 1.6.1, relevée sur le serveur. `sizeActual`
+    // en est volontairement absent, comme le reste des champs du SDK 2.0.
+    const reponseServeur = {
+      r'$id': 'shapemu2ison3',
+      'bucketId': 'uniflow_chat_files',
+      r'$createdAt': '2026-09-15T10:19:44.075+00:00',
+      r'$updatedAt': '2026-09-15T10:19:44.075+00:00',
+      r'$permissions': ['read("user:sondea20260915")'],
+      'name': 'shape.png',
+      'signature': '2cd8bde463f5d82aae0f0cec061d6b8f',
+      'mimeType': 'image/png',
+      'sizeOriginal': 70,
+      'chunksTotal': 1,
+      'chunksUploaded': 1,
+    };
+
+    test('lit l\'identifiant malgré l\'absence de `sizeActual`', () {
+      expect(reponseServeur.containsKey('sizeActual'), isFalse);
+      expect(decodeUploadedFileId(reponseServeur), 'shapemu2ison3');
+    });
+
+    test('rend null quand la réponse n\'est pas une map', () {
+      expect(decodeUploadedFileId(null), isNull);
+      expect(decodeUploadedFileId('Internal Server Error'), isNull);
+      expect(decodeUploadedFileId(const [1, 2, 3]), isNull);
+    });
+
+    test('rend null quand l\'identifiant est absent ou vide', () {
+      expect(decodeUploadedFileId(const {'name': 'shape.png'}), isNull);
+      expect(decodeUploadedFileId(const {r'$id': ''}), isNull);
+      expect(decodeUploadedFileId(const {r'$id': 42}), isNull);
+    });
+  });
 }
