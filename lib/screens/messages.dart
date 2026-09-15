@@ -257,10 +257,30 @@ class _InboxError extends StatelessWidget {
   final VoidCallback onRetry;
   const _InboxError({required this.error, required this.onRetry});
 
+  /// Texte principal : le message rédigé quand il y en a un, le texte brut sinon.
+  String get _detail => error is MessagingException
+      ? (error as MessagingException).message
+      : error.toString();
+
+  /// Code technique, affiché en petit.
+  ///
+  /// Il était auparavant absent : l'écran ne montrait qu'un « Bad state: No
+  /// element » sans indiquer d'où il venait, et chaque panne de messagerie
+  /// coûtait une session de diagnostic. Le type de l'exception et son code
+  /// permettent de trancher entre un refus du serveur, une Function absente et
+  /// une panne réseau, sans instrumenter quoi que ce soit.
+  String get _code {
+    if (error is MessagingException) {
+      final code = (error as MessagingException).code;
+      return code.isEmpty ? 'MESSAGING' : code;
+    }
+    return error.runtimeType.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -273,9 +293,26 @@ class _InboxError extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              error.toString(),
+              _detail,
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: Text(
+                _code,
+                style: const TextStyle(
+                  fontSize: 10,
+                  letterSpacing: 0.6,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(

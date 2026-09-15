@@ -3,10 +3,16 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appwrite/appwrite.dart';
-// Les modèles de réponse (`Execution`, `DocumentList`…) ne sont pas ré-exportés
-// par `appwrite.dart` : ils vivent dans `models.dart` et doivent être importés
-// séparément, sous peine de « Undefined class 'Execution' ».
+// Les modèles de réponse (`File`, `DocumentList`…) ne sont pas ré-exportés par
+// `appwrite.dart` : ils vivent dans `models.dart` et doivent être importés
+// séparément, sous peine de « Undefined class 'File' ».
 import 'package:appwrite/models.dart' as models;
+// `HttpMethod` n'est pas ré-exporté par `appwrite.dart` — il vit dans
+// `src/enums.dart`. Cet import d'implémentation est un compromis assumé :
+// `client.call` est le seul moyen d'exécuter une Function sans passer par le
+// modèle `Execution`, qui est cassé face à ce serveur (voir `_execute`).
+// ignore: implementation_imports
+import 'package:appwrite/src/enums.dart' show HttpMethod;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/appwrite_service.dart';
@@ -239,6 +245,51 @@ class MessagingRepository {
 
   MessagingRepository(this._service);
 
+  /// Exécute la Function et renvoie le document d'exécution brut du serveur.
+  ///
+  /// **Ne pas revenir à `functions.createExecution`.** Le SDK Dart 26.2.0 vise
+  /// Appwrite 2.0.x, alors que le serveur est en 1.6.1, qui ne renvoie pas de
+  /// champ `resourceType` dans le document d'exécution. Or
+  /// `Execution.fromMap` fait
+  /// `ExecutionResourceType.values.firstWhere((e) => e.value == map['resourceType'])`
+  /// — un `firstWhere` **sans `orElse`**, qui lève donc
+  /// « Bad state: No element » sur *chaque* appel, quelle que soit la Function.
+  /// Ce `StateError` n'est pas une `AppwriteException` : `_invoke` le laissait
+  /// remonter brut et l'écran Messagerie affichait « Messagerie indisponible ».
+  /// C'était le symptôme, et non la Function elle-même, qui répondait
+  /// pourtant `ok:true` sur les huit comptes réels.
+  ///
+  /// `client.call` garde tout ce que le SDK apporte — session, en-têtes de
+  /// projet, intercepteurs — et rend le JSON tel quel, sans le désérialiser.
+  Future<Map<String, dynamic>> _execute(Map<String, dynamic> payload) async {
+    final response = await _service.client.call(
+      HttpMethod.post,
+      path: '/functions/$functionId/executions',
+      headers: {
+        // `X-Appwrite-Project` doit être reposé à **chaque** requête :
+        // `Client.setProject` ne fait que mémoriser `config['project']` et
+        // n'ajoute aucun en-tête. Sans lui, Appwrite ne résout pas le projet et
+        // refuse l'exécution en 403 — observé sur l'appareil, alors que le même
+        // appel avec session répond 201. La session, elle, voyage par le
+        // cookie géré par le client.
+        'X-Appwrite-Project': _service.client.config['project'] ?? '',
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+      // Le corps de la Function voyage comme une *chaîne* dans le champ
+      // `body`, exactement comme le faisait `createExecution`.
+      params: {'body': jsonEncode(payload), 'async': false},
+    );
+    final data = response.data;
+    if (data is! Map) {
+      throw MessagingException(
+        'La messagerie a répondu dans un format inattendu.',
+        code: 'BAD_RESPONSE',
+      );
+    }
+    return Map<String, dynamic>.from(data);
+  }
+
   /// Exécute la fonction et renvoie la charge utile JSON.
   ///
   /// Le corps est analysé même lorsque le statut d'exécution n'est pas
@@ -246,13 +297,9 @@ class MessagingRepository {
   /// répond avec un code 4xx, alors que le corps contient justement le message
   /// explicite à montrer à l'utilisateur.
   Future<Map<String, dynamic>> _invoke(Map<String, dynamic> payload) async {
-    final models.Execution execution;
+    final Map<String, dynamic> execution;
     try {
-      execution = await _service.functions.createExecution(
-        functionId: functionId,
-        body: jsonEncode(payload),
-        xasync: false,
-      );
+      execution = await _execute(payload);
     } on AppwriteException catch (error) {
       throw MessagingException(
         error.code == 404
@@ -260,19 +307,24 @@ class MessagingRepository {
             : 'Appwrite a refusé l\'appel (code ${error.code}).',
         code: 'EXECUTION_FAILED',
       );
-    }
-
-    Map<String, dynamic>? data;
-    try {
-      final decoded = jsonDecode(execution.responseBody);
-      if (decoded is Map<String, dynamic>) data = decoded;
-    } catch (_) {
-      data = null;
-    }
-
-    if (data == null) {
+    } on MessagingException {
+      rethrow;
+    } catch (error) {
+      // Tout ce qui n'est pas une AppwriteException — réseau coupé, TLS refusé,
+      // réponse illisible — remontait tel quel jusqu'à l'écran, qui n'affichait
+      // qu'un « Bad state: No element » sans la moindre piste. On le traduit
+      // ici, en gardant le texte d'origine pour le diagnostic.
       throw MessagingException(
-        'La messagerie a répondu de façon inattendue (${execution.status}).',
+        'La messagerie est injoignable ($error).',
+        code: 'UNREACHABLE',
+      );
+    }
+
+    final data = decodeExecutionPayload(execution);
+    if (data.isEmpty) {
+      throw MessagingException(
+        'La messagerie a répondu de façon inattendue '
+        '(statut ${execution['status'] ?? 'inconnu'}).',
         code: 'BAD_RESPONSE',
       );
     }
@@ -494,6 +546,27 @@ String _readableBytes(int bytes) {
   if (bytes < 1024) return '$bytes o';
   if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} ko';
   return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} Mo';
+}
+
+/// Extrait la charge utile JSON d'un document d'exécution Appwrite.
+///
+/// Le serveur renvoie la réponse de la Function sous forme de **chaîne** dans
+/// `responseBody`, à l'intérieur du document d'exécution. Fonction pure, donc
+/// testable sans réseau ni client Appwrite : c'est ce qui permet de vérifier
+/// qu'un document d'exécution réel — celui d'Appwrite 1.6.1, sans
+/// `resourceType` — est lu sans erreur.
+///
+/// Rend une map vide lorsque le corps est absent ou n'est pas du JSON, ce que
+/// l'appelant traduit en `BAD_RESPONSE`.
+Map<String, dynamic> decodeExecutionPayload(Map<String, dynamic> execution) {
+  final raw = execution['responseBody'];
+  if (raw is! String || raw.trim().isEmpty) return const {};
+  try {
+    final decoded = jsonDecode(raw);
+    return decoded is Map ? Map<String, dynamic>.from(decoded) : const {};
+  } on FormatException {
+    return const {};
+  }
 }
 
 final messagingRepositoryProvider = Provider<MessagingRepository>((ref) {
