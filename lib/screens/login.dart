@@ -232,14 +232,26 @@ class _BrandHeader extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(19),
-            child: Image.asset(
-              'assets/logo.png',
-              fit: BoxFit.cover,
-              // Un logo absent ne doit pas faire échouer l'écran de connexion.
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.school_rounded,
-                color: Colors.white,
-                size: 34,
+            // L'aplat clair sous l'écusson est indispensable : son mortier est
+            // bleu marine et le dégradé de la pastille va du bleu au teal, donc
+            // le logo transparent posé tel quel y disparaissait. Cet aplat
+            // était auparavant cuit dans le PNG, qui était livré sur fond blanc
+            // opaque — impossible dès lors qu'on emploie le logo transparent.
+            child: ColoredBox(
+              color: AppColors.cardWhite,
+              child: Padding(
+                padding: const EdgeInsets.all(9),
+                child: Image.asset(
+                  'assets/brand/uniflow_marque.png',
+                  fit: BoxFit.contain,
+                  // Un logo absent ne doit pas faire échouer l'écran de
+                  // connexion.
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.school_rounded,
+                    color: AppColors.primaryBlue,
+                    size: 34,
+                  ),
+                ),
               ),
             ),
           ),

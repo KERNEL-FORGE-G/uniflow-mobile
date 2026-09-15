@@ -1,6 +1,6 @@
 # 🎓 UniFlow Mobile — L'Expérience Académique Augmentée
 
-![UniFlow Logo](assets/logo.png)
+![UniFlow Logo](assets/brand/uniflow_logo_horizontal.png)
 
 UniFlow Mobile est l'application compagnon essentielle pour les étudiants et enseignants de l'écosystème **UniFlow**. Conçue avec **Flutter**, elle offre une interface fluide, réactive et optimisée pour une utilisation quotidienne sur le campus, même en conditions de connectivité limitée.
 
