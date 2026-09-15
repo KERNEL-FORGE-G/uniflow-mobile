@@ -3,10 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appwrite/appwrite.dart';
-// Les modèles de réponse (`File`, `DocumentList`…) ne sont pas ré-exportés par
-// `appwrite.dart` : ils vivent dans `models.dart` et doivent être importés
-// séparément, sous peine de « Undefined class 'File' ».
-import 'package:appwrite/models.dart' as models;
 // `HttpMethod` n'est pas ré-exporté par `appwrite.dart` — il vit dans
 // `src/enums.dart`. Cet import d'implémentation est un compromis assumé :
 // `client.call` est le seul moyen d'exécuter une Function sans passer par le
@@ -415,12 +411,23 @@ class MessagingRepository {
 
   /// Téléverse une pièce jointe dans le bucket des fichiers de discussion.
   ///
-  /// Le fichier est créé avec les permissions des deux participants : le bucket
-  /// a `fileSecurity` activé, donc seuls eux pourront le lire — et Appwrite
-  /// n'accorde rien au créateur au-delà de ce qui est demandé ici.
+  /// **Le fichier n'est lisible que par son auteur à ce stade**, et c'est
+  /// délibéré : Appwrite 1.6.1 refuse qu'un client accorde une permission à un
+  /// autre utilisateur. Le serveur répond
+  /// « Permissions must be one of: (any, users, user:<soi>, …) », code 401, dès
+  /// qu'on demande `read("user:<autre>")`. La lecture au destinataire est donc
+  /// accordée par la Function, au moment de l'envoi du message — voir l'action
+  /// `send` de `functions/messaging/src/main.js`. Demander ici la permission du
+  /// correspondant faisait échouer tout téléversement, et l'utilisateur voyait
+  /// « Session expirée pendant le téléversement », qui n'a rien à voir.
+  ///
+  /// Le téléversement passe par `chunkedUpload` plutôt que par
+  /// `storage.createFile` pour la même raison que `_execute` : `File.fromMap`
+  /// du SDK 26.2.0 réclame `sizeActual`, que ce serveur ne renvoie pas, et
+  /// lève « type 'Null' is not a subtype of type 'int' » alors que le fichier
+  /// est bel et bien déposé. Seul `$id` nous intéresse ici.
   Future<String> uploadAttachment({
     required String conversationId,
-    required String otherUserId,
     required String myUserId,
     required String path,
     required String fileName,
@@ -434,26 +441,44 @@ class MessagingRepository {
       );
     }
 
-    final models.File created;
+    final fileId = ID.unique();
+    final Object? raw;
     try {
-      created = await _service.storage.createFile(
-        bucketId: _service.chatFilesBucketId,
-        fileId: ID.unique(),
-        file: InputFile.fromPath(path: path, filename: fileName),
-        permissions: [
-          Permission.read(Role.user(myUserId)),
-          Permission.read(Role.user(otherUserId)),
-          // Sans `update` ni `delete` pour l'expéditeur, un fichier envoyé par
-          // erreur resterait à jamais dans le bucket : personne ne pourrait le
-          // retirer, la Function n'ayant pas non plus à le faire.
-          Permission.update(Role.user(myUserId)),
-          Permission.delete(Role.user(myUserId)),
-        ],
+      final response = await _service.client.chunkedUpload(
+        path: '/storage/buckets/${_service.chatFilesBucketId}/files',
+        params: {
+          'fileId': fileId,
+          'file': InputFile.fromPath(path: path, filename: fileName),
+          'permissions': [
+            Permission.read(Role.user(myUserId)),
+            // Sans `update` ni `delete` pour l'expéditeur, un fichier envoyé par
+            // erreur resterait à jamais dans le bucket : personne ne pourrait
+            // le retirer, la Function n'ayant pas non plus à le faire.
+            Permission.update(Role.user(myUserId)),
+            Permission.delete(Role.user(myUserId)),
+          ],
+        },
+        paramName: 'file',
+        idParamName: 'fileId',
+        headers: {
+          'X-Appwrite-Project': _service.client.config['project'] ?? '',
+          'content-type': 'multipart/form-data',
+          'accept': 'application/json',
+        },
       );
+      raw = response.data;
     } on AppwriteException catch (error) {
       throw MessagingException(_uploadMessage(error), code: 'UPLOAD_FAILED');
     }
-    return created.$id;
+
+    final uploadedId = decodeUploadedFileId(raw);
+    if (uploadedId == null) {
+      throw MessagingException(
+        'Le fichier a été téléversé, mais le serveur a répondu dans un format inattendu.',
+        code: 'UPLOAD_BAD_RESPONSE',
+      );
+    }
+    return uploadedId;
   }
 
   /// Lit les octets d'une pièce jointe, pour l'afficher ou l'enregistrer.
@@ -567,6 +592,23 @@ Map<String, dynamic> decodeExecutionPayload(Map<String, dynamic> execution) {
   } on FormatException {
     return const {};
   }
+}
+
+/// Identifiant du fichier dans la réponse de téléversement, ou `null` si elle
+/// est illisible.
+///
+/// Fonction pure, donc testable sans réseau : c'est elle qui remplace
+/// `File.fromMap` du SDK. Appwrite 1.6.1 renvoie
+/// `$id, bucketId, $createdAt, $updatedAt, $permissions, name, signature,
+/// mimeType, sizeOriginal, chunksTotal, chunksUploaded` — et **pas**
+/// `sizeActual`, que le modèle du SDK 26.2.0 déclare `int` non nullable. Le
+/// passer au modèle lève « type 'Null' is not a subtype of type 'int' » alors
+/// que le fichier est bel et bien déposé : l'utilisateur voyait un échec de
+/// téléversement pour un fichier existant.
+String? decodeUploadedFileId(Object? data) {
+  if (data is! Map) return null;
+  final id = data[r'$id'];
+  return id is String && id.isNotEmpty ? id : null;
 }
 
 final messagingRepositoryProvider = Provider<MessagingRepository>((ref) {
