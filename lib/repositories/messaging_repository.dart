@@ -1,18 +1,21 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appwrite/appwrite.dart';
-// `HttpMethod` n'est pas ré-exporté par `appwrite.dart` — il vit dans
-// `src/enums.dart`. Cet import d'implémentation est un compromis assumé :
-// `client.call` est le seul moyen d'exécuter une Function sans passer par le
-// modèle `Execution`, qui est cassé face à ce serveur (voir `_execute`).
-// ignore: implementation_imports
-import 'package:appwrite/src/enums.dart' show HttpMethod;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/appwrite_service.dart';
 import '../providers/appwrite_provider.dart';
+
+/// Identifiant du fichier dans la réponse de téléversement, ou `null` si elle
+/// est illisible.
+///
+/// La fonction vit désormais dans `data/appwrite_service.dart`, avec les autres
+/// contournements du SDK : le téléversement d'une pièce jointe et celui d'une
+/// photo de profil butaient sur le même `File.fromMap`. Elle est ré-exportée ici
+/// pour que les appelants historiques — et les tests — n'aient pas à changer
+/// d'import.
+export '../data/appwrite_service.dart' show decodeUploadedFileId;
 
 /// Un message dans un fil de discussion.
 ///
@@ -257,34 +260,11 @@ class MessagingRepository {
   ///
   /// `client.call` garde tout ce que le SDK apporte — session, en-têtes de
   /// projet, intercepteurs — et rend le JSON tel quel, sans le désérialiser.
-  Future<Map<String, dynamic>> _execute(Map<String, dynamic> payload) async {
-    final response = await _service.client.call(
-      HttpMethod.post,
-      path: '/functions/$functionId/executions',
-      headers: {
-        // `X-Appwrite-Project` doit être reposé à **chaque** requête :
-        // `Client.setProject` ne fait que mémoriser `config['project']` et
-        // n'ajoute aucun en-tête. Sans lui, Appwrite ne résout pas le projet et
-        // refuse l'exécution en 403 — observé sur l'appareil, alors que le même
-        // appel avec session répond 201. La session, elle, voyage par le
-        // cookie géré par le client.
-        'X-Appwrite-Project': _service.client.config['project'] ?? '',
-        'content-type': 'application/json',
-        'accept': 'application/json',
-      },
-      // Le corps de la Function voyage comme une *chaîne* dans le champ
-      // `body`, exactement comme le faisait `createExecution`.
-      params: {'body': jsonEncode(payload), 'async': false},
-    );
-    final data = response.data;
-    if (data is! Map) {
-      throw MessagingException(
-        'La messagerie a répondu dans un format inattendu.',
-        code: 'BAD_RESPONSE',
-      );
-    }
-    return Map<String, dynamic>.from(data);
-  }
+  /// Le détail de l'appel vit dans `AppwriteService.executeFunction`, que le
+  /// forum utilise aussi : il n'y a ainsi qu'un seul endroit à corriger le jour
+  /// où le serveur et le SDK se rejoindront.
+  Future<Map<String, dynamic>> _execute(Map<String, dynamic> payload) =>
+      _service.executeFunction(functionId, payload);
 
   /// Exécute la fonction et renvoie la charge utile JSON.
   ///
@@ -421,11 +401,10 @@ class MessagingRepository {
   /// correspondant faisait échouer tout téléversement, et l'utilisateur voyait
   /// « Session expirée pendant le téléversement », qui n'a rien à voir.
   ///
-  /// Le téléversement passe par `chunkedUpload` plutôt que par
-  /// `storage.createFile` pour la même raison que `_execute` : `File.fromMap`
-  /// du SDK 26.2.0 réclame `sizeActual`, que ce serveur ne renvoie pas, et
-  /// lève « type 'Null' is not a subtype of type 'int' » alors que le fichier
-  /// est bel et bien déposé. Seul `$id` nous intéresse ici.
+  /// Le téléversement passe par [AppwriteService.uploadFile], comme le change-
+  /// ment de photo de profil : `storage.createFile` du SDK 26.2.0 réclame
+  /// `sizeActual`, que ce serveur ne renvoie pas, et lève « type 'Null' is not a
+  /// subtype of type 'int' » alors que le fichier est bel et bien déposé.
   Future<String> uploadAttachment({
     required String conversationId,
     required String myUserId,
@@ -441,44 +420,22 @@ class MessagingRepository {
       );
     }
 
-    final fileId = ID.unique();
-    final Object? raw;
     try {
-      final response = await _service.client.chunkedUpload(
-        path: '/storage/buckets/${_service.chatFilesBucketId}/files',
-        params: {
-          'fileId': fileId,
-          'file': InputFile.fromPath(path: path, filename: fileName),
-          'permissions': [
-            Permission.read(Role.user(myUserId)),
-            // Sans `update` ni `delete` pour l'expéditeur, un fichier envoyé par
-            // erreur resterait à jamais dans le bucket : personne ne pourrait
-            // le retirer, la Function n'ayant pas non plus à le faire.
-            Permission.update(Role.user(myUserId)),
-            Permission.delete(Role.user(myUserId)),
-          ],
-        },
-        paramName: 'file',
-        idParamName: 'fileId',
-        headers: {
-          'X-Appwrite-Project': _service.client.config['project'] ?? '',
-          'content-type': 'multipart/form-data',
-          'accept': 'application/json',
-        },
+      return await _service.uploadFile(
+        bucketId: _service.chatFilesBucketId,
+        file: InputFile.fromPath(path: path, filename: fileName),
+        permissions: [
+          Permission.read(Role.user(myUserId)),
+          // Sans `update` ni `delete` pour l'expéditeur, un fichier envoyé par
+          // erreur resterait à jamais dans le bucket : personne ne pourrait
+          // le retirer, la Function n'ayant pas non plus à le faire.
+          Permission.update(Role.user(myUserId)),
+          Permission.delete(Role.user(myUserId)),
+        ],
       );
-      raw = response.data;
     } on AppwriteException catch (error) {
       throw MessagingException(_uploadMessage(error), code: 'UPLOAD_FAILED');
     }
-
-    final uploadedId = decodeUploadedFileId(raw);
-    if (uploadedId == null) {
-      throw MessagingException(
-        'Le fichier a été téléversé, mais le serveur a répondu dans un format inattendu.',
-        code: 'UPLOAD_BAD_RESPONSE',
-      );
-    }
-    return uploadedId;
   }
 
   /// Lit les octets d'une pièce jointe, pour l'afficher ou l'enregistrer.
@@ -583,33 +540,20 @@ String _readableBytes(int bytes) {
 ///
 /// Rend une map vide lorsque le corps est absent ou n'est pas du JSON, ce que
 /// l'appelant traduit en `BAD_RESPONSE`.
-Map<String, dynamic> decodeExecutionPayload(Map<String, dynamic> execution) {
-  final raw = execution['responseBody'];
-  if (raw is! String || raw.trim().isEmpty) return const {};
-  try {
-    final decoded = jsonDecode(raw);
-    return decoded is Map ? Map<String, dynamic>.from(decoded) : const {};
-  } on FormatException {
-    return const {};
-  }
-}
+///
+/// L'implémentation vit dans `AppwriteService` : le forum exécute lui aussi des
+/// Functions et doit analyser la même forme de réponse.
+Map<String, dynamic> decodeExecutionPayload(Map<String, dynamic> execution) =>
+    decodeFunctionPayload(execution);
 
 /// Identifiant du fichier dans la réponse de téléversement, ou `null` si elle
 /// est illisible.
 ///
-/// Fonction pure, donc testable sans réseau : c'est elle qui remplace
-/// `File.fromMap` du SDK. Appwrite 1.6.1 renvoie
-/// `$id, bucketId, $createdAt, $updatedAt, $permissions, name, signature,
-/// mimeType, sizeOriginal, chunksTotal, chunksUploaded` — et **pas**
-/// `sizeActual`, que le modèle du SDK 26.2.0 déclare `int` non nullable. Le
-/// passer au modèle lève « type 'Null' is not a subtype of type 'int' » alors
-/// que le fichier est bel et bien déposé : l'utilisateur voyait un échec de
-/// téléversement pour un fichier existant.
-String? decodeUploadedFileId(Object? data) {
-  if (data is! Map) return null;
-  final id = data[r'$id'];
-  return id is String && id.isNotEmpty ? id : null;
-}
+/// La fonction vit désormais dans `data/appwrite_service.dart`, avec les autres
+/// contournements du SDK : le téléversement d'une pièce jointe et celui d'une
+/// photo de profil butaient sur le même `File.fromMap`. Elle est ré-exportée en
+/// tête de fichier pour que les appelants historiques — et les tests — n'aient
+/// pas à changer d'import.
 
 final messagingRepositoryProvider = Provider<MessagingRepository>((ref) {
   final service = ref.watch(appwriteServiceProvider);

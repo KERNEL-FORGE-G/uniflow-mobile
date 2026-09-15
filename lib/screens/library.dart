@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
 import '../repositories/academic_repository.dart';
@@ -9,17 +13,65 @@ final libraryListProvider = FutureProvider<List<AcademicLibraryEntry>>((ref) asy
   return ref.read(academicRepositoryProvider).getLibrary();
 });
 
-class LibraryScreen extends ConsumerWidget {
+class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends ConsumerState<LibraryScreen> {
+  /// Ressource en cours de téléchargement, pour n'animer que sa propre ligne.
+  String? _enCours;
+  String? _erreur;
+
+  /// Télécharge la ressource puis la confie au système, qui choisit
+  /// l'application capable de l'ouvrir — même démarche que les pièces jointes
+  /// d'une conversation.
+  Future<void> _telecharger(AcademicLibraryEntry entry) async {
+    final fileId = entry.fileId;
+    if (fileId == null || fileId.isEmpty) {
+      setState(() => _erreur =
+          '« ${entry.title} » n\'a pas de fichier joint : cette ressource est '
+          'un simple intitulé.');
+      return;
+    }
+
+    setState(() {
+      _enCours = entry.id;
+      _erreur = null;
+    });
+    try {
+      final bytes = await ref.read(academicRepositoryProvider).downloadLibraryFile(fileId);
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/${libraryFileName(entry.title, entry.id)}');
+      await file.writeAsBytes(bytes);
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done && mounted) {
+        setState(() => _erreur =
+            'Aucune application ne sait ouvrir « ${entry.title} ». Le fichier a '
+            'été enregistré dans ${directory.path}.');
+      }
+    } catch (error) {
+      if (mounted) setState(() => _erreur = error.toString());
+    } finally {
+      if (mounted) setState(() => _enCours = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final libraryAsync = ref.watch(libraryListProvider);
 
     return Scaffold(
       body: Column(
         children: [
           const GradientHeader(title: 'Bibliothèque', subtitle: 'Ressources et supports de cours'),
+          if (_erreur != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: ErrorBanner(message: _erreur!),
+            ),
           Expanded(
             child: libraryAsync.when(
               data: (entries) {
@@ -44,6 +96,7 @@ class LibraryScreen extends ConsumerWidget {
                       default: fileIcon = Icons.insert_drive_file_outlined;
                     }
 
+                    final enCours = _enCours == entry.id;
                     return SectionCard(
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
@@ -55,12 +108,19 @@ class LibraryScreen extends ConsumerWidget {
                         ),
                         title: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${entry.course} • ${entry.size ?? "N/A"}', style: const TextStyle(fontSize: 12)),
+                        // Le titre porte déjà l'information ; on la répète à
+                        // l'oreille pour qui navigue au lecteur d'écran, qui
+                        // n'entend sinon que « bouton ».
                         trailing: IconButton(
-                          icon: const Icon(Icons.download_outlined),
-                          onPressed: () {
-                            // TODO: Implement download from Appwrite Storage
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Téléchargement bientôt disponible')));
-                          },
+                          tooltip: 'Ouvrir « ${entry.title} »',
+                          icon: enCours
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.download_outlined),
+                          onPressed: enCours ? null : () => _telecharger(entry),
                         ),
                       ),
                     );

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/appwrite_service.dart';
@@ -45,11 +44,10 @@ class ProfilePhotoService {
       throw ProfilePhotoException('L\'image dépasse la limite de 5 Mo.');
     }
 
-    final models.File created;
+    final String createdId;
     try {
-      created = await _storage.createFile(
+      createdId = await _service.uploadFile(
         bucketId: _bucket,
-        fileId: ID.unique(),
         file: InputFile.fromPath(
           path: file.path,
           // Le nom est normalisé pour que l'extension vue par Appwrite soit
@@ -76,12 +74,12 @@ class ProfilePhotoService {
         databaseId: _service.databaseId,
         collectionId: 'users',
         documentId: userId,
-        data: {'avatarFileId': created.$id},
+        data: {'avatarFileId': createdId},
       );
     } catch (error) {
       // Sans cet enregistrement l'image resterait orpheline : on la retire.
       try {
-        await _storage.deleteFile(bucketId: _bucket, fileId: created.$id);
+        await _storage.deleteFile(bucketId: _bucket, fileId: createdId);
       } catch (_) {}
       if (error is AppwriteException && (error.message ?? '').contains('avatarFileId')) {
         throw ProfilePhotoException(
@@ -97,12 +95,12 @@ class ProfilePhotoService {
     }
 
     // Au mieux : un échec ici ne signifie pas que le téléversement a échoué.
-    if (previousFileId != null && previousFileId.isNotEmpty && previousFileId != created.$id) {
+    if (previousFileId != null && previousFileId.isNotEmpty && previousFileId != createdId) {
       try {
         await _storage.deleteFile(bucketId: _bucket, fileId: previousFileId);
       } catch (_) {}
     }
-    return created.$id;
+    return createdId;
   }
 
   /// Retire la photo de profil et supprime le fichier correspondant.
@@ -121,6 +119,13 @@ class ProfilePhotoService {
   }
 
   String _readable(AppwriteException error, String operation) {
+    // Le fichier est bien déposé, mais la réponse n'a pas pu être lue : le dire
+    // tel quel, sinon l'utilisateur croit à un refus du serveur et retente en
+    // boucle un téléversement qui a déjà abouti.
+    if (error.type == 'upload_bad_response') {
+      return 'L\'image a été déposée, mais le serveur a répondu dans un format '
+          'inattendu. Rechargez le profil pour vérifier.';
+    }
     switch (error.code) {
       case 401:
         return 'Session expirée pendant $operation. Reconnectez-vous.';

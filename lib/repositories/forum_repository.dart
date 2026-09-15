@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/appwrite_service.dart';
 import '../models/appwrite_models.dart';
 import '../providers/appwrite_provider.dart';
-
 class ForumPost {
   final String id;
   final String authorId;
@@ -69,20 +68,102 @@ class ForumRepository {
       databaseId: _service.databaseId,
       collectionId: 'forum_posts',
       documentId: ID.unique(),
-      data: {
-        'authorId': user.id,
-        'authorName': user.name,
-        'role': user.role,
-        'university': user.university ?? 'Compte personnel UniFlow',
-        'title': title,
-        'content': content,
-        'category': category,
-        'likes': 0,
-        'tags': tags,
-        'createdAt': DateTime.now().toIso8601String(),
-      },
+      data: forumPostPayload(
+        title: title,
+        content: content,
+        category: category,
+        authorId: user.id,
+        authorName: user.name,
+        role: user.role,
+        university: user.university ?? 'Compte personnel UniFlow',
+      ),
     );
   }
+
+  /// Billets que l'utilisateur courant a déjà recommandés.
+  ///
+  /// L'unicité est garantie côté serveur par l'index `forum_reaction_unique`
+  /// sur (postId, userId) : un utilisateur ne peut recommander un billet qu'une
+  /// fois. La Function borne de surcroît la chose en refusant qu'on recommande
+  /// son propre billet.
+  Future<Set<String>> getMyReactions() async {
+    final execution = await _service.executeFunction(_reactionsFunction, {'action': 'list'});
+    final data = decodeFunctionPayload(execution);
+    if (data['ok'] != true) return const {};
+    final rows = data['reactedPostIds'];
+    if (rows is! List) return const {};
+    return rows.whereType<String>().toSet();
+  }
+
+  /// Ajoute ou retire la recommandation, et rend le nouvel état.
+  Future<ForumReaction> toggleReaction(String postId) async {
+    final execution = await _service.executeFunction(
+      _reactionsFunction,
+      {'action': 'react', 'postId': postId},
+    );
+    final data = decodeFunctionPayload(execution);
+    if (data['ok'] != true) {
+      throw Exception(data['message'] ?? 'La recommandation a échoué.');
+    }
+    return ForumReaction(
+      liked: data['liked'] == true,
+      likes: (data['likes'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Nom de la Function qui porte les recommandations du forum.
+///
+/// Elle existe déjà et est déployée (`scripts/deploy-forum-reactions-function.mjs`) ;
+/// le mobile ne l'appelait simplement pas, et affichait un compteur figé.
+const String _reactionsFunction = 'forum-reactions';
+
+/// Document à écrire pour créer un billet.
+///
+/// **`tags` en est délibérément absent** : la collection `forum_posts` ne
+/// déclare pas cet attribut — voir `scripts/appwrite-schema.mjs` — et Appwrite
+/// refuse alors la création entière, avec « Unknown attribute: tags ». Le web
+/// applique exactement la même omission (`src/lib/appwrite.ts`, où `tags` est
+/// retiré par déstructuration avant l'écriture). Le paramètre `tags` de
+/// `createPost` est conservé pour ne pas changer l'interface, mais les
+/// étiquettes ne sont pas persistées.
+///
+/// Fonction pure : c'est ce qui permet de vérifier sans réseau que l'attribut
+/// fautif ne réapparaît pas.
+Map<String, dynamic> forumPostPayload({
+  required String title,
+  required String content,
+  required String category,
+  required String authorId,
+  required String authorName,
+  required String role,
+  required String university,
+}) {
+  return {
+    'authorId': authorId,
+    'authorName': authorName,
+    'role': role,
+    'university': university,
+    'title': title,
+    'content': content,
+    'category': category,
+    // Le compteur est tenu par la Function de réactions, qui le recalcule à
+    // partir des réactions réelles : on part donc de zéro, jamais d'une valeur
+    // fournie par le client.
+    'likes': 0,
+    'createdAt': DateTime.now().toIso8601String(),
+  };
+}
+
+/// Résultat d'une bascule de recommandation.
+class ForumReaction {
+  /// Vrai si l'utilisateur recommande désormais le billet.
+  final bool liked;
+
+  /// Nombre de recommandations après l'opération, tel que compté par le serveur.
+  final int likes;
+
+  const ForumReaction({required this.liked, required this.likes});
 }
 
 final forumRepositoryProvider = Provider<ForumRepository>((ref) {
