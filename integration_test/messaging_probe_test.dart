@@ -7,8 +7,9 @@
 //
 // Il ne fait échouer la suite que si l'appel échoue : c'est bien le but.
 //
-// Lancement :
-//   flutter test integration_test/messaging_probe_test.dart -d <appareil>
+// Lancement (les identifiants sont fournis au lancement, jamais écrits ici) :
+//   flutter test integration_test/messaging_probe_test.dart -d <appareil> \
+//     --dart-define=EMAIL=<compte> --dart-define=PASSWORD=<mot de passe>
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,14 +19,30 @@ import 'package:uniflow_mobile/data/appwrite_service.dart';
 import 'package:uniflow_mobile/repositories/auth_repository.dart';
 import 'package:uniflow_mobile/repositories/messaging_repository.dart';
 
-/// Compte de test. Surchargeable par `--dart-define=EMAIL=… --dart-define=PASSWORD=…`.
-const _email = String.fromEnvironment('EMAIL', defaultValue: 'kernel@forge.codes');
-const _password = String.fromEnvironment('PASSWORD', defaultValue: 'raveliop456');
+/// Compte de test, fourni au lancement par `--dart-define=EMAIL=… --dart-define=PASSWORD=…`.
+///
+/// Volontairement sans valeur par défaut. Ce fichier est versionné : les
+/// identifiants qui s'y trouvaient en dur — dont le mot de passe du compte
+/// ADMIN — sont partis dans l'historique Git. Ne jamais en remettre.
+const _email = String.fromEnvironment('EMAIL');
+const _password = String.fromEnvironment('PASSWORD');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('la messagerie répond sur un appareil réel', (tester) async {
+    // Échouer ici plutôt que de lancer une connexion sans identifiants : sans
+    // cette garde, on croirait à une panne de la messagerie alors que c'est la
+    // sonde qui est mal appelée.
+    if (_email.isEmpty || _password.isEmpty) {
+      fail(
+        'Identifiants absents — ce fichier ne les contient plus (ils étaient '
+        'versionnés). Relancer avec :\n'
+        '  flutter test integration_test/messaging_probe_test.dart -d <appareil> \\\n'
+        '    --dart-define=EMAIL=<compte> --dart-define=PASSWORD=<mot de passe>',
+      );
+    }
+
     // Le point d'entrée de l'application n'est pas exécuté ici : c'est à la
     // sonde de charger la configuration, exactement comme le fait `main()`.
     await dotenv.load(fileName: '.env');
