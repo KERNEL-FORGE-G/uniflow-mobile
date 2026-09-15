@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../models/user_role.dart';
+import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 
 /// Coquille de l'application connectée : elle porte la barre de navigation du
@@ -9,27 +12,28 @@ import '../theme/app_theme.dart';
 /// pages du web, avec l'onglet actif en bleu de marque sur une pastille
 /// `primary-50` : c'est le même vocabulaire que la sidebar du desktop, où
 /// l'élément actif est le seul à porter la couleur d'accent.
-class AppShell extends StatelessWidget {
+///
+/// Les onglets ne sont plus une liste figée : ils viennent de
+/// [bottomBarFor], donc du rôle. Un étudiant n'a pas d'onglet « Étudiants »,
+/// un enseignant n'a pas d'onglet « Présence ». Les entrées qui ne tiennent pas
+/// dans la barre restent accessibles depuis l'accueil.
+class AppShell extends ConsumerWidget {
   final Widget child;
   final String location;
 
   const AppShell({super.key, required this.child, required this.location});
 
-  static const _tabs = [
-    (icon: Icons.home_outlined, active: Icons.home, label: 'Accueil', path: '/accueil'),
-    (icon: Icons.book_outlined, active: Icons.book, label: 'Études', path: '/ues'),
-    (icon: Icons.chat_bubble_outline, active: Icons.chat_bubble, label: 'Messages', path: '/messages'),
-    (icon: Icons.qr_code_scanner, active: Icons.qr_code_scanner, label: 'Présence', path: '/presence'),
-    (icon: Icons.settings_outlined, active: Icons.settings, label: 'Réglages', path: '/settings'),
-  ];
-
-  int get _currentIndex {
-    final i = _tabs.indexWhere((t) => location.startsWith(t.path));
+  int _currentIndex(List<NavDestination> tabs) {
+    final i = tabs.indexWhere((t) => location.startsWith(t.path));
     return i == -1 ? 0 : i;
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentRoleProvider);
+    final tabs = bottomBarFor(role);
+    final current = _currentIndex(tabs);
+
     return Scaffold(
       body: child,
       bottomNavigationBar: DecoratedBox(
@@ -50,14 +54,14 @@ class AppShell extends StatelessWidget {
           child: SizedBox(
             height: 68,
             child: Row(
-              children: List.generate(_tabs.length, (i) {
-                final t = _tabs[i];
+              children: List.generate(tabs.length, (i) {
+                final t = tabs[i];
                 return Expanded(
                   child: _NavTab(
                     icon: t.icon,
-                    activeIcon: t.active,
+                    activeIcon: t.activeIcon,
                     label: t.label,
-                    selected: i == _currentIndex,
+                    selected: i == current,
                     onTap: () => context.go(t.path),
                   ),
                 );

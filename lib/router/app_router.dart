@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 import '../providers/providers.dart';
+import '../models/user_role.dart';
 import '../widgets/app_shell.dart';
+import '../screens/access_denied.dart';
 import '../screens/login.dart';
 import '../screens/dashboard.dart';
 import '../screens/students_list.dart';
@@ -31,6 +33,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   // sert de signal pour réévaluer le redirect quand la session change.
   final sessionChanged = ValueNotifier<int>(0);
   ref.listen(authStatusProvider, (_, __) => sessionChanged.value++);
+  // Le rôle change sans que l'état d'authentification bouge — un administrateur
+  // qui corrige le rôle d'un compte pendant que celui-ci est ouvert. Sans cette
+  // écoute, le routeur garderait la décision prise au démarrage.
+  ref.listen(currentUserProvider, (_, __) => sessionChanged.value++);
   ref.onDispose(sessionChanged.dispose);
 
   return GoRouter(
@@ -38,11 +44,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: sessionChanged,
     // Tant que la session n'est pas résolue ou qu'aucun compte n'est connecté,
     // tout ramène à /login ; une fois connecté, /login renvoie vers l'accueil.
+    //
+    // La seconde règle est celle des rôles : une adresse que le rôle n'a pas le
+    // droit d'atteindre ramène à l'accueil, avec un message. Masquer un onglet
+    // ne suffit pas — l'adresse reste tapable, et un écran d'administration
+    // atteignable par URL n'est pas restreint du tout.
     redirect: (context, state) {
       final signedIn = ref.read(authStatusProvider) == AuthStatus.signedIn;
       final atLogin = state.matchedLocation == '/login';
       if (!signedIn) return atLogin ? null : '/login';
-      return atLogin ? '/accueil' : null;
+      if (atLogin) return '/accueil';
+
+      final role = ref.read(currentRoleProvider);
+      if (!canAccessPath(role, state.matchedLocation)) {
+        return '/acces-refuse?depuis=${Uri.encodeComponent(state.matchedLocation)}';
+      }
+      return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
@@ -79,6 +96,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/sentinelle', builder: (_, __) => const SentinelleScreen()),
           GoRoute(path: '/equipe', builder: (_, __) => const TeamsScreen()),
           GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+          // Hors de la barre du bas : cette page ne s'atteint qu'en se faisant
+          // rediriger, et elle doit rester dans la coquille pour que
+          // l'utilisateur puisse repartir d'un onglet.
+          GoRoute(
+            path: '/acces-refuse',
+            builder: (_, s) => AccessDeniedScreen(
+              depuis: s.uri.queryParameters['depuis'],
+            ),
+          ),
         ],
       ),
     ],

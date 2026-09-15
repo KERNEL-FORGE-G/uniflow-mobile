@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/uniflow_api.dart';
 import '../models/models.dart';
 import '../models/appwrite_models.dart';
+import '../models/user_role.dart';
 import '../repositories/academic_repository.dart';
 import '../repositories/auth_repository.dart';
 
@@ -21,6 +22,16 @@ final uesProvider = StateProvider<List<UE>>((ref) => []);
 final enrollmentsProvider = StateProvider<List<Enrollment>>((ref) => []);
 
 final currentUserProvider = StateProvider<UniFlowUser?>((ref) => null);
+
+/// Rôle de l'utilisateur connecté, tel qu'il décide de ce qui est visible.
+///
+/// Dérivé de [currentUserProvider] plutôt que stocké à part : deux sources
+/// finiraient par diverger, et c'est exactement ce qu'un système de restriction
+/// ne peut pas se permettre. Déconnecté, le rôle retombe sur `student`, le plus
+/// restreint.
+final currentRoleProvider = Provider<UniFlowRole>((ref) {
+  return mapRole(ref.watch(currentUserProvider)?.role);
+});
 
 /// Résout la session Appwrite persistée sur l'appareil au démarrage.
 final sessionBootstrapProvider = FutureProvider<void>((ref) async {
