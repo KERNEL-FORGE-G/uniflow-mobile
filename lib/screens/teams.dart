@@ -599,12 +599,21 @@ class _BandeauTechnologies extends StatelessWidget {
                         children: [
                           const Icon(Icons.check_circle_outline, size: 13, color: AppColors.teal),
                           const SizedBox(width: 5),
-                          Text(
-                            technologie,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondary,
+                          // `Flexible` : à 320 px de large avec le texte agrandi
+                          // (×1.3), « SQLite / IndexedDB » et « PWA Offline-First »
+                          // dépassaient la largeur de la pastille de 4 à 48 px.
+                          // Le libellé se replie en points de suspension au lieu
+                          // de pousser la carte.
+                          Flexible(
+                            child: Text(
+                              technologie,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ),
                         ],
@@ -660,12 +669,21 @@ class _AppelGithub extends StatelessWidget {
                   children: [
                     Icon(Icons.code, size: 16, color: AppColors.primaryBlue),
                     SizedBox(width: 7),
-                    Text(
-                      'Organisation GitHub',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryBlue,
+                    // `Flexible` : sans marge de repli, ce libellé débordait de
+                    // 127 px à 320 px de large avec le texte agrandi (×1.3).
+                    // Le bas de la page n'était jamais peint par le balayage de
+                    // mise en page — la `ListView` ne construit que le visible —
+                    // donc le débordement n'apparaissait qu'à l'usage.
+                    Flexible(
+                      child: Text(
+                        'Organisation GitHub',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryBlue,
+                        ),
                       ),
                     ),
                     SizedBox(width: 6),

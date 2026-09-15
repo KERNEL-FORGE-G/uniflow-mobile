@@ -232,5 +232,34 @@ void main() {
       expect(find.byIcon(Icons.code), findsWidgets);
       expect(find.byIcon(Icons.mail_outline), findsNWidgets(2));
     });
+
+    testWidgets('le bas de la page ne déborde pas sur un petit écran', (tester) async {
+      // La page est une `ListView` : elle ne construit que ce qui est visible.
+      // Le balayage de mise en page, qui ne fait que peindre le premier écran,
+      // ne voyait donc jamais le bandeau technologique ni le bouton GitHub du
+      // bas — c'est précisément là qu'un libellé non flexible débordait de
+      // 68 px sur le desktop. On déroule jusqu'en bas, à la largeur et à
+      // l'échelle de texte les plus défavorables.
+      const taille = Size(320, 568);
+      tester.view.physicalSize = taille;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: taille, textScaler: TextScaler.linear(1.3)),
+          child: host(const TeamsScreen()),
+        ),
+      );
+      await tester.pump();
+
+      await tester.dragUntilVisible(
+        find.text('Organisation GitHub'),
+        find.byType(ListView),
+        const Offset(0, -120),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    });
   });
 }
