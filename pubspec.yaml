@@ -41,16 +41,21 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   drift_dev: ^2.14.0
   build_runner: ^2.4.8
-  flutter_launcher_icons: ^0.13.1
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/logo.png"
-  min_sdk_android: 21
+  # Pas de `flutter_launcher_icons` ici, volontairement : les icônes sont
+  # produites par `tools/generer-icones-uniflow.py`, seul propriétaire du jeu
+  # d'icônes. La configuration précédente nommait `android: "launcher_icon"`
+  # et écrivait `ios: true` — un dossier `ios/` qui n'existe pas — alors que le
+  # manifeste et `res/mipmap-*/` disent `ic_launcher`. Lancé, il aurait créé un
+  # second jeu d'icônes parallèle, et l'application aurait affiché l'ancien logo
+  # selon la densité retenue par le lanceur. Il ignore de toute façon les
+  # icônes adaptatives (`mipmap-anydpi-v26`) que le script, lui, sait générer.
 
 flutter:
   uses-material-design: true
   assets:
     - .env
-    - assets/logo.png
+    # Logos de marque transparents (l'écusson court et le logo long). Le PNG à
+    # fond blanc opaque `assets/logo.png` qu'ils remplacent est supprimé : il
+    # pesait 872 Ko dans l'APK et posait une tuile blanche sur les fonds
+    # sombres.
+    - assets/brand/
