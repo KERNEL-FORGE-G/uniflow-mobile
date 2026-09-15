@@ -197,4 +197,72 @@ void main() {
       expect(isUrgentNotificationFor(create, {'type': 'MESSAGE_URGENT'}, me), isFalse);
     });
   });
+
+  // Régression du 2026-09-15. Le document d'exécution ci-dessous est la copie
+  // exacte de ce que renvoie le serveur (Appwrite 1.6.1) : il n'a **pas** de
+  // champ `resourceType`. Le SDK Dart 26.2.0, lui, vise Appwrite 2.0.x et
+  // `Execution.fromMap` fait `ExecutionResourceType.values.firstWhere((e) =>
+  // e.value == map['resourceType'])` sans `orElse` — donc lève
+  // « Bad state: No element » sur chaque appel. C'est ce qui faisait échouer
+  // tout l'écran Messagerie. Ces tests tiennent la lecture brute qui remplace
+  // ce modèle.
+  group('decodeExecutionPayload', () {
+    // Champs réels d'une exécution servie par Appwrite 1.6.1, relevés sur le
+    // serveur. `resourceType` en est volontairement absent.
+    Map<String, dynamic> executionAvec(Object? responseBody) => {
+          'functionId': 'messaging',
+          'trigger': 'http',
+          'status': 'completed',
+          'responseStatusCode': 200,
+          'responseBody': responseBody,
+          'responseHeaders': const [],
+          'requestMethod': 'POST',
+          'requestPath': '/',
+          'requestHeaders': const [],
+          'logs': '',
+          'errors': '',
+          'duration': 0.42,
+        };
+
+    test('lit la charge utile malgré l\'absence de `resourceType`', () {
+      final execution = executionAvec('{"ok":true,"conversations":[]}');
+      expect(execution.containsKey('resourceType'), isFalse);
+      expect(decodeExecutionPayload(execution), {
+        'ok': true,
+        'conversations': <dynamic>[],
+      });
+    });
+
+    test('rend le refus du serveur tel quel, à charge de l\'appelant', () {
+      final execution = executionAvec(
+        '{"ok":false,"code":"ACTOR_DENIED","message":"La messagerie est réservée."}',
+      );
+      final payload = decodeExecutionPayload(execution);
+      expect(payload['ok'], isFalse);
+      expect(payload['code'], 'ACTOR_DENIED');
+    });
+
+    test('rend une map vide quand le corps est absent ou vide', () {
+      expect(decodeExecutionPayload(executionAvec(null)), isEmpty);
+      expect(decodeExecutionPayload(executionAvec('')), isEmpty);
+      expect(decodeExecutionPayload(executionAvec('   ')), isEmpty);
+      expect(decodeExecutionPayload(const {}), isEmpty);
+    });
+
+    test('rend une map vide quand le corps n\'est pas du JSON', () {
+      // Une Function qui plante renvoie parfois du texte brut ; l'écran doit
+      // afficher « réponse inattendue », pas lever une FormatException.
+      expect(decodeExecutionPayload(executionAvec('Internal Server Error')), isEmpty);
+    });
+
+    test('rend une map vide quand le JSON n\'est pas un objet', () {
+      expect(decodeExecutionPayload(executionAvec('[1,2,3]')), isEmpty);
+      expect(decodeExecutionPayload(executionAvec('"texte"')), isEmpty);
+      expect(decodeExecutionPayload(executionAvec('42')), isEmpty);
+    });
+
+    test('accepte un corps déjà décodé en map', () {
+      expect(decodeExecutionPayload(executionAvec('{"ok":true}')), {'ok': true});
+    });
+  });
 }
