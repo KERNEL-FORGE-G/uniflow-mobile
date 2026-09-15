@@ -31,48 +31,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ///
   /// Le pseudo est l'adresse de la messagerie : il ne peut pas être vide, et
   /// c'est le serveur qui garantit son unicité.
+  ///
+  /// La boîte est un widget à état, et non un `showDialog` construit à la volée
+  /// avec un `TextEditingController` local. Ce dernier montage — utilisé ici
+  /// jusqu'ici — libérait le contrôleur dès le retour de `showDialog`, alors que
+  /// la route de dialogue est encore montée le temps de son animation de
+  /// sortie : son `TextField` se reconstruisait sur un contrôleur disposé, et
+  /// l'utilisateur recevait une page d'erreur rouge —
+  /// « A TextEditingController was used after being disposed ». Le contrôleur
+  /// appartient désormais à l'état du widget, qui le libère quand la route a
+  /// réellement disparu.
   Future<void> _editUsername() async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
-    final controller = TextEditingController(text: user.username ?? '');
     final submitted = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(user.username == null || user.username!.isEmpty
-            ? 'Créer votre pseudo'
-            : 'Changer de pseudo'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Vos contacts vous trouvent par ce pseudo dans la messagerie.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: const InputDecoration(
-                prefixText: '@',
-                hintText: 'prenom.nom',
-                helperText: '3 à 32 caractères : lettres, chiffres, . _ -',
-              ),
-              onSubmitted: (value) => Navigator.pop(ctx, value),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('Enregistrer'),
-          ),
-        ],
-      ),
+      builder: (ctx) => _DialoguePseudo(pseudoActuel: user.username ?? ''),
     );
-    controller.dispose();
     if (submitted == null || !mounted) return;
 
     final normalized = normalizeUsername(submitted);
@@ -341,6 +317,75 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Boîte de dialogue de saisie du pseudo.
+///
+/// Widget à état, pour que le `TextEditingController` vive exactement aussi
+/// longtemps que le champ qui l'utilise — voir le commentaire de
+/// `_SettingsScreenState._editUsername`.
+class _DialoguePseudo extends StatefulWidget {
+  /// Pseudo en place, vide s'il n'y en a pas encore.
+  final String pseudoActuel;
+
+  const _DialoguePseudo({required this.pseudoActuel});
+
+  @override
+  State<_DialoguePseudo> createState() => _DialoguePseudoState();
+}
+
+class _DialoguePseudoState extends State<_DialoguePseudo> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.pseudoActuel);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final creation = widget.pseudoActuel.isEmpty;
+    return AlertDialog(
+      title: Text(creation ? 'Créer votre pseudo' : 'Changer de pseudo'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Vos contacts vous trouvent par ce pseudo dans la messagerie.',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              prefixText: '@',
+              hintText: 'prenom.nom',
+              helperText: '3 à 32 caractères : lettres, chiffres, . _ -',
+            ),
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          // Le pseudo part tel quel : la normalisation et le refus des cas
+          // invalides appartiennent à l'écran, qui les applique de la même
+          // façon quelle que soit la manière dont la boîte s'est fermée.
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: const Text('Enregistrer'),
         ),
       ],
     );
