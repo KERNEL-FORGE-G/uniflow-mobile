@@ -649,3 +649,70 @@ class Avatar extends StatelessWidget {
     );
   }
 }
+
+/// Photo d'un membre de l'équipe KERNEL FORGE, ou silhouette neutre.
+///
+/// Contrairement à [Avatar], ce widget n'affiche **jamais** d'initiales. Sur
+/// demande du propriétaire, aucune écriture ne doit apparaître sur la photo de
+/// profil : un rond gris et une icône de personne se lisent comme « pas encore
+/// de photo », alors que des initiales donnent l'impression d'une image ratée.
+///
+/// L'écran `/equipe` l'utilise à la place d'[Avatar] ; les autres écrans, qui
+/// montrent des comptes utilisateurs et non des membres de l'équipe, gardent
+/// les initiales.
+class SilhouetteAvatar extends StatelessWidget {
+  final String? avatarFileId;
+  final double size;
+
+  /// Coins arrondis. `null` donne un cercle, comme la page web pour les
+  /// comptes ; les cartes de l'équipe passent un rayon plus doux.
+  final BorderRadius? borderRadius;
+
+  final Color background;
+  final Color foreground;
+
+  const SilhouetteAvatar({
+    super.key,
+    this.avatarFileId,
+    this.size = 56,
+    this.borderRadius,
+    this.background = AppColors.surfaceMuted,
+    this.foreground = AppColors.textMuted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = borderRadius ?? BorderRadius.circular(size / 2);
+
+    Widget silhouette() => Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: background, borderRadius: radius),
+          alignment: Alignment.center,
+          child: Icon(Icons.person_outline, size: size * 0.5, color: foreground),
+        );
+
+    final url = avatarUrl(avatarFileId);
+    if (url == null) return silhouette();
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: Image.network(
+        url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        // Une photo retirée du bucket ou un réseau coupé ramène à la
+        // silhouette, jamais à un trou ni à des initiales.
+        errorBuilder: (_, __, ___) => silhouette(),
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(color: background, borderRadius: radius),
+              ),
+      ),
+    );
+  }
+}
