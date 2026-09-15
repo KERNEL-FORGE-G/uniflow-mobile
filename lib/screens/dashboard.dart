@@ -64,13 +64,25 @@ class DashboardScreen extends ConsumerWidget {
                   height: 40,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/logo.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.school_rounded,
-                        color: Colors.white,
-                        size: 26,
+                    // L'écusson est bleu marine : posé à même le dégradé bleu
+                    // foncé de l'en-tête, son mortier s'y confondait et il ne
+                    // restait que la flèche teal. La pastille claire le
+                    // détache ; elle était auparavant cuite dans le PNG, sur
+                    // fond blanc opaque, ce qui interdisait d'employer le logo
+                    // transparent.
+                    child: ColoredBox(
+                      color: AppColors.cardWhite,
+                      child: Padding(
+                        padding: const EdgeInsets.all(3),
+                        child: Image.asset(
+                          'assets/brand/uniflow_marque.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.school_rounded,
+                            color: AppColors.primaryBlue,
+                            size: 26,
+                          ),
+                        ),
                       ),
                     ),
                   ),
