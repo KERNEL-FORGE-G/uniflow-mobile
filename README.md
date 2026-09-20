@@ -1,79 +1,112 @@
-# 🎓 UniFlow Mobile — L'Expérience Académique Augmentée
+# UniFlow Mobile
 
-![UniFlow Logo](assets/brand/uniflow_logo_horizontal.png)
+Application Android (et iOS) d'UniFlow pour les étudiants, délégués et
+enseignants. Écrite en Flutter, elle parle **directement à Appwrite Cloud** —
+mêmes collections, même bucket, mêmes Functions que le web et le desktop —
+et fonctionne en lecture hors connexion grâce à un cache local.
 
-UniFlow Mobile est l'application compagnon essentielle pour les étudiants et enseignants de l'écosystème **UniFlow**. Conçue avec **Flutter**, elle offre une interface fluide, réactive et optimisée pour une utilisation quotidienne sur le campus, même en conditions de connectivité limitée.
+## Sommaire
 
-## 🚀 Vision du Projet
-UniFlow vise à numériser l'expérience universitaire en Afrique subsaharienne. Le module mobile se concentre sur la mobilité, l'instantanéité et la sécurité (émargement contrôlé).
+1. [Fonctionnalités](#fonctionnalités)
+2. [Prérequis](#prérequis)
+3. [Installation et lancement](#installation-et-lancement)
+4. [Configuration](#configuration)
+5. [Tests](#tests)
+6. [Organisation du dépôt](#organisation-du-dépôt)
+7. [Documentation](#documentation)
 
-## 🛠️ Améliorations Récentes & Unification
-Auparavant dépendante d'une API gateway intermédiaire, l'application a été entièrement migrée pour une **communication directe avec Appwrite**.
-- **Source de Vérité Unique** : Partage les mêmes collections (BD), buckets (Stockage) et fonctions que la version Web.
-- **Zéro Latence** : Suppression des couches de transit inutiles pour une réactivité maximale.
-- **Sécurité Renforcée** : Authentification native Appwrite avec gestion granulaire des permissions.
+## Fonctionnalités
 
-## ✨ Fonctionnalités Clés
+| Rôle | Écrans |
+| --- | --- |
+| Tous | Connexion (compte universitaire ou indépendant), tableau de bord, paramètres, notifications, aide, équipe KERNEL FORGE |
+| Étudiant | Emploi du temps, unités d'enseignement et détail, inscriptions, notes, devoirs (rendu de fichier, quiz), bibliothèque (PDF), présence QR (scan), forum, messagerie |
+| Délégué | Tout l'étudiant + émission du QR de présence et annonces |
+| Enseignant | Listes d'étudiants et détail, saisie des notes, devoirs, présence |
+| Administration | Annuaire des étudiants et enseignants |
 
-### 1. Gestion des Études & Scolarité
-- **Emploi du Temps Dynamique** : Visualisez vos cours par jour avec les salles et enseignants associés.
-- **Mes Notes** : Accès instantané aux résultats académiques dès leur publication.
-- **Mes Devoirs** : Liste des travaux à rendre avec rappels de date limite et statut de soumission.
-- **Bibliothèque Numérique** : Accès aux supports de cours (PDF, Vidéos) stockés sur le Cloud UniFlow.
+Un écran « accès refusé » explicite s'affiche quand un rôle n'a pas droit à
+une page, plutôt qu'une page vide.
 
-### 2. Émargement & Présence (Innovation)
-- **Scanner QR Sécurisé** : Système d'appel par QR Code avec vérification de jeton temporaire pour éviter les fraudes.
-- **Historique de Présence** : Suivi de votre assiduité pour chaque unité d'enseignement (UE).
+## Prérequis
 
-### 3. Communication & Communauté
-- **Forum UniFlow** : Espace d'entraide pour poser des questions, partager des ressources et liker les meilleures réponses.
-- **Messagerie Privée** : Discutez directement avec vos délégués ou enseignants.
+- Flutter stable (Dart ≥ 3.3).
+- **Java 21.** Le projet tourne sous Gradle 8.14 / AGP 8.11.1, qui ne
+  supportent pas Java 25. Si le build échoue sur
+  `Gradle build failed due to Java/Gradle incompatibility`, épinglez le JDK
+  (réglage utilisateur, rien n'est écrit dans le dépôt) :
 
-### 4. Sentinelle IoT (Santé & Sécurité)
-- **Monitoring Santé** : Interface mobile pour consulter les rapports des kiosques Sentinelle (SpO2, Rythme cardiaque).
-- **Alertes Vigie** : Notifications en cas d'incident détecté sur le campus par l'IA Edge.
+  ```bash
+  flutter config --jdk-dir=/usr/lib/jvm/java-21-openjdk-amd64
+  ```
 
-## 💻 Stack Technique
-- **Framework** : Flutter (Dart)
-- **Gestion d'État** : Riverpod (Flexible & Testable)
-- **Backend-as-a-Service** : Appwrite (Database, Auth, Storage, Functions)
-- **Navigation** : GoRouter
-- **Persistence** : flutter_dotenv & Appwrite SDK
+  Ne montez pas Gradle en 9.x pour contourner : AGP 8.11.1 n'y est pas
+  compatible, il faudrait migrer AGP, Kotlin et les plugins (`flutter_webrtc`,
+  `workmanager`, `drift`, `image_picker`) ensemble.
 
-## ⚙️ Configuration
-Créez un fichier `.env` à la racine :
-```env
-APPWRITE_ENDPOINT=https://appwrite.kernelforge.codes/v1
-APPWRITE_PROJECT_ID=6a959096002a64d9d4e6
-APPWRITE_DATABASE_ID=uniflow
-APPWRITE_STORAGE_BUCKET_ID=uniflow_assets
-```
-
-> ⚠️ **Ne jamais mettre de clé d'API serveur (`APPWRITE_API_KEY`) dans ce fichier.**
-> `pubspec.yaml` déclare `.env` comme asset : tout ce qu'il contient est embarqué
-> en clair dans l'APK. Les opérations privilégiées passent par les **Functions
-> Appwrite**, qui détiennent la clé côté serveur.
-
-## 📦 Build & CI/CD
-Le projet intègre des workflows **GitHub Actions** pour :
-- **Analyse statique** : Vérification de la qualité du code.
-- **Tests** : Exécution des tests unitaires et de widgets.
-- **Build Automatisé** : Génération de l'APK à chaque push sur `main`.
-
-## 🧰 Prérequis outillage
-
-**Java 21 est requis.** Le projet tourne sous Gradle 8.14 / AGP 8.11.1, qui
-**ne supportent pas Java 25**. Si votre `java` par défaut est plus récent, le build
-échoue sur `Gradle build failed due to Java/Gradle incompatibility`. Épinglez le JDK —
-c'est un réglage utilisateur, rien n'est écrit dans le dépôt :
+## Installation et lancement
 
 ```bash
-flutter config --jdk-dir=/usr/lib/jvm/java-21-openjdk-amd64
+flutter pub get
+flutter run                      # appareil ou émulateur connecté
+flutter build apk --release      # build/app/outputs/flutter-apk/app-release.apk
+./scripts/build_apk.sh           # même chose, avec les vérifications préalables
 ```
 
-> ⚠️ Ne montez **pas** Gradle en 9.x pour « régler » ce problème : AGP 8.11.1 n'est
-> pas compatible avec Gradle 9, il faudrait migrer AGP, Kotlin et les plugins
-> (`flutter_webrtc`, `workmanager`, `drift`, `image_picker`) en même temps.
+## Configuration
 
----
-© 2026 **KERNEL FORGE** — Numérisons l'avenir académique.
+`pubspec.yaml` déclare `.env` comme asset : **tout ce qu'il contient est
+embarqué en clair dans l'APK.** Il ne porte donc que des valeurs publiques
+d'Appwrite Cloud et il est versionné pour que la CI puisse construire :
+
+```env
+APPWRITE_ENDPOINT=https://fra.cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=uniflow
+APPWRITE_DATABASE_ID=uniflow
+APPWRITE_STORAGE_BUCKET_ID=uniflow_assets
+APPWRITE_AVATAR_BUCKET_ID=uniflow_assets
+APPWRITE_CHAT_FILES_BUCKET_ID=uniflow_assets
+APPWRITE_API_FUNCTION_ID=uniflow-api
+```
+
+Jamais de clé serveur ici : les opérations privilégiées (messagerie,
+présence, notes, annuaire…) passent par la Function `uniflow-api`, qui vérifie
+le rôle de l'appelant côté serveur.
+
+## Tests
+
+```bash
+flutter analyze
+flutter test                     # tests unitaires et de widgets
+flutter test integration_test    # parcours sur appareil
+```
+
+Toute correction de logique ou de mise en page s'accompagne d'un test.
+
+## Organisation du dépôt
+
+```
+uniflow-mobile/
+├── lib/
+│   ├── data/            appwrite_service.dart (client, exécution des Functions, envoi de fichiers)
+│   ├── models/          modèles Appwrite et métier
+│   ├── repositories/    accès aux collections, cache local, Functions
+│   ├── providers/       état Riverpod (session, rôle, données)
+│   ├── router/          GoRouter et gardes par rôle
+│   ├── screens/         un fichier par écran
+│   ├── widgets/         composants partagés
+│   ├── services/        notifications, hors connexion, tâches de fond
+│   └── theme/           thème UniFlow
+├── test/                tests unitaires et de widgets
+├── integration_test/    parcours de bout en bout
+├── scripts/build_apk.sh
+├── tools/               génération des icônes
+├── assets/brand/        logos
+└── docs/                notes techniques et historique
+```
+
+## Documentation
+
+- `docs/erreurs-de-build-resolues.md` — incompatibilités de plugins déjà rencontrées et leur correction.
+- `docs/legacy-gateway.md` — ancienne connexion via une API intermédiaire ; **plus utilisée**, conservée pour mémoire.
+- À la racine de l'espace de travail : `ETAT-DU-PROJET.md` et `TRAVAUX-RESTANTS.md`.
