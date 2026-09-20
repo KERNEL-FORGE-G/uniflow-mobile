@@ -6,6 +6,8 @@ import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../models/appwrite_models.dart';
 import 'personal_space.dart';
+import 'grading.dart';
+import '../models/user_role.dart';
 
 final gradesListProvider = FutureProvider<List<AcademicGrade>>((ref) async {
   final user = ref.watch(currentUserProvider);
@@ -22,6 +24,10 @@ class GradesScreen extends ConsumerWidget {
     // siennes. Même adresse, écran différent, pour que la barre du bas reste
     // la même dans les deux espaces.
     if (ref.watch(currentUserProvider)?.isPersonal ?? false) return const PersonalGradesView();
+    // Un enseignant ou l'administration n'a pas de notes à recevoir : il en
+    // saisit (service `/academic-grades`).
+    final role = ref.watch(currentRoleProvider);
+    if (role == UniFlowRole.teacher || role == UniFlowRole.admin) return const GradingScreen();
     final gradesAsync = ref.watch(gradesListProvider);
 
     return Scaffold(

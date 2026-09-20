@@ -289,14 +289,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const Divider(height: 24),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.security_outlined, color: AppColors.primaryBlue),
-                      title: const Text('Sentinelle IoT'),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                      onTap: () => GoRouter.of(context).push('/sentinelle'),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.groups_outlined, color: AppColors.primaryBlue),
                       title: const Text('L\'Équipe KERNEL FORGE'),
                       trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),

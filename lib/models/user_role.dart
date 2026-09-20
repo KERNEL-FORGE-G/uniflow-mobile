@@ -348,13 +348,6 @@ const List<NavDestination> navDestinations = [
     roles: universityRoles,
   ),
   NavDestination(
-    path: '/sentinelle',
-    label: 'Sentinelle IoT',
-    icon: Icons.sensors_outlined,
-    activeIcon: Icons.sensors,
-    roles: universityRoles,
-  ),
-  NavDestination(
     path: '/equipe',
     label: 'L\'Équipe KERNEL FORGE',
     icon: Icons.workspace_premium_outlined,

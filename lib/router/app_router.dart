@@ -22,16 +22,17 @@ import '../screens/presence.dart';
 import '../screens/settings.dart';
 import '../screens/grades.dart';
 import '../screens/assignments.dart';
+import '../screens/teacher_assignments.dart';
 import '../screens/library.dart';
 import '../screens/forum.dart';
 import '../screens/messages.dart';
 import '../screens/notifications.dart';
 import '../screens/conversation.dart';
 import '../repositories/messaging_repository.dart';
-import '../screens/sentinelle.dart';
 import '../screens/teams.dart';
 import '../screens/personal_space.dart';
 import '../screens/schedule.dart';
+import '../screens/accounts.dart';
 
 /// Adresses accessibles sans session. Une fois connecté, elles ramènent à
 /// l'accueil : revenir sur l'inscription avec une session ouverte ferait
@@ -94,8 +95,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/inscriptions', builder: (_, __) => const EnrollmentsScreen()),
           GoRoute(path: '/presence', builder: (_, __) => const PresenceScreen()),
           GoRoute(path: '/emploi-du-temps', builder: (_, __) => const ScheduleScreen()),
+          GoRoute(path: '/comptes', builder: (_, __) => const AccountsScreen()),
           GoRoute(path: '/notes', builder: (_, __) => const GradesScreen()),
-          GoRoute(path: '/devoirs', builder: (_, __) => const AssignmentsScreen()),
+          GoRoute(
+            path: '/devoirs',
+            // Même adresse, deux métiers : l'apprenant rend, l'enseignant publie.
+            builder: (_, __) => Consumer(
+              builder: (_, ref, __) => ref.watch(currentRoleProvider).isStaff
+                  ? const TeacherAssignmentsScreen()
+                  : const AssignmentsScreen(),
+            ),
+          ),
           GoRoute(path: '/bibliotheque', builder: (_, __) => const LibraryScreen()),
           GoRoute(path: '/forum', builder: (_, __) => const ForumScreen()),
           GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
@@ -111,7 +121,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               initial: s.extra is Conversation ? s.extra as Conversation : null,
             ),
           ),
-          GoRoute(path: '/sentinelle', builder: (_, __) => const SentinelleScreen()),
           // Espace personnel (comptes indépendants uniquement, voir navDestinations).
           GoRoute(path: '/matieres', builder: (_, __) => const PersonalSubjectsScreen()),
           GoRoute(path: '/taches', builder: (_, __) => const PersonalTasksScreen()),

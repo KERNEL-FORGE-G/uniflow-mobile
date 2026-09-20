@@ -3,6 +3,11 @@
          sans cette ligne, l'APK release n'a aucun accès réseau et toutes les
          requêtes Appwrite échouent silencieusement. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Présence sécurisée : la caméra lit le QR de la séance et la position
+         vérifie la proximité (service /attendance-secure). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <!-- Android 13+ exige une autorisation explicite pour afficher une
          notification. Sans cette ligne, les alertes de message urgent sont
          silencieusement ignorées sur les appareils récents. -->

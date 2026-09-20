@@ -24,7 +24,6 @@ import 'package:uniflow_mobile/screens/login.dart';
 import 'package:uniflow_mobile/screens/messages.dart';
 import 'package:uniflow_mobile/screens/notifications.dart';
 import 'package:uniflow_mobile/screens/presence.dart';
-import 'package:uniflow_mobile/screens/sentinelle.dart';
 import 'package:uniflow_mobile/screens/settings.dart';
 import 'package:uniflow_mobile/screens/students_list.dart';
 import 'package:uniflow_mobile/screens/register.dart';
@@ -80,7 +79,6 @@ void main() {
     'Notifications': const NotificationsScreen(),
     'Équipe': const TeamsScreen(),
     'Aide': const HelpScreen(),
-    'Sentinelle': const SentinelleScreen(),
     'Réglages': const SettingsScreen(),
   };
 
