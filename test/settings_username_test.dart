@@ -54,6 +54,15 @@ class _AuthFactice implements AuthRepository {
 
   @override
   Future<void> logout() async {}
+
+  @override
+  Future<UniFlowUser> register(RegistrationInput input) async => resultat ?? user();
+
+  @override
+  Future<void> provisionAcademicRegistration({String matricule = ''}) async {}
+
+  @override
+  Future<void> sendPasswordRecovery(String email) async {}
 }
 
 Widget _host(AuthRepository depot) => host(

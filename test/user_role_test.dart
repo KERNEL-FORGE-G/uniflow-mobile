@@ -65,7 +65,71 @@ void main() {
     });
   });
 
+  // Contrat commun aux trois clients : le rôle vient des labels Appwrite du
+  // compte (`account.get().labels`), valeurs nues `ADMIN`, `TEACHER`,
+  // `DELEGATE`, plus `superadmin` pour l'administrateur de la plateforme.
+  // Appwrite refuse `role:ADMIN` (lettres et chiffres seulement), d'où cette
+  // forme. Relevé en base le 2026-09-20 : kernel@forge.codes →
+  // ['ADMIN','superadmin'], administration → ['ADMIN'], enseignant →
+  // ['TEACHER'], délégué → ['DELEGATE'], étudiants → [].
+  group('UniFlowRole.fromLabels', () {
+    test('lit les labels des comptes de référence', () {
+      expect(UniFlowRole.fromLabels(['ADMIN', 'superadmin']), UniFlowRole.admin);
+      expect(UniFlowRole.fromLabels(['ADMIN']), UniFlowRole.admin);
+      expect(UniFlowRole.fromLabels(['TEACHER']), UniFlowRole.teacher);
+      expect(UniFlowRole.fromLabels(['DELEGATE']), UniFlowRole.delegate);
+    });
+
+    test('l\'absence de label de rôle vaut étudiant', () {
+      expect(UniFlowRole.fromLabels(const []), UniFlowRole.student);
+    });
+
+    test('est insensible à la casse et ignore les labels inconnus', () {
+      expect(UniFlowRole.fromLabels(['teacher']), UniFlowRole.teacher);
+      expect(UniFlowRole.fromLabels(['Admin']), UniFlowRole.admin);
+      expect(UniFlowRole.fromLabels(['beta', 'superadmin', 'DELEGATE']), UniFlowRole.delegate);
+      expect(UniFlowRole.fromLabels(['superadmin']), UniFlowRole.student);
+    });
+
+    test('le rôle le plus élevé gagne en cas de cumul', () {
+      expect(UniFlowRole.fromLabels(['TEACHER', 'ADMIN']), UniFlowRole.admin);
+      expect(UniFlowRole.fromLabels(['DELEGATE', 'TEACHER']), UniFlowRole.teacher);
+    });
+
+    test('le document users n\'est qu\'un repli quand les labels sont vides', () {
+      // Le document appartient à son propriétaire : un étudiant pourrait s'y
+      // écrire ADMIN. Il ne doit jamais l'emporter sur un label présent.
+      expect(UniFlowRole.fromLabels(const [], fallbackRole: 'TEACHER'), UniFlowRole.teacher);
+      expect(UniFlowRole.fromLabels(['DELEGATE'], fallbackRole: 'ADMIN'), UniFlowRole.delegate);
+      expect(UniFlowRole.fromLabels(const [], fallbackRole: ''), UniFlowRole.student);
+    });
+
+    test('un compte PERSONAL est indépendant quels que soient ses labels', () {
+      expect(UniFlowRole.fromLabels(const [], accountType: 'PERSONAL'), UniFlowRole.personal);
+      expect(UniFlowRole.fromLabels(['TEACHER'], accountType: 'personal'), UniFlowRole.personal);
+      expect(UniFlowRole.fromLabels(const [], accountType: 'UNIVERSITY'), UniFlowRole.student);
+    });
+
+    test('superadmin est détecté indépendamment du rôle', () {
+      expect(isSuperAdmin(['ADMIN', 'superadmin']), isTrue);
+      expect(isSuperAdmin(['SuperAdmin']), isTrue);
+      expect(isSuperAdmin(['ADMIN']), isFalse);
+      expect(isSuperAdmin(const []), isFalse);
+    });
+  });
+
   group('table de navigation', () {
+    test('la barre du bas ne cite que des rôles autorisés', () {
+      // Un onglet visible pour un rôle qui n'a pas le droit d'y aller serait
+      // une porte affichée puis refusée.
+      for (final destination in navDestinations) {
+        for (final role in destination.barRoles) {
+          expect(destination.roles, contains(role),
+              reason: '${destination.path} est dans la barre de $role sans l\'autoriser');
+        }
+      }
+    });
+
     test('aucune entrée n\'est ouverte à personne', () {
       // Un ensemble de rôles vide rendrait l'écran définitivement inaccessible.
       for (final destination in navDestinations) {
@@ -135,9 +199,37 @@ void main() {
       expect(canAccessPath(UniFlowRole.student, '/enseignants'), isFalse);
     });
 
-    test('l\'enseignant n\'atteint pas les présences par QR', () {
-      expect(canAccessPath(UniFlowRole.teacher, '/presence'), isFalse);
+    test('la présence est ouverte à ceux qui émargent ou émettent le QR', () {
+      // Le service `/attendance-secure` autorise `issue` au délégué, à
+      // l'enseignant et à l'administration, et `scan` aux seuls apprenants.
+      // L'écran mobile suit : l'enseignant y émet le QR, l'étudiant le scanne.
+      expect(canAccessPath(UniFlowRole.teacher, '/presence'), isTrue);
       expect(canAccessPath(UniFlowRole.delegate, '/presence'), isTrue);
+      expect(canAccessPath(UniFlowRole.personal, '/presence'), isFalse);
+    });
+
+    test('le compte indépendant ne voit aucun écran universitaire', () {
+      for (final chemin in ['/ues', '/etudiants', '/enseignants', '/presence', '/devoirs', '/bibliotheque', '/comptes', '/inscriptions', '/emploi-du-temps']) {
+        expect(canAccessPath(UniFlowRole.personal, chemin), isFalse, reason: chemin);
+      }
+      for (final chemin in ['/matieres', '/taches', '/agenda', '/notes', '/messages', '/forum', '/equipe', '/settings']) {
+        expect(canAccessPath(UniFlowRole.personal, chemin), isTrue, reason: chemin);
+      }
+    });
+
+    test('l\'espace personnel est fermé aux comptes universitaires', () {
+      for (final role in universityRoles) {
+        for (final chemin in ['/matieres', '/taches', '/agenda']) {
+          expect(canAccessPath(role, chemin), isFalse, reason: '$chemin pour $role');
+        }
+      }
+    });
+
+    test('la gestion des comptes est réservée à l\'administration', () {
+      expect(canAccessPath(UniFlowRole.admin, '/comptes'), isTrue);
+      for (final role in UniFlowRole.values.where((r) => r != UniFlowRole.admin)) {
+        expect(canAccessPath(role, '/comptes'), isFalse, reason: 'pour $role');
+      }
     });
 
     test('un sous-chemin suit la règle de son parent', () {

@@ -585,7 +585,7 @@ class Avatar extends StatelessWidget {
   final Color? color;
   final double size;
 
-  /// Identifiant du fichier dans le bucket Appwrite `uniflow_avatars`. Quand il
+  /// Identifiant du fichier dans le bucket Appwrite `uniflow_assets`. Quand il
   /// est renseigné, la photo remplace les initiales ; sinon l'affichage reste
   /// exactement celui d'avant, si bien que les appels existants ne changent pas.
   final String? avatarFileId;

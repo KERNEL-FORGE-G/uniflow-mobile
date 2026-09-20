@@ -324,7 +324,19 @@ class UniFlowUser {
   final String email;
   final String name;
   final String accountType; // 'UNIVERSITY' | 'PERSONAL'
-  final String role; // 'STUDENT' | 'DELEGATE' | 'TEACHER' | 'ADMIN'
+
+  /// Rôle effectif, en valeur de transport (`STUDENT`, `DELEGATE`, `TEACHER`,
+  /// `ADMIN`, ou `PERSONAL` pour un compte indépendant).
+  ///
+  /// Il est **calculé** par `UniFlowRole.fromLabels` à partir des labels du
+  /// compte Appwrite, jamais recopié tel quel depuis `users.role` : ce champ
+  /// n'est qu'un miroir d'affichage, et un client qui l'écrirait pourrait
+  /// s'attribuer n'importe quel rôle.
+  final String role;
+
+  /// Labels Appwrite du compte (`account.get().labels`), conservés pour
+  /// distinguer l'administrateur de la plateforme (`superadmin`).
+  final List<String> labels;
   final String? university;
   final String? program;
   final String? level;
@@ -333,7 +345,7 @@ class UniFlowUser {
   /// Pseudo unique : c'est le référent de la messagerie.
   final String? username;
 
-  /// Fichier de la photo de profil dans le bucket Appwrite `uniflow_avatars`.
+  /// Fichier de la photo de profil dans le bucket `uniflow_assets`.
   final String? avatarFileId;
 
   UniFlowUser({
@@ -342,6 +354,7 @@ class UniFlowUser {
     required this.name,
     required this.accountType,
     required this.role,
+    this.labels = const [],
     this.university,
     this.program,
     this.level,
@@ -350,6 +363,13 @@ class UniFlowUser {
     this.avatarFileId,
   });
 
+  bool get isPersonal => accountType.toUpperCase() == 'PERSONAL';
+
+  /// Vrai pour l'administrateur de la plateforme : le seul à pouvoir créer
+  /// d'autres comptes `ADMIN`.
+  bool get isSuperAdmin =>
+      labels.any((label) => label.trim().toLowerCase() == 'superadmin');
+
   UniFlowUser copyWith({String? name, String? username, String? avatarFileId}) {
     return UniFlowUser(
       id: id,
@@ -357,6 +377,7 @@ class UniFlowUser {
       name: name ?? this.name,
       accountType: accountType,
       role: role,
+      labels: labels,
       university: university,
       program: program,
       level: level,

@@ -240,31 +240,28 @@ class MessagingException implements Exception {
 
 class MessagingRepository {
   final AppwriteService _service;
-  static const String functionId = 'messaging';
+  /// Chemin du service de messagerie dans le routeur `uniflow-api`.
+  ///
+  /// Ce n'est plus un identifiant de Function : depuis la migration vers
+  /// Appwrite Cloud, une seule Function porte tous les services et c'est le
+  /// champ `path` de l'exécution qui choisit celui-ci. Appeler encore
+  /// `/functions/messaging/executions` répondait 404, et l'écran affichait
+  /// « Messagerie indisponible » alors que le serveur fonctionnait.
+  static const String servicePath = '/messaging';
 
   MessagingRepository(this._service);
 
-  /// Exécute la Function et renvoie le document d'exécution brut du serveur.
+  /// Exécute le service et renvoie le document d'exécution brut du serveur.
   ///
-  /// **Ne pas revenir à `functions.createExecution`.** Le SDK Dart 26.2.0 vise
-  /// Appwrite 2.0.x, alors que le serveur est en 1.6.1, qui ne renvoie pas de
-  /// champ `resourceType` dans le document d'exécution. Or
-  /// `Execution.fromMap` fait
-  /// `ExecutionResourceType.values.firstWhere((e) => e.value == map['resourceType'])`
-  /// — un `firstWhere` **sans `orElse`**, qui lève donc
-  /// « Bad state: No element » sur *chaque* appel, quelle que soit la Function.
-  /// Ce `StateError` n'est pas une `AppwriteException` : `_invoke` le laissait
-  /// remonter brut et l'écran Messagerie affichait « Messagerie indisponible ».
-  /// C'était le symptôme, et non la Function elle-même, qui répondait
-  /// pourtant `ok:true` sur les huit comptes réels.
-  ///
-  /// `client.call` garde tout ce que le SDK apporte — session, en-têtes de
-  /// projet, intercepteurs — et rend le JSON tel quel, sans le désérialiser.
-  /// Le détail de l'appel vit dans `AppwriteService.executeFunction`, que le
-  /// forum utilise aussi : il n'y a ainsi qu'un seul endroit à corriger le jour
-  /// où le serveur et le SDK se rejoindront.
+  /// **Ne pas revenir à `functions.createExecution`.** Une version antérieure
+  /// du couple SDK/serveur faisait lever `Execution.fromMap` (« Bad state: No
+  /// element ») sur *chaque* appel ; ce `StateError` n'étant pas une
+  /// `AppwriteException`, `_invoke` le laissait remonter brut jusqu'à l'écran.
+  /// Le détail de l'appel vit dans `AppwriteService.executeFunction`, partagé
+  /// avec les autres services : un seul endroit à corriger le jour où le
+  /// contrat change.
   Future<Map<String, dynamic>> _execute(Map<String, dynamic> payload) =>
-      _service.executeFunction(functionId, payload);
+      _service.executeFunction(servicePath, payload);
 
   /// Exécute la fonction et renvoie la charge utile JSON.
   ///
@@ -279,7 +276,7 @@ class MessagingRepository {
     } on AppwriteException catch (error) {
       throw MessagingException(
         error.code == 404
-            ? 'La fonction « messaging » n\'est pas déployée sur Appwrite.'
+            ? 'La Function « ${_service.apiFunctionId} » n\'est pas déployée sur Appwrite.'
             : 'Appwrite a refusé l\'appel (code ${error.code}).',
         code: 'EXECUTION_FAILED',
       );
@@ -389,22 +386,21 @@ class MessagingRepository {
   Conversation? _lastUpdate;
   Conversation? get lastUpdate => _lastUpdate;
 
-  /// Téléverse une pièce jointe dans le bucket des fichiers de discussion.
+  /// Téléverse une pièce jointe dans le bucket unique `uniflow_assets`.
   ///
   /// **Le fichier n'est lisible que par son auteur à ce stade**, et c'est
-  /// délibéré : Appwrite 1.6.1 refuse qu'un client accorde une permission à un
+  /// délibéré : Appwrite refuse qu'un client accorde une permission à un
   /// autre utilisateur. Le serveur répond
   /// « Permissions must be one of: (any, users, user:<soi>, …) », code 401, dès
   /// qu'on demande `read("user:<autre>")`. La lecture au destinataire est donc
-  /// accordée par la Function, au moment de l'envoi du message — voir l'action
-  /// `send` de `functions/messaging/src/main.js`. Demander ici la permission du
-  /// correspondant faisait échouer tout téléversement, et l'utilisateur voyait
-  /// « Session expirée pendant le téléversement », qui n'a rien à voir.
+  /// accordée par le service `/messaging`, au moment de l'envoi du message.
+  /// Demander ici la permission du correspondant faisait échouer tout
+  /// téléversement, et l'utilisateur voyait « Session expirée pendant le
+  /// téléversement », qui n'a rien à voir.
   ///
   /// Le téléversement passe par [AppwriteService.uploadFile], comme le change-
-  /// ment de photo de profil : `storage.createFile` du SDK 26.2.0 réclame
-  /// `sizeActual`, que ce serveur ne renvoie pas, et lève « type 'Null' is not a
-  /// subtype of type 'int' » alors que le fichier est bel et bien déposé.
+  /// ment de photo de profil : on ne lit que `$id` de la réponse, pour qu'un
+  /// fichier bien déposé ne s'affiche jamais comme un échec.
   Future<String> uploadAttachment({
     required String conversationId,
     required String myUserId,
@@ -502,8 +498,7 @@ class MessagingRepository {
       case 403:
         return 'Ce compte n\'est pas autorisé à envoyer des fichiers.';
       case 404:
-        return 'Le bucket « ${_service.chatFilesBucketId} » est introuvable. '
-            'Lancez scripts/provision-appwrite-selfhosted.mjs.';
+        return 'Le bucket « ${_service.chatFilesBucketId} » est introuvable sur Appwrite.';
       case 413:
       case 400:
         // Appwrite refuse au-delà de `_APP_STORAGE_LIMIT` avec un 400 dont le

@@ -24,7 +24,7 @@ void main() {
     // Aucun `sizeActual` : c'est précisément ce qui cassait `File.fromMap`.
     final reponseAvatar = <String, dynamic>{
       r'$id': '6aa91d49c41855da12b7',
-      'bucketId': '6aa81b840031e6a34dc3',
+      'bucketId': 'uniflow_assets',
       r'$createdAt': '2026-09-15T10:12:03.000+00:00',
       r'$updatedAt': '2026-09-15T10:12:03.000+00:00',
       r'$permissions': ['read("any")'],

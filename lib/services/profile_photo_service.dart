@@ -10,13 +10,14 @@ import '../providers/providers.dart';
 import '../repositories/auth_repository.dart';
 import '../utils/avatar.dart';
 
-/// Téléversement et retrait de la photo de profil dans le bucket Appwrite
-/// `uniflow_avatars`, puis enregistrement de l'identifiant du fichier sur le
+/// Téléversement et retrait de la photo de profil dans le bucket unique
+/// `uniflow_assets`, puis enregistrement de l'identifiant du fichier sur le
 /// document `users` du compte.
 ///
-/// Le bucket est distinct de `uniflow_assets` : il est lisible publiquement,
-/// car un avatar doit s'afficher dans les listes et les conversations sans
-/// exiger de session.
+/// Ce qui rend l'avatar public, c'est le `read("any")` posé sur le fichier
+/// lui-même : un avatar doit s'afficher dans les listes et les conversations
+/// sans exiger de session, alors que les pièces jointes du même bucket restent
+/// privées.
 class ProfilePhotoService {
   final AppwriteService _service;
   ProfilePhotoService(this._service);

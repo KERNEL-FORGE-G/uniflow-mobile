@@ -112,11 +112,12 @@ class ForumRepository {
   }
 }
 
-/// Nom de la Function qui porte les recommandations du forum.
+/// Chemin du service des recommandations dans le routeur `uniflow-api`.
 ///
-/// Elle existe déjà et est déployée (`scripts/deploy-forum-reactions-function.mjs`) ;
-/// le mobile ne l'appelait simplement pas, et affichait un compteur figé.
-const String _reactionsFunction = 'forum-reactions';
+/// Le mobile n'appelait pas ce service et affichait un compteur figé ; depuis
+/// la migration vers Appwrite Cloud, il est atteint par `path` sur l'unique
+/// Function, comme la messagerie.
+const String _reactionsFunction = '/forum-reactions';
 
 /// Document à écrire pour créer un billet.
 ///

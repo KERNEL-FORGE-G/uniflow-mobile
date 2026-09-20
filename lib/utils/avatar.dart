@@ -6,18 +6,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Elle est écrite ici plutôt qu'importée du service Appwrite afin que les
 /// widgets de présentation puissent l'utiliser sans dépendre du client Appwrite
 /// ni de `flutter_dotenv` déjà chargé.
-/// Identifiant du bucket des photos de profil.
-///
-/// C'est bien l'**identifiant** et non le nom : le bucket s'appelle
-/// « uniflow_avatars » mais a été créé sous `6aa81b840031e6a34dc3`, et
-/// Appwrite résout les URL par identifiant. Utiliser le nom renvoyait un 404
-/// à chaque lecture de photo.
-const String avatarBucketId = '6aa81b840031e6a34dc3';
 
-/// Bucket des photos de profil. Surchargeable par `.env` pour ne pas figer un
-/// identifiant dans le code si le bucket est recréé côté serveur.
+/// Bucket unique du projet sur Appwrite Cloud : photos de profil, documents et
+/// pièces jointes y cohabitent, et ce sont les droits posés fichier par fichier
+/// (`read("any")` pour un avatar) qui décident de ce qui est public.
+const String avatarBucketId = 'uniflow_assets';
+
+/// Bucket des photos de profil, surchargeable par `.env`
+/// (`APPWRITE_AVATAR_BUCKET_ID`) pour ne pas figer un identifiant dans le code
+/// si le bucket est recréé côté serveur.
 String get _avatarBucket =>
-    dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ?? avatarBucketId;
+    dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ??
+    dotenv.maybeGet('APPWRITE_STORAGE_BUCKET_ID') ??
+    avatarBucketId;
 
 /// URL publique d'une photo de profil, ou `null` s'il n'y en a pas.
 ///
@@ -31,7 +32,7 @@ String? avatarUrl(String? fileId) {
   return '${endpoint.replaceAll(RegExp(r'/+$'), '')}/storage/buckets/$_avatarBucket/files/$fileId/view?project=$projectId';
 }
 
-/// Extensions et type acceptés par le bucket `uniflow_avatars`.
+/// Extensions et type acceptés pour une photo de profil.
 const List<String> avatarAllowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
 
 /// Taille maximale acceptée par le bucket, en octets.

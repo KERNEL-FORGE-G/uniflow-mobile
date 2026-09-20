@@ -276,7 +276,7 @@ void main() {
     // en est volontairement absent, comme le reste des champs du SDK 2.0.
     const reponseServeur = {
       r'$id': 'shapemu2ison3',
-      'bucketId': 'uniflow_chat_files',
+      'bucketId': 'uniflow_assets',
       r'$createdAt': '2026-09-15T10:19:44.075+00:00',
       r'$updatedAt': '2026-09-15T10:19:44.075+00:00',
       r'$permissions': ['read("user:sondea20260915")'],
