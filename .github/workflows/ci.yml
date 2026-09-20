@@ -95,11 +95,16 @@ jobs:
           } > .env
           test -s .env
 
+      # Sans `--no-pub` : `flutter pub get` seul écrit un GeneratedPluginRegistrant
+      # qui référence `integration_test` (dépendance de développement), alors que
+      # le build release exclut ce greffon côté Gradle. Le premier run a échoué sur
+      # « package dev.flutter.plugins.integration_test does not exist » ; laisser
+      # `flutter build` refaire la résolution en mode release réaligne les deux.
       - name: APK (une archive par ABI)
-        run: flutter build apk --release --split-per-abi --no-pub
+        run: flutter build apk --release --split-per-abi
 
       - name: App Bundle
-        run: flutter build appbundle --release --no-pub
+        run: flutter build appbundle --release
 
       - name: Artefact APK
         uses: actions/upload-artifact@v4
