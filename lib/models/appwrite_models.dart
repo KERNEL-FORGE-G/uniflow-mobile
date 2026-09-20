@@ -61,6 +61,21 @@ class AcademicSchedule {
   final String classroom;
   final String? type;
 
+  /// Dénormalisés depuis le cours (schéma du 2026-09-20) pour lire l'emploi
+  /// du temps directement par filière + niveau, sans la liste des cours.
+  /// Vides sur les séances antérieures au schéma : tout appelant replie sur
+  /// le cours rattaché.
+  final String university;
+  final String program;
+  final String level;
+  final String courseName;
+  final String teacherName;
+
+  /// Groupe de TD/TP (« Gr1 », « A »…), vide pour un cours magistral.
+  final String group;
+  final String semester;
+  final String academicYear;
+
   AcademicSchedule({
     required this.id,
     required this.courseId,
@@ -70,18 +85,36 @@ class AcademicSchedule {
     required this.endTime,
     required this.classroom,
     this.type,
+    this.university = '',
+    this.program = '',
+    this.level = '',
+    this.courseName = '',
+    this.teacherName = '',
+    this.group = '',
+    this.semester = '',
+    this.academicYear = '',
   });
 
   factory AcademicSchedule.fromDocument(models.Document doc) {
+    final d = doc.data;
+    String text(String key) => d[key] is String ? d[key] as String : '';
     return AcademicSchedule(
       id: doc.$id,
-      courseId: doc.data['courseId'] ?? '',
-      courseCode: doc.data['courseCode'] ?? '',
-      dayOfWeek: doc.data['dayOfWeek'] ?? '',
-      startTime: doc.data['startTime'] ?? '',
-      endTime: doc.data['endTime'] ?? '',
-      classroom: doc.data['classroom'] ?? '',
-      type: doc.data['type'],
+      courseId: text('courseId'),
+      courseCode: text('courseCode'),
+      dayOfWeek: text('dayOfWeek'),
+      startTime: text('startTime'),
+      endTime: text('endTime'),
+      classroom: text('classroom'),
+      type: d['type'] is String ? d['type'] as String : null,
+      university: text('university'),
+      program: text('program'),
+      level: text('level'),
+      courseName: text('courseName'),
+      teacherName: text('teacherName'),
+      group: text('group'),
+      semester: text('semester'),
+      academicYear: text('academicYear'),
     );
   }
 }
@@ -354,7 +387,8 @@ class PersonalSchedule {
     final startsAt = DateTime.tryParse(doc.data['startsAt']?.toString() ?? '')?.toLocal();
     final endsAt = DateTime.tryParse(doc.data['endsAt']?.toString() ?? '')?.toLocal();
     final meta = decodeMeta(doc.data['title']?.toString() ?? '');
-    String clock(DateTime? d) => d == null ? '' : '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    String clock(DateTime? d) =>
+        d == null ? '' : '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     return PersonalSchedule(
       id: doc.$id,
       ownerId: doc.data['ownerId'] ?? '',
@@ -422,7 +456,10 @@ class UniFlowUser {
   final String id;
   final String email;
   final String name;
-  final String accountType; // 'UNIVERSITY' | 'PERSONAL'
+
+  /// `UNIVERSITY`, `PERSONAL` ou `PLATFORM` (admin de la plateforme, sans
+  /// université). Valeur de transport ; voir `UniFlowAccountType`.
+  final String accountType;
 
   /// Rôle effectif, en valeur de transport (`STUDENT`, `DELEGATE`, `TEACHER`,
   /// `ADMIN`, ou `PERSONAL` pour un compte indépendant).
@@ -437,6 +474,10 @@ class UniFlowUser {
   /// distinguer l'administrateur de la plateforme (`superadmin`).
   final List<String> labels;
   final String? university;
+
+  /// Code de faculté (`FS`…) : l'administration d'université en porte un,
+  /// sans filière ni niveau, et gère toutes les filières de sa faculté.
+  final String? faculty;
   final String? program;
   final String? level;
   final String? country;
@@ -455,6 +496,7 @@ class UniFlowUser {
     required this.role,
     this.labels = const [],
     this.university,
+    this.faculty,
     this.program,
     this.level,
     this.country,
@@ -464,10 +506,16 @@ class UniFlowUser {
 
   bool get isPersonal => accountType.toUpperCase() == 'PERSONAL';
 
+  /// Administrateur de la plateforme : aucun périmètre d'université, jamais
+  /// d'espace personnel, il voit tout.
+  bool get isPlatform => accountType.toUpperCase() == 'PLATFORM' || isSuperAdmin;
+
+  /// Compte rattaché à une université (écrans académiques).
+  bool get isUniversity => !isPersonal;
+
   /// Vrai pour l'administrateur de la plateforme : le seul à pouvoir créer
   /// d'autres comptes `ADMIN`.
-  bool get isSuperAdmin =>
-      labels.any((label) => label.trim().toLowerCase() == 'superadmin');
+  bool get isSuperAdmin => labels.any((label) => label.trim().toLowerCase() == 'superadmin');
 
   UniFlowUser copyWith({String? name, String? username, String? avatarFileId}) {
     return UniFlowUser(
@@ -478,6 +526,7 @@ class UniFlowUser {
       role: role,
       labels: labels,
       university: university,
+      faculty: faculty,
       program: program,
       level: level,
       country: country,

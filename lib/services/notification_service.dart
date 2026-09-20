@@ -20,8 +20,7 @@ import '../repositories/messaging_repository.dart';
 class LocalNotifications {
   LocalNotifications._();
 
-  static final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
 
   /// Identifiant du canal Android. Un canal « urgent » distinct de celui des
@@ -29,8 +28,7 @@ class LocalNotifications {
   /// l'autre, et autorise une vibration plus marquée.
   static const String channelId = 'uniflow_urgent';
   static const String channelName = 'Messages urgents';
-  static const String channelDescription =
-      'Alertes des messages signalés comme urgents par leur expéditeur.';
+  static const String channelDescription = 'Alertes des messages signalés comme urgents par leur expéditeur.';
 
   /// Prépare le greffon. Sans effet s'il l'est déjà : appelable depuis
   /// plusieurs points de démarrage sans créer deux canaux.
@@ -59,14 +57,12 @@ class LocalNotifications {
     await ensureInitialized();
     if (!_initialized) return false;
     try {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (android != null) {
         final granted = await android.requestNotificationsPermission();
         return granted ?? false;
       }
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios = _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
       if (ios != null) {
         final granted = await ios.requestPermissions(alert: true, badge: true, sound: true);
         return granted ?? false;
@@ -157,9 +153,7 @@ final urgentNotificationsProvider = StreamProvider<int>((ref) async* {
   // attendre le premier événement.
   int unread;
   try {
-    unread = (await repository.getNotifications())
-        .where((notification) => !notification.isRead)
-        .length;
+    unread = (await repository.getNotifications()).where((notification) => !notification.isRead).length;
   } catch (_) {
     // Messagerie momentanément injoignable : la pastille part de zéro plutôt
     // que d'empêcher l'écoute de démarrer.

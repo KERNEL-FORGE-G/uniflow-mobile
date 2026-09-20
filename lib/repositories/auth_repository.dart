@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,12 +14,26 @@ import '../data/appwrite_service.dart';
 import '../models/appwrite_models.dart';
 import '../models/user_role.dart';
 
-/// Type de compte UniFlow, tel que le web le distingue à la connexion.
+/// Type de compte UniFlow (`users.accountType`).
+///
+/// `PLATFORM` est l'administrateur de la plateforme (`kernel@forge.codes`,
+/// label `superadmin`) : il n'appartient à aucune université et voit tout. Il
+/// n'est **jamais** proposé à l'inscription, ni à la connexion : on le lit
+/// seulement. Une valeur inconnue ne fait pas planter le parseur : le web peut
+/// ajouter un type avant que le mobile ne soit mis à jour.
 enum UniFlowAccountType {
   university,
-  personal;
+  personal,
+  platform;
 
-  String get wireValue => this == university ? 'UNIVERSITY' : 'PERSONAL';
+  String get wireValue => switch (this) {
+        university => 'UNIVERSITY',
+        personal => 'PERSONAL',
+        platform => 'PLATFORM',
+      };
+
+  /// Types qu'un utilisateur peut choisir lui-même.
+  static const List<UniFlowAccountType> selectable = [university, personal];
 
   static UniFlowAccountType? tryParse(Object? raw) {
     switch (raw?.toString().trim().toUpperCase()) {
@@ -19,15 +41,21 @@ enum UniFlowAccountType {
         return university;
       case 'PERSONAL':
         return personal;
+      case 'PLATFORM':
+        return platform;
       default:
         return null;
     }
   }
+
+  /// Comme [tryParse], avec un repli explicite sur `UNIVERSITY` : une valeur
+  /// absente ou inconnue ne doit ni planter ni ouvrir l'espace personnel.
+  static UniFlowAccountType parse(Object? raw, {UniFlowAccountType fallback = university}) => tryParse(raw) ?? fallback;
 }
 
 /// Forme d'un niveau académique (« L1 », « M2 », « D1 »…). Les niveaux
-/// réellement ouverts viennent de `academic_programs.levels` : rien n'est
-/// figé ici, d'autres filières que l'ICT4D arrivent en base.
+/// réellement ouverts viennent de `academic_programs.levels` de la filière
+/// choisie : rien n'est figé ici.
 final RegExp academicLevelPattern = RegExp(r'^[A-Z]\d$');
 
 /// Page d'inscription du web, pour qui préfère s'inscrire depuis un navigateur
@@ -46,6 +74,10 @@ class RegistrationInput {
   final String name;
   final UniFlowAccountType accountType;
   final String university;
+
+  /// Code de la faculté (`faculties.code`, « FS »…), enregistré dans
+  /// `users.faculty` : l'administration d'une université gère sa faculté.
+  final String faculty;
   final String program;
   final String? level;
   final String matricule;
@@ -61,6 +93,7 @@ class RegistrationInput {
     required this.name,
     required this.accountType,
     this.university = '',
+    this.faculty = '',
     this.program = '',
     this.level,
     this.matricule = '',
@@ -97,6 +130,7 @@ Map<String, dynamic> registrationProfileDocument(
     // filière (celui de `academic_courses.program`) : c'est sur ce couple
     // program + level que se filtrent cours, emploi du temps et annuaire.
     'university': university ? input.university.trim() : '',
+    'faculty': university ? input.faculty.trim().toUpperCase() : '',
     'program': university ? input.program.trim().toUpperCase() : '',
     if (university && input.level != null && academicLevelPattern.hasMatch(input.level!.trim().toUpperCase()))
       'level': input.level!.trim().toUpperCase(),
@@ -156,8 +190,8 @@ class AuthRepository {
         collectionId: 'users',
         queries: [Query.equal('email', account.email), Query.limit(1)],
       );
-      final typed = docs.documents.isNotEmpty &&
-          UniFlowAccountType.tryParse(docs.documents.first.data['accountType']) != null;
+      final typed =
+          docs.documents.isNotEmpty && UniFlowAccountType.tryParse(docs.documents.first.data['accountType']) != null;
       if (!typed) await _persistAccountTypePreference(accountTypeHint);
     } catch (_) {
       // L'indication est un confort, pas une condition de connexion.
@@ -318,10 +352,11 @@ class AuthRepository {
       return null;
     }
 
+    // Le document fait foi (il porte `PLATFORM` pour l'admin de la
+    // plateforme) ; la préférence n'est qu'un indice laissé à la connexion.
     final hintedType = UniFlowAccountType.tryParse(account.prefs.data['uniflowAccountType']);
-    final accountType = UniFlowAccountType.tryParse(data['accountType']) ??
-        hintedType ??
-        UniFlowAccountType.university;
+    final accountType =
+        UniFlowAccountType.parse(data['accountType'], fallback: hintedType ?? UniFlowAccountType.university);
     final role = UniFlowRole.fromLabels(
       account.labels,
       fallbackRole: data['role']?.toString(),
@@ -336,6 +371,7 @@ class AuthRepository {
       role: role.wireValue,
       labels: List<String>.from(account.labels),
       university: data['university'],
+      faculty: data['faculty'],
       program: data['program'],
       level: data['level'],
       country: data['country'],

@@ -41,8 +41,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Future<void> _telecharger(AcademicLibraryEntry entry) async {
     final fileId = entry.fileId;
     if (fileId == null || fileId.isEmpty) {
-      setState(() => _erreur =
-          '« ${entry.title} » n\'a pas de fichier joint : cette ressource est '
+      setState(() => _erreur = '« ${entry.title} » n\'a pas de fichier joint : cette ressource est '
           'un simple intitulé.');
       return;
     }
@@ -58,8 +57,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       await file.writeAsBytes(bytes);
       final result = await OpenFilex.open(file.path);
       if (result.type != ResultType.done && mounted) {
-        setState(() => _erreur =
-            'Aucune application ne sait ouvrir « ${entry.title} ». Le fichier a '
+        setState(() => _erreur = 'Aucune application ne sait ouvrir « ${entry.title} ». Le fichier a '
             'été enregistré dans ${directory.path}.');
       }
     } catch (error) {
@@ -100,10 +98,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     final entry = entries[index];
                     IconData fileIcon;
                     switch (entry.type.toLowerCase()) {
-                      case 'pdf': fileIcon = Icons.picture_as_pdf_outlined; break;
-                      case 'video': fileIcon = Icons.video_file_outlined; break;
-                      case 'image': fileIcon = Icons.image_outlined; break;
-                      default: fileIcon = Icons.insert_drive_file_outlined;
+                      case 'pdf':
+                        fileIcon = Icons.picture_as_pdf_outlined;
+                        break;
+                      case 'video':
+                        fileIcon = Icons.video_file_outlined;
+                        break;
+                      case 'image':
+                        fileIcon = Icons.image_outlined;
+                        break;
+                      default:
+                        fileIcon = Icons.insert_drive_file_outlined;
                     }
 
                     final enCours = _enCours == entry.id;
@@ -113,11 +118,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         leading: Container(
                           width: 44,
                           height: 44,
-                          decoration: BoxDecoration(color: AppColors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(
+                              color: AppColors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                           child: Icon(fileIcon, color: AppColors.teal),
                         ),
                         title: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${entry.course} • ${entry.size ?? "N/A"}', style: const TextStyle(fontSize: 12)),
+                        subtitle:
+                            Text('${entry.course} • ${entry.size ?? "N/A"}', style: const TextStyle(fontSize: 12)),
                         // Le titre porte déjà l'information ; on la répète à
                         // l'oreille pour qui navigue au lecteur d'écran, qui
                         // n'entend sinon que « bouton ».
@@ -138,7 +145,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 );
               },
               loading: () => const LoadingView(),
-              error: (err, stack) => Padding(padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$err')),
+              error: (err, stack) => Padding(
+                  padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$err')),
             ),
           ),
         ],

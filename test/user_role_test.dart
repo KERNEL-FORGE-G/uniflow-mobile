@@ -133,8 +133,7 @@ void main() {
     test('aucune entrée n\'est ouverte à personne', () {
       // Un ensemble de rôles vide rendrait l'écran définitivement inaccessible.
       for (final destination in navDestinations) {
-        expect(destination.roles, isNotEmpty,
-            reason: '${destination.path} n\'autorise aucun rôle');
+        expect(destination.roles, isNotEmpty, reason: '${destination.path} n\'autorise aucun rôle');
       }
     });
 
@@ -172,8 +171,7 @@ void main() {
       for (final role in UniFlowRole.values) {
         final barre = bottomBarFor(role).map((d) => d.path).toSet();
         for (final secondaire in overflowFor(role)) {
-          expect(barre.contains(secondaire.path), isFalse,
-              reason: '${secondaire.path} est dans les deux pour $role');
+          expect(barre.contains(secondaire.path), isFalse, reason: '${secondaire.path} est dans les deux pour $role');
         }
       }
     });
@@ -186,8 +184,7 @@ void main() {
           ...bottomBarFor(role).map((d) => d.path),
           ...overflowFor(role).map((d) => d.path),
         };
-        expect(atteignables, destinationsFor(role).map((d) => d.path).toSet(),
-            reason: 'pour $role');
+        expect(atteignables, destinationsFor(role).map((d) => d.path).toSet(), reason: 'pour $role');
       }
     });
   });
@@ -209,7 +206,17 @@ void main() {
     });
 
     test('le compte indépendant ne voit aucun écran universitaire', () {
-      for (final chemin in ['/ues', '/etudiants', '/enseignants', '/presence', '/devoirs', '/bibliotheque', '/comptes', '/inscriptions', '/emploi-du-temps']) {
+      for (final chemin in [
+        '/ues',
+        '/etudiants',
+        '/enseignants',
+        '/presence',
+        '/devoirs',
+        '/bibliotheque',
+        '/comptes',
+        '/inscriptions',
+        '/emploi-du-temps'
+      ]) {
         expect(canAccessPath(UniFlowRole.personal, chemin), isFalse, reason: chemin);
       }
       for (final chemin in ['/matieres', '/taches', '/agenda', '/notes', '/forum', '/equipe', '/settings']) {

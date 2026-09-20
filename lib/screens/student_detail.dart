@@ -81,7 +81,8 @@ class StudentDetailScreen extends ConsumerWidget {
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
                             backgroundColor: _hex(u.colorHex).withValues(alpha: 0.15),
-                            child: Text(u.code.substring(0, 3), style: TextStyle(color: _hex(u.colorHex), fontSize: 11, fontWeight: FontWeight.w700)),
+                            child: Text(u.code.substring(0, 3),
+                                style: TextStyle(color: _hex(u.colorHex), fontSize: 11, fontWeight: FontWeight.w700)),
                           ),
                           title: Text(u.title),
                           subtitle: Text('${u.code} · ${u.credits} crédits'),

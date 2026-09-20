@@ -10,6 +10,8 @@ import '../utils/avatar.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
+import '../providers/session_controller.dart';
+import 'delete_account.dart';
 import '../repositories/auth_repository.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -53,8 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final normalized = normalizeUsername(submitted);
     if (normalized == null) {
-      setState(() => _usernameError =
-          'Pseudo invalide : 3 à 32 caractères, lettres minuscules, chiffres, '
+      setState(() => _usernameError = 'Pseudo invalide : 3 à 32 caractères, lettres minuscules, chiffres, '
           'point, tiret ou souligné, en commençant par une lettre ou un chiffre.');
       return;
     }
@@ -68,9 +69,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _usernameError = null;
     });
     try {
-      final updated = await ref
-          .read(authRepositoryProvider)
-          .updateUsername(user.id, normalized);
+      final updated = await ref.read(authRepositoryProvider).updateUsername(user.id, normalized);
       if (!mounted) return;
       ref.read(currentUserProvider.notifier).state = updated;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -101,16 +100,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (confirmed != true) return;
 
-    try {
-      await ref.read(authRepositoryProvider).logout();
-    } catch (_) {
-      // Une session déjà expirée côté serveur ne doit pas bloquer la sortie.
-    }
-    ref.read(currentUserProvider.notifier).state = null;
-    ref.read(studentsProvider.notifier).state = const [];
-    ref.read(teachersProvider.notifier).state = const [];
-    ref.read(uesProvider.notifier).state = const [];
-    ref.read(authStatusProvider.notifier).state = AuthStatus.signedOut;
+    // Séquence unique (session serveur, cookies, providers, fichiers) : voir
+    // `SessionController`. La garde du routeur renvoie ensuite à la connexion.
+    await ref.read(sessionControllerProvider).signOut();
   }
 
   Future<void> _pickAndUpload() async {
@@ -210,8 +202,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         avatarFileId: user?.avatarFileId,
                         uploading: _uploading,
                       ),
-                      title: Text(user?.name ?? 'Non connecté',
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      title: Text(user?.name ?? 'Non connecté', style: const TextStyle(fontWeight: FontWeight.w600)),
                       subtitle: Text(
                         user == null
                             ? 'Aucune session active'
@@ -240,8 +231,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           if (hasPhoto)
                             TextButton(
                               onPressed: _uploading ? null : _removePhoto,
-                              child: const Text('Retirer',
-                                  style: TextStyle(color: AppColors.danger)),
+                              child: const Text('Retirer', style: TextStyle(color: AppColors.danger)),
                             ),
                         ],
                       ),
@@ -299,9 +289,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.logout, color: AppColors.danger),
-                        title: const Text('Se déconnecter',
-                            style: TextStyle(color: AppColors.danger)),
+                        title: const Text('Se déconnecter', style: TextStyle(color: AppColors.danger)),
                         onTap: _logout,
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.delete_forever_outlined, color: AppColors.textMuted),
+                        title: const Text('Supprimer mon compte'),
+                        subtitle: const Text('Définitif, en deux confirmations', style: TextStyle(fontSize: 12)),
+                        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const DeleteAccountScreen()),
+                        ),
                       ),
                     ],
                   ],
@@ -331,8 +331,7 @@ class _DialoguePseudo extends StatefulWidget {
 }
 
 class _DialoguePseudoState extends State<_DialoguePseudo> {
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.pseudoActuel);
+  late final TextEditingController _controller = TextEditingController(text: widget.pseudoActuel);
 
   @override
   void dispose() {

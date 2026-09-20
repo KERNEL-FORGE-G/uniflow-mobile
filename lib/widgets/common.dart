@@ -231,9 +231,7 @@ class SectionCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        side: bordered
-            ? const BorderSide(color: AppColors.inputBorder)
-            : BorderSide.none,
+        side: bordered ? const BorderSide(color: AppColors.inputBorder) : BorderSide.none,
       ),
       child: Padding(padding: padding, child: child),
     );
@@ -466,32 +464,43 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.primary50,
-                borderRadius: BorderRadius.circular(20),
+    // Défilement quand la hauteur manque : sur 320×568 avec texte agrandi, un
+    // en-tête à barre de recherche plus un sélecteur laissent moins de place
+    // que l'icône, le titre et le message n'en demandent (débordement de
+    // 19 px constaté par `layout_test`).
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight.isFinite ? constraints.maxHeight : 0),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary50,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(icon, size: 30, color: AppColors.primaryBlue),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(title, textAlign: TextAlign.center, style: AppTextStyles.h3),
+                  if (message != null) ...[
+                    const SizedBox(height: 6),
+                    Text(message!, textAlign: TextAlign.center, style: AppTextStyles.body),
+                  ],
+                  if (action != null) ...[
+                    const SizedBox(height: 18),
+                    action!,
+                  ],
+                ],
               ),
-              child: Icon(icon, size: 30, color: AppColors.primaryBlue),
             ),
-            const SizedBox(height: 16),
-            Text(title, textAlign: TextAlign.center, style: AppTextStyles.h3),
-            if (message != null) ...[
-              const SizedBox(height: 6),
-              Text(message!, textAlign: TextAlign.center, style: AppTextStyles.body),
-            ],
-            if (action != null) ...[
-              const SizedBox(height: 18),
-              action!,
-            ],
-          ],
+          ),
         ),
       ),
     );

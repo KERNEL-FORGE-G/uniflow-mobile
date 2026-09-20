@@ -351,7 +351,8 @@ class GradientButton extends StatelessWidget {
                             const SizedBox(width: 8),
                           ],
                           Flexible(
-                            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.button),
+                            child:
+                                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.button),
                           ),
                         ],
                       ),

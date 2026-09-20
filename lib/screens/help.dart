@@ -18,11 +18,14 @@ class HelpScreen extends StatelessWidget {
                 SectionCard(
                   child: Column(
                     children: [
-                      _buildHelpItem(context, Icons.help_outline, 'Guide de démarrage', 'Apprenez à utiliser les fonctions de base'),
+                      _buildHelpItem(context, Icons.help_outline, 'Guide de démarrage',
+                          'Apprenez à utiliser les fonctions de base'),
                       const Divider(),
-                      _buildHelpItem(context, Icons.qr_code, 'Comment scanner ma présence ?', 'Astuces pour un émargement réussi'),
+                      _buildHelpItem(
+                          context, Icons.qr_code, 'Comment scanner ma présence ?', 'Astuces pour un émargement réussi'),
                       const Divider(),
-                      _buildHelpItem(context, Icons.security, 'Sécurité des données', 'Comment vos données sont protégées'),
+                      _buildHelpItem(
+                          context, Icons.security, 'Sécurité des données', 'Comment vos données sont protégées'),
                     ],
                   ),
                 ),

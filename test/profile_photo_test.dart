@@ -77,15 +77,13 @@ void main() {
   group('validation du fichier choisi', () {
     test('accepte les extensions du bucket', () {
       for (final extension in ['jpg', 'jpeg', 'png', 'webp', 'PNG', 'JPG']) {
-        expect(validateAvatarPath('/tmp/photo.$extension'), isNull,
-            reason: '$extension doit être accepté');
+        expect(validateAvatarPath('/tmp/photo.$extension'), isNull, reason: '$extension doit être accepté');
       }
     });
 
     test('refuse ce que le bucket refuse, avec un message utile', () {
       for (final extension in ['gif', 'pdf', 'mp4', 'heic']) {
-        expect(validateAvatarPath('/tmp/photo.$extension'), isNotNull,
-            reason: '$extension doit être refusé');
+        expect(validateAvatarPath('/tmp/photo.$extension'), isNotNull, reason: '$extension doit être refusé');
       }
     });
 

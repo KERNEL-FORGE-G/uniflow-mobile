@@ -139,7 +139,8 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(post.role, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                                      Text(post.role,
+                                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                                     ],
                                   ),
                                 ),
@@ -152,7 +153,8 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                             const SizedBox(height: 12),
                             Text(post.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                             const SizedBox(height: 4),
-                            Text(post.content, style: const TextStyle(fontSize: 14), maxLines: 3, overflow: TextOverflow.ellipsis),
+                            Text(post.content,
+                                style: const TextStyle(fontSize: 14), maxLines: 3, overflow: TextOverflow.ellipsis),
                             const SizedBox(height: 12),
                             Row(
                               children: [
@@ -160,8 +162,12 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                                 const Spacer(),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(color: AppColors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                                  child: Text(post.category, style: const TextStyle(fontSize: 10, color: AppColors.teal, fontWeight: FontWeight.bold)),
+                                  decoration: BoxDecoration(
+                                      color: AppColors.teal.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(4)),
+                                  child: Text(post.category,
+                                      style: const TextStyle(
+                                          fontSize: 10, color: AppColors.teal, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
@@ -173,7 +179,8 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                 );
               },
               loading: () => const LoadingView(),
-              error: (e, _) => Padding(padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$e')),
+              error: (e, _) =>
+                  Padding(padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$e')),
             ),
           ),
         ],

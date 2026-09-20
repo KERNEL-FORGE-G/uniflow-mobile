@@ -98,7 +98,8 @@ class PersonalSubjectsScreen extends ConsumerWidget {
       }
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
       }
     }
   }
@@ -112,7 +113,8 @@ class PersonalSubjectsScreen extends ConsumerWidget {
       if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.success, title: 'Matière supprimée');
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
       }
     }
   }
@@ -183,7 +185,8 @@ class _SubjectFormState extends State<_SubjectForm> {
   late final _name = TextEditingController(text: widget.subject?.name ?? '');
   late final _code = TextEditingController(text: widget.subject?.code ?? '');
   late final _instructor = TextEditingController(text: widget.subject?.instructor ?? '');
-  late final _credits = TextEditingController(text: (widget.subject?.credits ?? 0) > 0 ? '${widget.subject!.credits}' : '');
+  late final _credits =
+      TextEditingController(text: (widget.subject?.credits ?? 0) > 0 ? '${widget.subject!.credits}' : '');
   late String _color = widget.subject?.colorHex ?? '#0d9488';
   String? _error;
 
@@ -335,11 +338,13 @@ class PersonalTasksScreen extends ConsumerWidget {
       await ref.read(personalRepositoryProvider).createTask(owner, data);
       ref.invalidate(personalTasksProvider);
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.success, title: 'Tâche ajoutée', message: data['title']?.toString());
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.success, title: 'Tâche ajoutée', message: data['title']?.toString());
       }
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
       }
     }
   }
@@ -351,7 +356,8 @@ class PersonalTasksScreen extends ConsumerWidget {
       ref.invalidate(personalTasksProvider);
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Mise à jour impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Mise à jour impossible', message: '$error');
       }
     }
   }
@@ -364,7 +370,8 @@ class PersonalTasksScreen extends ConsumerWidget {
       ref.invalidate(personalTasksProvider);
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
       }
     }
   }
@@ -533,7 +540,8 @@ class _TaskFormState extends State<_TaskForm> {
               child: OutlinedButton.icon(
                 onPressed: _pickDate,
                 icon: const Icon(Icons.event_outlined, size: 18),
-                label: Text(_due == null ? 'Échéance' : formatDueDate(_due!), maxLines: 1, overflow: TextOverflow.ellipsis),
+                label: Text(_due == null ? 'Échéance' : formatDueDate(_due!),
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ),
             const SizedBox(width: 12),
@@ -663,7 +671,8 @@ class PersonalAgendaScreen extends ConsumerWidget {
       }
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
       }
     }
   }
@@ -676,7 +685,8 @@ class PersonalAgendaScreen extends ConsumerWidget {
       ref.invalidate(personalSchedulesProvider);
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
       }
     }
   }
@@ -924,7 +934,10 @@ class PersonalGradesView extends ConsumerWidget {
                             alignment: Alignment.center,
                             child: Text(
                               grade.score.toStringAsFixed(grade.score % 1 == 0 ? 0 : 1),
-                              style: TextStyle(color: good ? AppColors.success : AppColors.danger, fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(
+                                  color: good ? AppColors.success : AppColors.danger,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -932,7 +945,8 @@ class PersonalGradesView extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(grade.evaluationTitle.isEmpty ? 'Évaluation' : grade.evaluationTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.h3),
+                                Text(grade.evaluationTitle.isEmpty ? 'Évaluation' : grade.evaluationTitle,
+                                    maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.h3),
                                 Text(
                                   '${subject?.name ?? 'Sans matière'} · coef. ${grade.coefficient.toStringAsFixed(grade.coefficient % 1 == 0 ? 0 : 1)}',
                                   maxLines: 1,
@@ -974,11 +988,13 @@ class PersonalGradesView extends ConsumerWidget {
       await ref.read(personalRepositoryProvider).createGrade(owner, data);
       ref.invalidate(personalGradesProvider);
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.success, title: 'Note enregistrée', message: '${data['score']} / ${data['maxScore']}');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.success, title: 'Note enregistrée', message: '${data['score']} / ${data['maxScore']}');
       }
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Enregistrement impossible', message: '$error');
       }
     }
   }
@@ -991,7 +1007,8 @@ class PersonalGradesView extends ConsumerWidget {
       ref.invalidate(personalGradesProvider);
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
       }
     }
   }
@@ -1075,11 +1092,23 @@ class _GradeFormState extends State<_GradeForm> {
         ],
         Row(
           children: [
-            Expanded(child: TextField(controller: _score, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Note'))),
+            Expanded(
+                child: TextField(
+                    controller: _score,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Note'))),
             const SizedBox(width: 10),
-            Expanded(child: TextField(controller: _max, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Sur'))),
+            Expanded(
+                child: TextField(
+                    controller: _max,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Sur'))),
             const SizedBox(width: 10),
-            Expanded(child: TextField(controller: _coef, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Coef.'))),
+            Expanded(
+                child: TextField(
+                    controller: _coef,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Coef.'))),
           ],
         ),
       ],

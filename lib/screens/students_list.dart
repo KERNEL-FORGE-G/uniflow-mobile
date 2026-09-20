@@ -44,7 +44,8 @@ class StudentsListScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(s.fullName, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                            Text(s.fullName,
+                                style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                             const SizedBox(height: 2),
                             Text('${s.matricule} · ${s.filiere} · ${s.niveau}',
                                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),

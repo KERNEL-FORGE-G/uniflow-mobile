@@ -82,8 +82,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/mot-de-passe-oublie', builder: (_, __) => const ForgotPasswordScreen()),
       ShellRoute(
-        builder: (context, state, child) =>
-            AppShell(location: state.uri.path, child: child),
+        builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(path: '/accueil', builder: (_, __) => const DashboardScreen()),
           GoRoute(path: '/etudiants', builder: (_, __) => const StudentsListScreen()),
@@ -101,9 +100,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/devoirs',
             // Même adresse, deux métiers : l'apprenant rend, l'enseignant publie.
             builder: (_, __) => Consumer(
-              builder: (_, ref, __) => ref.watch(currentRoleProvider).isStaff
-                  ? const TeacherAssignmentsScreen()
-                  : const AssignmentsScreen(),
+              builder: (_, ref, __) =>
+                  ref.watch(currentRoleProvider).isStaff ? const TeacherAssignmentsScreen() : const AssignmentsScreen(),
             ),
           ),
           GoRoute(path: '/bibliotheque', builder: (_, __) => const LibraryScreen()),

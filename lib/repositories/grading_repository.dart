@@ -24,7 +24,8 @@ class GradingRepository {
       throw GradingException(error.message ?? 'Le service des notes est injoignable (code ${error.code}).');
     }
     if (response['ok'] != true) {
-      throw GradingException(response['message']?.toString() ?? 'La saisie de note a échoué.', code: response['code']?.toString());
+      throw GradingException(response['message']?.toString() ?? 'La saisie de note a échoué.',
+          code: response['code']?.toString());
     }
     return response;
   }

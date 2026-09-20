@@ -125,10 +125,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
                   _buildFileCard(),
                 ],
                 const SizedBox(height: 14),
-                if (assignment.quiz != null)
-                  _buildQuizSection(locked)
-                else
-                  _buildWorkSection(locked),
+                if (assignment.quiz != null) _buildQuizSection(locked) else _buildWorkSection(locked),
                 if (_error != null) ...[
                   const SizedBox(height: 14),
                   ErrorBanner(message: _error!),
@@ -188,9 +185,8 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
                 child: _MetaTile(
                   icon: Icons.timelapse_outlined,
                   label: 'Temps restant',
-                  value: late
-                      ? (assignment.allowLate ? 'Retard accepté' : 'Délai dépassé')
-                      : _remainingLabel(remaining),
+                  value:
+                      late ? (assignment.allowLate ? 'Retard accepté' : 'Délai dépassé') : _remainingLabel(remaining),
                   color: deadlineColor,
                 ),
               ),
@@ -575,9 +571,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            submission.hasFile
-                ? (submission.fileName ?? 'Pièce jointe rendue')
-                : 'Rendu sans pièce jointe',
+            submission.hasFile ? (submission.fileName ?? 'Pièce jointe rendue') : 'Rendu sans pièce jointe',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
@@ -720,9 +714,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
       // Le quiz est corrigé ici et sa note enregistrée avec le rendu : sans
       // cela, un quiz à 40 questions resterait « en attente » alors que la
       // correction est déterministe et déjà connue du client.
-      final result = quiz != null && quiz.questions.isNotEmpty
-          ? QuizGrader.grade(quiz, _answers)
-          : null;
+      final result = quiz != null && quiz.questions.isNotEmpty ? QuizGrader.grade(quiz, _answers) : null;
 
       final submission = Submission(
         id: '',
@@ -817,9 +809,8 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
     return '${remaining.inMinutes} min';
   }
 
-  static String _number(double value) => value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toStringAsFixed(1).replaceAll('.', ',');
+  static String _number(double value) =>
+      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1).replaceAll('.', ',');
 }
 
 /// Choix de QCM, en radio (choix unique) ou en case (choix multiple).

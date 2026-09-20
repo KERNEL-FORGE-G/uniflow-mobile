@@ -63,7 +63,9 @@ class AttendanceRepository {
     });
     final token = qr['token']?.toString() ?? '';
     final expiresAt = DateTime.tryParse(qr['expiresAt']?.toString() ?? '');
-    if (token.isEmpty || expiresAt == null) throw AttendanceException('La Function n\'a pas retourné de jeton QR exploitable.');
+    if (token.isEmpty || expiresAt == null) {
+      throw AttendanceException('La Function n\'a pas retourné de jeton QR exploitable.');
+    }
     return IssuedQr(
       token: token,
       sessionId: sessionId,

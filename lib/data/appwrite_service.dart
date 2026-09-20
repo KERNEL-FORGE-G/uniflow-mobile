@@ -118,9 +118,7 @@ class AppwriteService {
     // Pas de `setSelfSigned` : Appwrite Cloud présente un certificat valide,
     // et accepter n'importe quel certificat rendrait l'application vulnérable
     // à une interception sur un réseau public — pour un gain nul.
-    client = Client()
-        .setEndpoint(dotenv.get('APPWRITE_ENDPOINT'))
-        .setProject(dotenv.get('APPWRITE_PROJECT_ID'));
+    client = Client().setEndpoint(dotenv.get('APPWRITE_ENDPOINT')).setProject(dotenv.get('APPWRITE_PROJECT_ID'));
 
     account = Account(client);
     databases = Databases(client);
@@ -131,14 +129,10 @@ class AppwriteService {
     // `maybeGet` : une `.env` antérieure à l'ajout d'une variable ne doit pas
     // faire échouer le démarrage de l'application ; les valeurs de repli sont
     // celles du schéma (`uniflow-we/scripts/appwrite-schema.mjs`).
-    apiFunctionId =
-        dotenv.maybeGet('APPWRITE_API_FUNCTION_ID') ?? defaultApiFunctionId;
-    storageBucketId =
-        dotenv.maybeGet('APPWRITE_STORAGE_BUCKET_ID') ?? defaultBucketId;
-    avatarBucketId =
-        dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ?? storageBucketId;
-    chatFilesBucketId =
-        dotenv.maybeGet('APPWRITE_CHAT_FILES_BUCKET_ID') ?? storageBucketId;
+    apiFunctionId = dotenv.maybeGet('APPWRITE_API_FUNCTION_ID') ?? defaultApiFunctionId;
+    storageBucketId = dotenv.maybeGet('APPWRITE_STORAGE_BUCKET_ID') ?? defaultBucketId;
+    avatarBucketId = dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ?? storageBucketId;
+    chatFilesBucketId = dotenv.maybeGet('APPWRITE_CHAT_FILES_BUCKET_ID') ?? storageBucketId;
   }
 
   /// Exécute un service du routeur `uniflow-api` et rend le document

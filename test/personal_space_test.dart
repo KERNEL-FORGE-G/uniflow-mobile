@@ -41,7 +41,8 @@ void main() {
     });
 
     test('gradePayload stocke score, barème et coefficient en chaînes, et double subjectId/courseId', () {
-      final p = gradePayload('me', {'evaluationTitle': 'CC1', 'courseId': 's1', 'score': 14.5, 'maxScore': 20, 'coefficient': 2});
+      final p = gradePayload(
+          'me', {'evaluationTitle': 'CC1', 'courseId': 's1', 'score': 14.5, 'maxScore': 20, 'coefficient': 2});
       expect(p['score'], '14.5');
       expect(p['maxScore'], '20');
       expect(p['coefficient'], '2');
@@ -50,8 +51,11 @@ void main() {
       expect(p['label'], 'CC1');
     });
 
-    test('schedulePayload encode le détail dans title derrière le préfixe du web et projette sur la semaine courante', () {
-      final p = schedulePayload('me', {'dayOfWeek': 'MERCREDI', 'startTime': '08:00', 'endTime': '10:00', 'classroom': 'S12'}, now: DateTime(2026, 9, 18));
+    test('schedulePayload encode le détail dans title derrière le préfixe du web et projette sur la semaine courante',
+        () {
+      final p = schedulePayload(
+          'me', {'dayOfWeek': 'MERCREDI', 'startTime': '08:00', 'endTime': '10:00', 'classroom': 'S12'},
+          now: DateTime(2026, 9, 18));
       expect(p['title'], startsWith(PersonalSchedule.metaPrefix));
       final back = PersonalSchedule.fromDocument(doc({...p}));
       expect(back.dayOfWeek, 'MERCREDI');
@@ -92,14 +96,19 @@ void main() {
     test('groupSchedulesByDay range du lundi au dimanche puis par heure', () {
       PersonalSchedule slot(String id, String day, String start) =>
           PersonalSchedule(id: id, ownerId: 'me', courseId: '', dayOfWeek: day, startTime: start, endTime: start);
-      final grouped = groupSchedulesByDay([slot('c', 'MARDI', '10:00'), slot('a', 'LUNDI', '14:00'), slot('b', 'LUNDI', '08:00'), slot('z', 'FLOU', '08:00')]);
+      final grouped = groupSchedulesByDay([
+        slot('c', 'MARDI', '10:00'),
+        slot('a', 'LUNDI', '14:00'),
+        slot('b', 'LUNDI', '08:00'),
+        slot('z', 'FLOU', '08:00')
+      ]);
       expect(grouped.keys.toList(), ['LUNDI', 'MARDI', 'AUTRE']);
       expect(grouped['LUNDI']!.map((s) => s.id), ['b', 'a']);
     });
 
     test('weightedAverage ramène sur 20 et pondère par le coefficient', () {
-      PersonalGrade note(double score, double max, double coef) =>
-          PersonalGrade(id: '', ownerId: '', courseId: '', evaluationTitle: '', score: score, maxScore: max, coefficient: coef);
+      PersonalGrade note(double score, double max, double coef) => PersonalGrade(
+          id: '', ownerId: '', courseId: '', evaluationTitle: '', score: score, maxScore: max, coefficient: coef);
       expect(weightedAverage([]), 0);
       expect(weightedAverage([note(10, 20, 1), note(5, 10, 1)]), 10);
       expect(weightedAverage([note(20, 20, 3), note(0, 20, 1)]), 15);
@@ -126,8 +135,8 @@ void main() {
       expect(normalizeDay('lundi'), 'LUNDI');
       expect(normalizeDay('Monday'), 'LUNDI');
       expect(normalizeDay('3'), 'MERCREDI');
-      AcademicSchedule s(String id, String day, String start) =>
-          AcademicSchedule(id: id, courseId: id, courseCode: id, dayOfWeek: day, startTime: start, endTime: start, classroom: '');
+      AcademicSchedule s(String id, String day, String start) => AcademicSchedule(
+          id: id, courseId: id, courseCode: id, dayOfWeek: day, startTime: start, endTime: start, classroom: '');
       final grouped = groupByDay([s('b', 'Lundi', '10:00'), s('a', 'LUNDI', '08:00'), s('c', 'mardi', '08:00')]);
       expect(grouped['LUNDI']!.map((x) => x.id), ['a', 'b']);
       expect(grouped['MARDI']!.length, 1);

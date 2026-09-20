@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'dart:typed_data';
 
 import 'package:appwrite/appwrite.dart';
@@ -45,11 +53,26 @@ class AcademicRepository {
     return out;
   }
 
-  /// Toutes les séances (vue administration, sans filière) — paginées.
-  Future<List<AcademicSchedule>> getSchedules() async {
-    final docs = await _listAll('academic_schedules', const []);
+  /// Séances lues **directement** par filière + niveau (index
+  /// `schedule_program_level`, schéma du 2026-09-20), sans passer par la liste
+  /// des cours : un étudiant PHY L3 obtient ses 40 séances en un appel paginé.
+  /// [teacherName] restreint aux séances d'un enseignant (vue enseignant).
+  Future<List<AcademicSchedule>> getSchedulesByScope({
+    String? program,
+    String? level,
+    String? teacherName,
+  }) async {
+    final filters = <String>[
+      if (program != null && program.trim().isNotEmpty) Query.equal('program', program.trim()),
+      if (level != null && level.trim().isNotEmpty) Query.equal('level', level.trim()),
+      if (teacherName != null && teacherName.trim().isNotEmpty) Query.contains('teacherName', teacherName.trim()),
+    ];
+    final docs = await _listAll('academic_schedules', filters);
     return docs.map(AcademicSchedule.fromDocument).toList();
   }
+
+  /// Toutes les séances (vue plateforme, sans filière) — paginées.
+  Future<List<AcademicSchedule>> getSchedules() => getSchedulesByScope();
 
   /// Parcourt une collection page par page (curseur), sans plafond caché.
   Future<List<models.Document>> _listAll(String collectionId, List<String> filters) async {

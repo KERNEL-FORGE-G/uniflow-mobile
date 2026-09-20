@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'dart:convert';
 
 import 'package:appwrite/appwrite.dart';
@@ -32,11 +40,16 @@ class PersonalRepository {
         Permission.delete(Role.user(ownerId)),
       ];
 
-  Future<List<T>> _list<T>(String collection, String ownerId, T Function(dynamic) build, {String order = '\$createdAt', bool asc = false}) async {
+  Future<List<T>> _list<T>(String collection, String ownerId, T Function(dynamic) build,
+      {String order = '\$createdAt', bool asc = false}) async {
     final response = await _db.listDocuments(
       databaseId: _dbId,
       collectionId: collection,
-      queries: [Query.equal('ownerId', ownerId), asc ? Query.orderAsc(order) : Query.orderDesc(order), Query.limit(200)],
+      queries: [
+        Query.equal('ownerId', ownerId),
+        asc ? Query.orderAsc(order) : Query.orderDesc(order),
+        Query.limit(200)
+      ],
     );
     return response.documents.map(build).toList();
   }
@@ -145,7 +158,8 @@ Map<String, dynamic> subjectPayload(String ownerId, Map<String, dynamic> data) {
     'title': name,
     'code': (data['code'] ?? '').toString().trim(),
     'instructor': (data['instructor'] ?? '').toString().trim(),
-    'credits': (data['credits'] is num) ? (data['credits'] as num).toInt() : int.tryParse('${data['credits'] ?? ''}') ?? 0,
+    'credits':
+        (data['credits'] is num) ? (data['credits'] as num).toInt() : int.tryParse('${data['credits'] ?? ''}') ?? 0,
     'colorHex': (data['colorHex'] ?? '').toString().isEmpty ? '#0d9488' : data['colorHex'].toString(),
     'classroom': (data['classroom'] ?? '').toString().trim(),
     'description': (data['description'] ?? '').toString().trim(),
@@ -157,9 +171,8 @@ const Map<String, int> taskPriorityCodes = {'LOW': 1, 'MEDIUM': 2, 'HIGH': 3, 'U
 
 Map<String, dynamic> taskPayload(String ownerId, Map<String, dynamic> data) {
   final rawPriority = data['priority'];
-  final priority = rawPriority is int
-      ? rawPriority.clamp(1, 4)
-      : taskPriorityCodes[rawPriority?.toString().toUpperCase()] ?? 2;
+  final priority =
+      rawPriority is int ? rawPriority.clamp(1, 4) : taskPriorityCodes[rawPriority?.toString().toUpperCase()] ?? 2;
   final due = data['dueDate'];
   final dueDate = due is DateTime ? due.toUtc().toIso8601String() : (due ?? '').toString();
   return {
@@ -205,6 +218,7 @@ Map<String, dynamic> schedulePayload(String ownerId, Map<String, dynamic> data, 
     final m = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
     return DateTime(date.year, date.month, date.day, h, m);
   }
+
   final meta = {
     'courseId': (data['courseId'] ?? '').toString(),
     'dayOfWeek': dayOfWeek,

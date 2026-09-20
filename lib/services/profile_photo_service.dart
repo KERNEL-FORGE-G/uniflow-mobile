@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'dart:io';
 
 import 'package:appwrite/appwrite.dart';
@@ -24,8 +32,7 @@ class ProfilePhotoService {
 
   Storage get _storage => _service.storage;
   Databases get _databases => _service.databases;
-  String get _bucket =>
-      _service.avatarBucketId;
+  String get _bucket => _service.avatarBucketId;
 
   /// Téléverse [file] et l'enregistre sur le profil. Renvoie le nouvel
   /// identifiant de fichier.
@@ -160,15 +167,13 @@ extension ProfilePhotoActions on WidgetRef {
       file: file,
       previousFileId: user.avatarFileId,
     );
-    read(currentUserProvider.notifier).state =
-        user.copyWith(avatarFileId: fileId);
+    read(currentUserProvider.notifier).state = user.copyWith(avatarFileId: fileId);
     return fileId;
   }
 
   /// Retire la photo de profil et remet l'affichage sur les initiales.
   Future<void> removeAvatar(UniFlowUser user) async {
-    await read(profilePhotoServiceProvider)
-        .remove(userId: user.id, fileId: user.avatarFileId);
+    await read(profilePhotoServiceProvider).remove(userId: user.id, fileId: user.avatarFileId);
     read(currentUserProvider.notifier).state = user.copyWith(avatarFileId: '');
   }
 

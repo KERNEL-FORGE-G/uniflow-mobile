@@ -111,9 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: Text(
-              university
-                  ? 'Connectez-vous à votre espace académique'
-                  : 'Connectez-vous à votre espace personnel',
+              university ? 'Connectez-vous à votre espace académique' : 'Connectez-vous à votre espace personnel',
               key: ValueKey(university),
               textAlign: TextAlign.center,
               style: AppTextStyles.body,

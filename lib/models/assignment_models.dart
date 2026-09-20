@@ -376,8 +376,7 @@ class QuizDefinition {
   });
 
   /// Somme des points de toutes les questions.
-  double get totalPoints =>
-      questions.fold<double>(0, (sum, q) => sum + q.points);
+  double get totalPoints => questions.fold<double>(0, (sum, q) => sum + q.points);
 
   factory QuizDefinition.fromJson(Map<String, dynamic> json) {
     final raw = json['questions'];
@@ -469,8 +468,7 @@ class QuizGrader {
         final givenSet = _intList(given).toSet();
         final expectedSet = question.correct.toSet();
         // Ensembles égaux : cocher toutes les bonnes réponses et rien d'autre.
-        return givenSet.length == expectedSet.length &&
-            givenSet.containsAll(expectedSet);
+        return givenSet.length == expectedSet.length && givenSet.containsAll(expectedSet);
 
       case QuestionType.text:
         final expected = (question.expected ?? '').trim();
@@ -482,8 +480,7 @@ class QuizGrader {
   }
 
   /// Réduit une réponse libre à sa forme comparable.
-  static String _normalize(String value) =>
-      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  static String _normalize(String value) => value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
   static int? _asInt(dynamic value) {
     if (value is int) return value;
@@ -520,11 +517,14 @@ List<String> _stringList(dynamic value) {
 
 List<int> _intList(dynamic value) {
   if (value is List) {
-    return value.map((e) {
-      if (e is int) return e;
-      if (e is double) return e.toInt();
-      return int.tryParse(e.toString()) ?? -1;
-    }).where((e) => e >= 0).toList();
+    return value
+        .map((e) {
+          if (e is int) return e;
+          if (e is double) return e.toInt();
+          return int.tryParse(e.toString()) ?? -1;
+        })
+        .where((e) => e >= 0)
+        .toList();
   }
   if (value is int) return [value];
   if (value is String) {

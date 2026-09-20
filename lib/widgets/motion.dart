@@ -145,15 +145,15 @@ class ShimmerList extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTheme.radiusCard),
             border: Border.all(color: AppColors.inputBorder),
           ),
-          child: Row(
+          child: const Row(
             children: [
-              const ShimmerBox(width: 44, height: 44, borderRadius: BorderRadius.all(Radius.circular(22))),
-              const SizedBox(width: 14),
+              ShimmerBox(width: 44, height: 44, borderRadius: BorderRadius.all(Radius.circular(22))),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     ShimmerBox(height: 14, width: 160),
                     SizedBox(height: 8),
                     ShimmerBox(height: 11, width: 100),

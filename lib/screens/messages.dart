@@ -39,8 +39,7 @@ class MessagesScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     itemCount: list.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) =>
-                        _ConversationTile(conversation: list[index]),
+                    itemBuilder: (context, index) => _ConversationTile(conversation: list[index]),
                   ),
                 );
               },
@@ -75,9 +74,7 @@ class MessagesScreen extends ConsumerWidget {
     try {
       final conversation = await ref
           .read(messagingRepositoryProvider)
-          .openByUsername(contact.username.isNotEmpty
-              ? contact.username
-              : contact.email);
+          .openByUsername(contact.username.isNotEmpty ? contact.username : contact.email);
       ref.invalidate(conversationsProvider);
       if (!context.mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
@@ -146,8 +143,7 @@ class _ConversationTile extends StatelessWidget {
     if (parsed == null) return '';
     final local = parsed.toLocal();
     final now = DateTime.now();
-    final sameDay =
-        local.year == now.year && local.month == now.month && local.day == now.day;
+    final sameDay = local.year == now.year && local.month == now.month && local.day == now.day;
     return sameDay ? DateFormat.Hm().format(local) : DateFormat('dd/MM').format(local);
   }
 
@@ -161,8 +157,7 @@ class _ConversationTile extends StatelessWidget {
           avatarFileId: conversation.avatarFileId,
           size: 40,
         ),
-        title: Text(conversation.name,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(conversation.name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -194,14 +189,10 @@ class _ConversationTile extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                    color: AppColors.teal, shape: BoxShape.circle),
+                decoration: const BoxDecoration(color: AppColors.teal, shape: BoxShape.circle),
                 child: Text(
                   '${conversation.unread}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
               ),
           ],
@@ -258,9 +249,7 @@ class _InboxError extends StatelessWidget {
   const _InboxError({required this.error, required this.onRetry});
 
   /// Texte principal : le message rédigé quand il y en a un, le texte brut sinon.
-  String get _detail => error is MessagingException
-      ? (error as MessagingException).message
-      : error.toString();
+  String get _detail => error is MessagingException ? (error as MessagingException).message : error.toString();
 
   /// Code technique, affiché en petit.
   ///
@@ -335,8 +324,7 @@ class _NewConversationSheet extends ConsumerStatefulWidget {
   const _NewConversationSheet();
 
   @override
-  ConsumerState<_NewConversationSheet> createState() =>
-      _NewConversationSheetState();
+  ConsumerState<_NewConversationSheet> createState() => _NewConversationSheetState();
 }
 
 class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
@@ -377,8 +365,7 @@ class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
   Future<void> _search(String term) async {
     final id = ++_requestId;
     try {
-      final contacts =
-          await ref.read(messagingRepositoryProvider).searchContacts(term);
+      final contacts = await ref.read(messagingRepositoryProvider).searchContacts(term);
       if (!mounted || id != _requestId) return;
       setState(() {
         _results = contacts;
@@ -499,8 +486,7 @@ class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
             avatarFileId: contact.avatarFileId,
             size: 38,
           ),
-          title: Text(contact.name,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           subtitle: Text(
             contact.username.isNotEmpty ? '@${contact.username}' : contact.email,
             style: const TextStyle(fontSize: 11, color: AppColors.teal),

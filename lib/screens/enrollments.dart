@@ -30,7 +30,8 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
             preferredSize: const Size.fromHeight(44),
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
+              decoration:
+                  BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
                   _tab('Semaine actuelle', 0),
@@ -101,7 +102,8 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
                   // Bleu de marque et non teal : l'onglet actif doit se lire
                   // comme le reste des éléments actifs de l'application.
                   color: active ? AppColors.primaryBlue : Colors.white,
-                  fontWeight: FontWeight.w600, fontSize: 12)),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12)),
         ),
       ),
     );

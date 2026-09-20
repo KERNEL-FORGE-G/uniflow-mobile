@@ -41,12 +41,15 @@ class _GradingScreenState extends ConsumerState<GradingScreen> {
               loading: () => const ShimmerList(),
               error: (error, _) => Padding(
                 padding: const EdgeInsets.all(16),
-                child: ErrorBanner(message: 'Cours indisponibles.\n$error', onRetry: () => ref.invalidate(scopedCoursesProvider)),
+                child: ErrorBanner(
+                    message: 'Cours indisponibles.\n$error', onRetry: () => ref.invalidate(scopedCoursesProvider)),
               ),
               data: (list) {
                 // Le serveur refuse un enseignant sur un cours qui n'est pas le
                 // sien (COURSE_ASSIGNMENT_DENIED) : ne pas le proposer.
-                final mine = role == UniFlowRole.teacher && user != null ? list.where((c) => c.teacherId == user.id).toList() : list;
+                final mine = role == UniFlowRole.teacher && user != null
+                    ? list.where((c) => c.teacherId == user.id).toList()
+                    : list;
                 if (mine.isEmpty) {
                   return const EmptyState(
                     icon: Icons.grading_outlined,
@@ -62,10 +65,13 @@ class _GradingScreenState extends ConsumerState<GradingScreen> {
                       child: DropdownButtonFormField<String>(
                         initialValue: course.id,
                         isExpanded: true,
-                        decoration: const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
+                        decoration: const InputDecoration(
+                            labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
                         items: [
                           for (final c in mine)
-                            DropdownMenuItem(value: c.id, child: Text('${c.code} · ${c.name}', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(
+                                value: c.id,
+                                child: Text('${c.code} · ${c.name}', maxLines: 1, overflow: TextOverflow.ellipsis)),
                         ],
                         onChanged: (v) => setState(() {
                           _courseId = v;
@@ -73,7 +79,11 @@ class _GradingScreenState extends ConsumerState<GradingScreen> {
                         }),
                       ),
                     ),
-                    Expanded(child: _RosterView(course: course, evaluation: _evaluation, onEvaluation: (e) => setState(() => _evaluation = e))),
+                    Expanded(
+                        child: _RosterView(
+                            course: course,
+                            evaluation: _evaluation,
+                            onEvaluation: (e) => setState(() => _evaluation = e))),
                   ],
                 );
               },
@@ -99,11 +109,16 @@ class _RosterView extends ConsumerWidget {
       loading: () => const ShimmerList(),
       error: (error, _) => Padding(
         padding: const EdgeInsets.all(16),
-        child: ErrorBanner(message: 'Liste des inscrits indisponible.\n$error', onRetry: () => ref.invalidate(courseRosterProvider(course.id))),
+        child: ErrorBanner(
+            message: 'Liste des inscrits indisponible.\n$error',
+            onRetry: () => ref.invalidate(courseRosterProvider(course.id))),
       ),
       data: (data) {
         if (data.students.isEmpty) {
-          return const EmptyState(icon: Icons.people_outline, title: 'Aucun inscrit', message: 'Aucun apprenant n\'est inscrit à ce cours.');
+          return const EmptyState(
+              icon: Icons.people_outline,
+              title: 'Aucun inscrit',
+              message: 'Aucun apprenant n\'est inscrit à ce cours.');
         }
         final titles = data.evaluationTitles;
         final current = evaluation ?? (titles.isNotEmpty ? titles.first : null);
@@ -155,7 +170,8 @@ class _RosterView extends ConsumerWidget {
                     return _StudentRow(
                       student: student,
                       grade: grade,
-                      onTap: () => _enterGrade(context, ref, course: course, student: student, evaluation: current, existing: grade),
+                      onTap: () => _enterGrade(context, ref,
+                          course: course, student: student, evaluation: current, existing: grade),
                     );
                   },
                 ),
@@ -172,7 +188,10 @@ class _RosterView extends ConsumerWidget {
       context: context,
       builder: (d) => AlertDialog(
         title: const Text('Nouvelle évaluation'),
-        content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'Intitulé (CC1, TP, Examen…)')),
+        content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Intitulé (CC1, TP, Examen…)')),
         actions: [
           TextButton(onPressed: () => Navigator.of(d).pop(), child: const Text('Annuler')),
           FilledButton(onPressed: () => Navigator.of(d).pop(controller.text), child: const Text('Créer')),
@@ -221,7 +240,10 @@ class _RosterView extends ConsumerWidget {
         );
       }
     } catch (error) {
-      if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Saisie refusée', message: error.toString());
+      if (context.mounted) {
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Saisie refusée', message: error.toString());
+      }
     }
   }
 }
@@ -247,7 +269,8 @@ class _StudentRow extends StatelessWidget {
                 children: [
                   Text(student.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.h3),
                   Text(
-                    [if (student.matricule.isNotEmpty) student.matricule, if (student.role == 'DELEGATE') 'Délégué'].join(' · '),
+                    [if (student.matricule.isNotEmpty) student.matricule, if (student.role == 'DELEGATE') 'Délégué']
+                        .join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.bodySmall,
@@ -260,7 +283,9 @@ class _StudentRow extends StatelessWidget {
               duration: const Duration(milliseconds: 250),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: grade == null ? AppColors.surfaceMuted : (good ? AppColors.success : AppColors.danger).withValues(alpha: 0.12),
+                color: grade == null
+                    ? AppColors.surfaceMuted
+                    : (good ? AppColors.success : AppColors.danger).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: grade == null ? AppColors.inputBorder : Colors.transparent),
               ),
@@ -355,9 +380,17 @@ class _GradeSheetState extends State<_GradeSheet> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _max, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Sur'))),
+                Expanded(
+                    child: TextField(
+                        controller: _max,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Sur'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _coef, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Coef.'))),
+                Expanded(
+                    child: TextField(
+                        controller: _coef,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Coef.'))),
               ],
             ),
             const SizedBox(height: 12),
@@ -365,7 +398,11 @@ class _GradeSheetState extends State<_GradeSheet> {
               spacing: 8,
               children: [
                 for (final t in const ['CC', 'TP', 'TD', 'EXAMEN', 'RATTRAPAGE'])
-                  ChoiceChip(label: Text(t), selected: _type == t, onSelected: (_) => setState(() => _type = t), selectedColor: AppColors.primary100),
+                  ChoiceChip(
+                      label: Text(t),
+                      selected: _type == t,
+                      onSelected: (_) => setState(() => _type = t),
+                      selectedColor: AppColors.primary100),
               ],
             ),
             const SizedBox(height: 6),

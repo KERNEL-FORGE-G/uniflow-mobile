@@ -25,10 +25,12 @@ class AdminDirectoryRepository {
     try {
       response = await _service.callService(servicePath, payload);
     } on AppwriteException catch (error) {
-      throw AdminDirectoryException(error.message ?? 'Le service de gestion des comptes est injoignable (code ${error.code}).');
+      throw AdminDirectoryException(
+          error.message ?? 'Le service de gestion des comptes est injoignable (code ${error.code}).');
     }
     if (response['ok'] != true) {
-      throw AdminDirectoryException(response['message']?.toString() ?? 'La gestion du compte a échoué.', code: response['code']?.toString());
+      throw AdminDirectoryException(response['message']?.toString() ?? 'La gestion du compte a échoué.',
+          code: response['code']?.toString());
     }
     return response;
   }
@@ -159,7 +161,9 @@ class AccountDraft {
     if (name.trim().length < 2) return 'Indiquez le nom complet.';
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email.trim())) return 'Adresse e-mail invalide.';
     if (creating && password.length < 8) return 'Le mot de passe initial doit faire au moins 8 caractères.';
-    if (role == UniFlowRole.personal) return 'Un compte indépendant se crée par inscription, pas par l\'administration.';
+    if (role == UniFlowRole.personal) {
+      return 'Un compte indépendant se crée par inscription, pas par l\'administration.';
+    }
     if ((role == UniFlowRole.student || role == UniFlowRole.delegate) && level.trim().isEmpty) {
       return 'Un apprenant a besoin d\'un niveau pour être inscrit à ses cours.';
     }

@@ -28,9 +28,7 @@ class NotificationsScreen extends ConsumerWidget {
         children: [
           GradientHeader(
             title: 'Notifications',
-            subtitle: unread > 0
-                ? '$unread non lue${unread > 1 ? 's' : ''}'
-                : 'Tout est à jour',
+            subtitle: unread > 0 ? '$unread non lue${unread > 1 ? 's' : ''}' : 'Tout est à jour',
             trailing: notificationsAsync.valueOrNull?.isNotEmpty == true
                 ? TextButton(
                     onPressed: () => _markAllRead(context, ref),
@@ -85,9 +83,7 @@ class NotificationsScreen extends ConsumerWidget {
   ) async {
     final conversationId = notification.conversationId;
     try {
-      await ref
-          .read(messagingRepositoryProvider)
-          .markNotificationsRead(notificationId: notification.id);
+      await ref.read(messagingRepositoryProvider).markNotificationsRead(notificationId: notification.id);
     } catch (_) {
       // Un échec de marquage ne doit pas empêcher l'ouverture du fil.
     }
@@ -96,12 +92,8 @@ class NotificationsScreen extends ConsumerWidget {
 
     if (conversationId.isEmpty) return;
     try {
-      final conversations =
-          await ref.read(messagingRepositoryProvider).getConversations();
-      final conversation = conversations
-          .where((item) => item.id == conversationId)
-          .cast<Conversation?>()
-          .firstOrNull;
+      final conversations = await ref.read(messagingRepositoryProvider).getConversations();
+      final conversation = conversations.where((item) => item.id == conversationId).cast<Conversation?>().firstOrNull;
       if (!context.mounted) return;
       if (conversation == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -112,8 +104,7 @@ class NotificationsScreen extends ConsumerWidget {
       context.push('/messages/$conversationId', extra: conversation);
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -123,8 +114,7 @@ class NotificationsScreen extends ConsumerWidget {
       ref.invalidate(notificationsProvider);
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 }
@@ -140,8 +130,7 @@ class _NotificationTile extends StatelessWidget {
     if (parsed == null) return '';
     final local = parsed.toLocal();
     final now = DateTime.now();
-    final sameDay =
-        local.year == now.year && local.month == now.month && local.day == now.day;
+    final sameDay = local.year == now.year && local.month == now.month && local.day == now.day;
     return sameDay ? DateFormat.Hm().format(local) : DateFormat('dd/MM HH:mm').format(local);
   }
 
@@ -187,8 +176,7 @@ class _NotificationTile extends StatelessWidget {
             ? Container(
                 width: 9,
                 height: 9,
-                decoration: const BoxDecoration(
-                    color: AppColors.teal, shape: BoxShape.circle),
+                decoration: const BoxDecoration(color: AppColors.teal, shape: BoxShape.circle),
               )
             : null,
         onTap: onOpen,

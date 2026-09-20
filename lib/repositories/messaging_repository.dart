@@ -216,10 +216,7 @@ class Conversation {
       time: json['time'] ?? '',
       unread: json['unread'] ?? 0,
       messages: rawMessages is List
-          ? rawMessages
-              .whereType<Map>()
-              .map((item) => ChatMessage.fromJson(Map<String, dynamic>.from(item)))
-              .toList()
+          ? rawMessages.whereType<Map>().map((item) => ChatMessage.fromJson(Map<String, dynamic>.from(item))).toList()
           : const [],
     );
   }
@@ -240,6 +237,7 @@ class MessagingException implements Exception {
 
 class MessagingRepository {
   final AppwriteService _service;
+
   /// Chemin du service de messagerie dans le routeur `uniflow-api`.
   ///
   /// Ce n'est plus un identifiant de Function : depuis la migration vers
@@ -260,8 +258,7 @@ class MessagingRepository {
   /// Le détail de l'appel vit dans `AppwriteService.executeFunction`, partagé
   /// avec les autres services : un seul endroit à corriger le jour où le
   /// contrat change.
-  Future<Map<String, dynamic>> _execute(Map<String, dynamic> payload) =>
-      _service.executeFunction(servicePath, payload);
+  Future<Map<String, dynamic>> _execute(Map<String, dynamic> payload) => _service.executeFunction(servicePath, payload);
 
   /// Exécute la fonction et renvoie la charge utile JSON.
   ///
@@ -314,10 +311,7 @@ class MessagingRepository {
     final data = await _invoke({'action': 'list'});
     final list = data['conversations'];
     if (list is! List) return const [];
-    return list
-        .whereType<Map>()
-        .map((item) => Conversation.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+    return list.whereType<Map>().map((item) => Conversation.fromJson(Map<String, dynamic>.from(item))).toList();
   }
 
   /// Retrouve des contacts par pseudo, nom ou email (au moins deux caractères).
@@ -327,10 +321,7 @@ class MessagingRepository {
     final data = await _invoke({'action': 'search', 'query': term});
     final list = data['contacts'];
     if (list is! List) return const [];
-    return list
-        .whereType<Map>()
-        .map((item) => ChatContact.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+    return list.whereType<Map>().map((item) => ChatContact.fromJson(Map<String, dynamic>.from(item))).toList();
   }
 
   /// Ouvre — en la créant au besoin — la conversation avec un pseudo.
@@ -476,10 +467,7 @@ class MessagingRepository {
     final data = await _invoke({'action': 'notifications'});
     final list = data['notifications'];
     if (list is! List) return const [];
-    return list
-        .whereType<Map>()
-        .map((item) => AppNotification.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+    return list.whereType<Map>().map((item) => AppNotification.fromJson(Map<String, dynamic>.from(item))).toList();
   }
 
   /// Marque une notification comme lue, ou toutes si [notificationId] est vide.
@@ -538,8 +526,7 @@ String _readableBytes(int bytes) {
 ///
 /// L'implémentation vit dans `AppwriteService` : le forum exécute lui aussi des
 /// Functions et doit analyser la même forme de réponse.
-Map<String, dynamic> decodeExecutionPayload(Map<String, dynamic> execution) =>
-    decodeFunctionPayload(execution);
+Map<String, dynamic> decodeExecutionPayload(Map<String, dynamic> execution) => decodeFunctionPayload(execution);
 
 /// Identifiant du fichier dans la réponse de téléversement, ou `null` si elle
 /// est illisible.

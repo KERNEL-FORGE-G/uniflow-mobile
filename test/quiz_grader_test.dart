@@ -9,8 +9,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uniflow_mobile/models/assignment_models.dart';
 
-QuizDefinition _quiz(String json) =>
-    QuizDefinition.fromJson(Map<String, dynamic>.from(jsonDecode(json) as Map));
+QuizDefinition _quiz(String json) => QuizDefinition.fromJson(Map<String, dynamic>.from(jsonDecode(json) as Map));
 
 void main() {
   group('Décodage du JSON de quiz', () {
@@ -135,7 +134,11 @@ void main() {
     });
 
     test('un barème différent de 20 est respecté', () {
-      final result = QuizGrader.grade(quiz, {'q1': 2, 'q2': [0, 2], 'q3': 'faux'});
+      final result = QuizGrader.grade(quiz, {
+        'q1': 2,
+        'q2': [0, 2],
+        'q3': 'faux'
+      });
       expect(result.earned, 5);
       expect(result.scaledTo(10), closeTo(8.333, 0.001));
     });
@@ -147,7 +150,7 @@ void main() {
   });
 
   group('Audience', () {
-    Assignment _assignment(String? audience) => Assignment(
+    Assignment assignment(String? audience) => Assignment(
           id: 'a1',
           title: 'Devoir',
           courseId: 'ue1',
@@ -160,37 +163,37 @@ void main() {
         );
 
     test('une audience vide vise tout le monde', () {
-      expect(_assignment(null).targets(filiere: 'Informatique', niveau: 'L3'), isTrue);
-      expect(_assignment('').targets(), isTrue);
+      expect(assignment(null).targets(filiere: 'Informatique', niveau: 'L3'), isTrue);
+      expect(assignment('').targets(), isTrue);
     });
 
     test('une audience illisible vise tout le monde', () {
       // Mieux vaut un devoir visible par trop de monde qu'un devoir que
       // personne ne reçoit à cause d'une virgule mal placée.
-      expect(_assignment('{ceci n est pas du json').targets(filiere: 'X'), isTrue);
+      expect(assignment('{ceci n est pas du json').targets(filiere: 'X'), isTrue);
     });
 
     test('filtre sur la filière', () {
-      final a = _assignment('{"filieres": ["Informatique"], "niveaux": []}');
+      final a = assignment('{"filieres": ["Informatique"], "niveaux": []}');
       expect(a.targets(filiere: 'Informatique', niveau: 'L3'), isTrue);
       expect(a.targets(filiere: 'Droit', niveau: 'L3'), isFalse);
     });
 
     test('filtre sur le niveau', () {
-      final a = _assignment('{"filieres": [], "niveaux": ["Licence 3"]}');
+      final a = assignment('{"filieres": [], "niveaux": ["Licence 3"]}');
       expect(a.targets(filiere: 'Droit', niveau: 'Licence 3'), isTrue);
       expect(a.targets(filiere: 'Droit', niveau: 'Licence 1'), isFalse);
     });
 
     test('filière et niveau sont cumulatifs', () {
-      final a = _assignment('{"filieres": ["Informatique"], "niveaux": ["Licence 3"]}');
+      final a = assignment('{"filieres": ["Informatique"], "niveaux": ["Licence 3"]}');
       expect(a.targets(filiere: 'Informatique', niveau: 'Licence 3'), isTrue);
       expect(a.targets(filiere: 'Informatique', niveau: 'Licence 1'), isFalse);
     });
   });
 
   group('Délais', () {
-    Assignment _due(DateTime due, {bool allowLate = false}) => Assignment(
+    Assignment due(DateTime due, {bool allowLate = false}) => Assignment(
           id: 'a1',
           title: 'Devoir',
           courseId: 'ue1',
@@ -203,13 +206,13 @@ void main() {
         );
 
     test('un devoir passé n\'accepte plus de rendu', () {
-      final a = _due(DateTime.now().subtract(const Duration(days: 1)));
+      final a = due(DateTime.now().subtract(const Duration(days: 1)));
       expect(a.isPastDue, isTrue);
       expect(a.acceptsSubmission, isFalse);
     });
 
     test('un devoir passé accepte encore un rendu si le retard est permis', () {
-      final a = _due(
+      final a = due(
         DateTime.now().subtract(const Duration(days: 1)),
         allowLate: true,
       );
@@ -218,7 +221,7 @@ void main() {
     });
 
     test('un devoir à venir accepte un rendu', () {
-      final a = _due(DateTime.now().add(const Duration(days: 3)));
+      final a = due(DateTime.now().add(const Duration(days: 3)));
       expect(a.isPastDue, isFalse);
       expect(a.acceptsSubmission, isTrue);
     });

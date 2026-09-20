@@ -404,9 +404,7 @@ class AppTheme {
       // --- Cases à cocher -------------------------------------------------------
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? AppColors.primaryBlue
-              : Colors.transparent,
+          (states) => states.contains(WidgetState.selected) ? AppColors.primaryBlue : Colors.transparent,
         ),
         side: const BorderSide(color: AppColors.inputBorder, width: 1.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),

@@ -77,7 +77,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   icon: const Icon(Icons.arrow_back_rounded),
                 ),
                 const Expanded(
-                  child: Text('Mot de passe oublié', maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.h1),
+                  child: Text('Mot de passe oublié',
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.h1),
                 ),
               ],
             ),

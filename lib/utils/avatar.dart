@@ -16,9 +16,7 @@ const String avatarBucketId = 'uniflow_assets';
 /// (`APPWRITE_AVATAR_BUCKET_ID`) pour ne pas figer un identifiant dans le code
 /// si le bucket est recréé côté serveur.
 String get _avatarBucket =>
-    dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ??
-    dotenv.maybeGet('APPWRITE_STORAGE_BUCKET_ID') ??
-    avatarBucketId;
+    dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ?? dotenv.maybeGet('APPWRITE_STORAGE_BUCKET_ID') ?? avatarBucketId;
 
 /// URL publique d'une photo de profil, ou `null` s'il n'y en a pas.
 ///

@@ -15,8 +15,11 @@ import '../widgets/feedback.dart';
 /// Un compte universitaire n'a **aucun** choix de rôle : il naît `STUDENT`, et
 /// les rôles supérieurs ne se donnent que par labels, posés par
 /// l'administration. Le formulaire enchaîne université → faculté → filière →
-/// niveau à partir des collections de référence lues sans session : rien n'est
-/// codé en dur, d'autres filières que l'ICT4D arrivent en base.
+/// niveau à partir des collections de référence lues sans session
+/// (`universities`, `faculties`, `academic_programs`) : rien n'est codé en
+/// dur, et les niveaux offerts sont ceux de la filière (`levels`, M1 compris).
+/// Ni le rôle ADMIN ni le type PLATFORM ne sont proposés : ils se posent côté
+/// serveur.
 class RegisterScreen extends ConsumerStatefulWidget {
   final UniFlowAccountType initialType;
 
@@ -56,6 +59,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         name: _name.text,
         accountType: _type,
         university: _university?.name ?? '',
+        faculty: _faculty?.code ?? '',
         program: _program?.code ?? '',
         level: _level,
         matricule: _matricule.text,

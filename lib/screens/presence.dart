@@ -69,7 +69,8 @@ class PresenceScreen extends ConsumerWidget {
 /// comprendre (autorisation refusée, GPS coupé, précision insuffisante).
 Future<GeoPosition> currentPosition() async {
   if (!await Geolocator.isLocationServiceEnabled()) {
-    throw AttendanceException('La localisation est désactivée sur cet appareil. Activez-la : la présence vérifie que vous êtes bien en salle.');
+    throw AttendanceException(
+        'La localisation est désactivée sur cet appareil. Activez-la : la présence vérifie que vous êtes bien en salle.');
   }
   var permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
@@ -83,7 +84,8 @@ Future<GeoPosition> currentPosition() async {
   // avec un conseil, plutôt qu'un « Précision de localisation insuffisante ».
   final accuracy = position.accuracy <= 0 ? 50.0 : position.accuracy;
   if (accuracy > 100) {
-    throw AttendanceException('Position trop imprécise (± ${accuracy.round()} m). Rapprochez-vous d\'une fenêtre ou sortez du bâtiment un instant, puis réessayez.');
+    throw AttendanceException(
+        'Position trop imprécise (± ${accuracy.round()} m). Rapprochez-vous d\'une fenêtre ou sortez du bâtiment un instant, puis réessayez.');
   }
   return GeoPosition(latitude: position.latitude, longitude: position.longitude, accuracy: accuracy);
 }
@@ -135,7 +137,8 @@ class _ScanPage extends ConsumerStatefulWidget {
 }
 
 class _ScanPageState extends ConsumerState<_ScanPage> {
-  final _controller = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates, formats: [BarcodeFormat.qrCode]);
+  final _controller =
+      MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates, formats: [BarcodeFormat.qrCode]);
   bool _busy = false;
   String? _status;
 
@@ -244,11 +247,13 @@ class _ScanPageState extends ConsumerState<_ScanPage> {
               child: Container(
                 key: ValueKey(_status),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(14)),
+                decoration:
+                    BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(14)),
                 child: Row(
                   children: [
                     if (_busy) ...[
-                      const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                      const SizedBox(
+                          width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
                       const SizedBox(width: 12),
                     ],
                     Expanded(
@@ -332,7 +337,8 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
           const SizedBox(height: 14),
           courses.when(
             loading: () => const ShimmerBox(height: 52),
-            error: (error, _) => ErrorBanner(message: 'Cours indisponibles : $error', onRetry: () => ref.invalidate(scopedCoursesProvider)),
+            error: (error, _) => ErrorBanner(
+                message: 'Cours indisponibles : $error', onRetry: () => ref.invalidate(scopedCoursesProvider)),
             data: (list) {
               // Un enseignant n'émet que pour ses cours ; la Function le
               // vérifie aussi (COURSE_ASSIGNMENT_DENIED), autant ne pas
@@ -341,7 +347,8 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
                   ? list.where((c) => c.teacherId == user.id).toList()
                   : list;
               if (mine.isEmpty) {
-                return const Text('Aucun cours de votre périmètre ne peut recevoir une séance pour l\'instant.', style: AppTextStyles.bodySmall);
+                return const Text('Aucun cours de votre périmètre ne peut recevoir une séance pour l\'instant.',
+                    style: AppTextStyles.bodySmall);
               }
               final selected = mine.where((c) => c.id == _courseId).firstOrNull ?? mine.first;
               return Column(
@@ -350,10 +357,13 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
                   DropdownButtonFormField<String>(
                     initialValue: selected.id,
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
+                    decoration:
+                        const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
                     items: [
                       for (final c in mine)
-                        DropdownMenuItem(value: c.id, child: Text('${c.code} · ${c.name}', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(
+                            value: c.id,
+                            child: Text('${c.code} · ${c.name}', maxLines: 1, overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: _busy ? null : (v) => setState(() => _courseId = v),
                   ),
@@ -372,7 +382,8 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
                           onChanged: _busy ? null : (v) => setState(() => _radius = v.round()),
                         ),
                       ),
-                      SizedBox(width: 52, child: Text('$_radius m', textAlign: TextAlign.end, style: AppTextStyles.label)),
+                      SizedBox(
+                          width: 52, child: Text('$_radius m', textAlign: TextAlign.end, style: AppTextStyles.label)),
                     ],
                   ),
                   if (_error != null) ...[
@@ -458,7 +469,11 @@ class _QrPageState extends ConsumerState<_QrPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(widget.course.name, textAlign: TextAlign.center, style: AppTextStyles.h2, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(widget.course.name,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.h2,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Text(widget.course.code, style: AppTextStyles.bodySmall),
                   const SizedBox(height: 22),
@@ -468,7 +483,12 @@ class _QrPageState extends ConsumerState<_QrPage> {
                       decoration: BoxDecoration(
                         color: AppColors.cardWhite,
                         borderRadius: BorderRadius.circular(AppTheme.radiusSheet),
-                        boxShadow: [BoxShadow(color: AppColors.primaryBlue.withValues(alpha: 0.12), blurRadius: 30, offset: const Offset(0, 12))],
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                              blurRadius: 30,
+                              offset: const Offset(0, 12))
+                        ],
                       ),
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 300),
@@ -479,7 +499,8 @@ class _QrPageState extends ConsumerState<_QrPage> {
                           version: QrVersions.auto,
                           errorCorrectionLevel: QrErrorCorrectLevel.M,
                           eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppColors.primaryBlue),
-                          dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: AppColors.deepBlue),
+                          dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square, color: AppColors.deepBlue),
                         ),
                       ),
                     ),
@@ -560,15 +581,20 @@ class _HowItWorks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SectionCard(
+    return const SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Text('Comment ça marche', style: AppTextStyles.h3),
           SizedBox(height: 10),
-          _Step(n: '1', text: 'L\'émetteur ouvre la séance du jour depuis la salle : sa position fixe le centre de la zone.'),
+          _Step(
+              n: '1',
+              text: 'L\'émetteur ouvre la séance du jour depuis la salle : sa position fixe le centre de la zone.'),
           _Step(n: '2', text: 'Le QR reste valable quinze minutes ; en régénérer un révoque le précédent.'),
-          _Step(n: '3', text: 'Chaque apprenant inscrit au cours scanne le QR depuis la zone : sa présence est enregistrée une seule fois.'),
+          _Step(
+              n: '3',
+              text:
+                  'Chaque apprenant inscrit au cours scanne le QR depuis la zone : sa présence est enregistrée une seule fois.'),
         ],
       ),
     );
@@ -592,7 +618,8 @@ class _Step extends StatelessWidget {
             height: 22,
             alignment: Alignment.center,
             decoration: const BoxDecoration(color: AppColors.primary50, shape: BoxShape.circle),
-            child: Text(n, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryBlue)),
+            child: Text(n,
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryBlue)),
           ),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: AppTextStyles.bodySmall)),

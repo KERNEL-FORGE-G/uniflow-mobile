@@ -11,3 +11,8 @@ include: package:flutter_lints/flutter.yaml
 linter:
   rules:
     prefer_const_constructors: true
+# Largeur de ligne du formateur : le code du dépôt est écrit en lignes longues
+# (chaînes françaises, widgets imbriqués) ; 120 colonnes évite de casser
+# chaque `Text(...)` sur trois lignes tout en gardant `dart format` strict en CI.
+formatter:
+  page_width: 120

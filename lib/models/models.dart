@@ -26,7 +26,8 @@ class Student {
   factory Student.fromJson(Map<String, dynamic> json) {
     final user = json['user'] is Map ? Map<String, dynamic>.from(json['user']) : const <String, dynamic>{};
     final level = json['level'] is Map ? Map<String, dynamic>.from(json['level']) : const <String, dynamic>{};
-    final specialty = json['specialty'] is Map ? Map<String, dynamic>.from(json['specialty']) : const <String, dynamic>{};
+    final specialty =
+        json['specialty'] is Map ? Map<String, dynamic>.from(json['specialty']) : const <String, dynamic>{};
     return Student(
       id: '${json['id'] ?? ''}',
       matricule: '${json['matricule'] ?? ''}',
@@ -120,16 +121,16 @@ class UE {
   });
 
   factory UE.fromJson(Map<String, dynamic> json) => UE(
-    id: '${json['id'] ?? ''}',
-    code: '${json['code'] ?? ''}',
-    title: '${json['title'] ?? json['name'] ?? ''}',
-    credits: int.tryParse('${json['credits'] ?? 0}') ?? 0,
-    cm: int.tryParse('${json['cm'] ?? 0}') ?? 0,
-    td: int.tryParse('${json['td'] ?? 0}') ?? 0,
-    tp: int.tryParse('${json['tp'] ?? 0}') ?? 0,
-    description: '${json['description'] ?? ''}',
-    colorHex: '${json['colorHex'] ?? '#2563EB'}',
-  );
+        id: '${json['id'] ?? ''}',
+        code: '${json['code'] ?? ''}',
+        title: '${json['title'] ?? json['name'] ?? ''}',
+        credits: int.tryParse('${json['credits'] ?? 0}') ?? 0,
+        cm: int.tryParse('${json['cm'] ?? 0}') ?? 0,
+        td: int.tryParse('${json['td'] ?? 0}') ?? 0,
+        tp: int.tryParse('${json['tp'] ?? 0}') ?? 0,
+        description: '${json['description'] ?? ''}',
+        colorHex: '${json['colorHex'] ?? '#2563EB'}',
+      );
 }
 
 class Enrollment {
@@ -148,10 +149,10 @@ class Enrollment {
   });
 
   factory Enrollment.fromJson(Map<String, dynamic> json) => Enrollment(
-    id: '${json['id'] ?? ''}',
-    studentId: '${json['studentId'] ?? ''}',
-    ueId: '${json['teachingUnitId'] ?? json['ueId'] ?? ''}',
-    status: '${json['status'] ?? ''}',
-    date: DateTime.tryParse('${json['createdAt'] ?? json['date'] ?? ''}') ?? DateTime.now(),
-  );
+        id: '${json['id'] ?? ''}',
+        studentId: '${json['studentId'] ?? ''}',
+        ueId: '${json['teachingUnitId'] ?? json['ueId'] ?? ''}',
+        status: '${json['status'] ?? ''}',
+        date: DateTime.tryParse('${json['createdAt'] ?? json['date'] ?? ''}') ?? DateTime.now(),
+      );
 }

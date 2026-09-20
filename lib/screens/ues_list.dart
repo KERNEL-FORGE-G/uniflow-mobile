@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/scope_selector.dart';
 
 class UEsListScreen extends ConsumerWidget {
   const UEsListScreen({super.key});
@@ -12,11 +13,13 @@ class UEsListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final list = ref.watch(filteredUEsProvider);
+    final scope = ref.watch(effectiveScopeProvider);
+    final needsSelection = scope.selectable && !scope.filterByProgram;
     return Column(
       children: [
         GradientHeader(
           title: "Unités d'enseignement",
-          subtitle: '${list.length} UEs',
+          subtitle: scope.label.isEmpty ? '${list.length} UEs' : '${scope.label} · ${list.length} UEs',
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: SearchField(
@@ -25,46 +28,57 @@ class UEsListScreen extends ConsumerWidget {
             ),
           ),
         ),
+        // Administration et plateforme choisissent filière et niveau ; les
+        // UE se rechargent par `scopedCoursesProvider` → `gatewaySyncProvider`.
+        const ScopeSelector(levelOptional: true),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, i) {
-              final u = list[i];
-              final c = Color(int.parse('FF${u.colorHex.substring(1)}', radix: 16));
-              return InkWell(
-                onTap: () => context.go('/ues/${u.id}'),
-                borderRadius: BorderRadius.circular(14),
-                child: SectionCard(
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-                        alignment: Alignment.center,
-                        child: Text(u.code.substring(0, 3),
-                            style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          child: needsSelection
+              ? const EmptyState(
+                  icon: Icons.filter_alt_outlined,
+                  title: 'Choisissez une filière',
+                  message: 'Les unités d\'enseignement s\'affichent pour la filière sélectionnée.',
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: list.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) {
+                    final u = list[i];
+                    final c = Color(int.parse('FF${u.colorHex.substring(1)}', radix: 16));
+                    return InkWell(
+                      onTap: () => context.go('/ues/${u.id}'),
+                      borderRadius: BorderRadius.circular(14),
+                      child: SectionCard(
+                        child: Row(
                           children: [
-                            Text(u.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 2),
-                            Text('${u.code} · ${u.credits} crédits',
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                  color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+                              alignment: Alignment.center,
+                              child: Text(u.code.substring(0, 3),
+                                  style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12)),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(u.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 2),
+                                  Text('${u.code} · ${u.credits} crédits',
+                                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );

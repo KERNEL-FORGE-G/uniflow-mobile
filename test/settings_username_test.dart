@@ -105,8 +105,7 @@ void main() {
     });
 
     testWidgets('se referme par « Enregistrer » sans exception', (tester) async {
-      final depot = _AuthFactice(
-          resultat: user().copyWith(username: 'ravel.nouveau'));
+      final depot = _AuthFactice(resultat: user().copyWith(username: 'ravel.nouveau'));
       await tester.pumpWidget(_host(depot));
       await _ouvrirDialogue(tester);
 
@@ -121,8 +120,7 @@ void main() {
 
   group('normalisation avant enregistrement', () {
     testWidgets('la casse et les espaces sont corrigés', (tester) async {
-      final depot = _AuthFactice(
-          resultat: user().copyWith(username: 'ravel.n'));
+      final depot = _AuthFactice(resultat: user().copyWith(username: 'ravel.n'));
       await tester.pumpWidget(_host(depot));
       await _ouvrirDialogue(tester);
 
@@ -133,8 +131,7 @@ void main() {
       expect(depot.enregistres, ['ravel.n']);
     });
 
-    testWidgets('un pseudo invalide est refusé sur place, sans appel réseau',
-        (tester) async {
+    testWidgets('un pseudo invalide est refusé sur place, sans appel réseau', (tester) async {
       final depot = _AuthFactice();
       await tester.pumpWidget(_host(depot));
       await _ouvrirDialogue(tester);
@@ -150,8 +147,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('un pseudo inchangé n’est pas renvoyé au serveur',
-        (tester) async {
+    testWidgets('un pseudo inchangé n’est pas renvoyé au serveur', (tester) async {
       final depot = _AuthFactice();
       await tester.pumpWidget(_host(depot));
       await _ouvrirDialogue(tester);

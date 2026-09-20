@@ -128,9 +128,11 @@ List<TeamMember> equipeDeTest() => [
 /// universités, une faculté, une filière à trois niveaux. Les libellés sont
 /// longs à dessein, pour que les listes déroulantes prouvent qu'elles
 /// tronquent au lieu de déborder.
-const universiteDeTest = University(code: 'UT1', name: 'Université de Test Numéro Un', shortName: 'UT1', city: 'Yaoundé');
+const universiteDeTest =
+    University(code: 'UT1', name: 'Université de Test Numéro Un', shortName: 'UT1', city: 'Yaoundé');
 const autreUniversite = University(code: 'UT2', name: 'Université de Test Deux', shortName: 'UT2');
-const faculteDeTest = Faculty(universityCode: 'UT1', code: 'FS', name: 'Faculté des Sciences et Technologies Appliquées');
+const faculteDeTest =
+    Faculty(universityCode: 'UT1', code: 'FS', name: 'Faculté des Sciences et Technologies Appliquées');
 const filiereDeTest = AcademicProgram(
   universityCode: 'UT1',
   facultyCode: 'FS',
@@ -139,33 +141,123 @@ const filiereDeTest = AcademicProgram(
   levels: ['L1', 'L2', 'L3'],
 );
 
+/// Les douze filières de la Faculté des Sciences telles qu'en base
+/// (2026-09-20), avec leurs niveaux réels (M1 pour certaines) : le formulaire
+/// doit toutes les proposer et n'offrir que les niveaux de la filière choisie.
+const List<AcademicProgram> douzeFilieres = [
+  AcademicProgram(
+      universityCode: 'UT1', facultyCode: 'FS', code: 'MAT', name: 'Mathématiques', levels: ['L1', 'L2', 'L3', 'M1']),
+  AcademicProgram(
+      universityCode: 'UT1', facultyCode: 'FS', code: 'PHY', name: 'Physique', levels: ['L1', 'L2', 'L3', 'M1']),
+  AcademicProgram(universityCode: 'UT1', facultyCode: 'FS', code: 'CHM', name: 'Chimie', levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1', facultyCode: 'FS', code: 'INF', name: 'Informatique', levels: ['L1', 'L2', 'L3', 'M1']),
+  AcademicProgram(
+      universityCode: 'UT1', facultyCode: 'FS', code: 'GEO', name: 'Sciences de la Terre', levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1', facultyCode: 'FS', code: 'BIOS', name: 'Biosciences', levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1', facultyCode: 'FS', code: 'MIB', name: 'Microbiologie', levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1',
+      facultyCode: 'FS',
+      code: 'BOA',
+      name: 'Biologie des Organismes Animaux',
+      levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1',
+      facultyCode: 'FS',
+      code: 'BOV',
+      name: 'Biologie des Organismes Végétaux',
+      levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(universityCode: 'UT1', facultyCode: 'FS', code: 'BCH', name: 'Biochimie', levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1',
+      facultyCode: 'FS',
+      code: 'ENR',
+      name: 'Énergies Renouvelables',
+      levels: ['L1', 'L2', 'L3']),
+  AcademicProgram(
+      universityCode: 'UT1',
+      facultyCode: 'FS',
+      code: 'ICT4D',
+      name: 'TIC pour le Développement',
+      levels: ['L1', 'L2', 'L3']),
+];
+
 List<PersonalSubject> matieresDeTest() => [
-      PersonalSubject(id: 'm1', ownerId: 'u1', name: 'Analyse numérique et méthodes de résolution approchée', code: 'MAT204', instructor: 'Pr. Très Long Nom De Famille', credits: 6, colorHex: '#7c3aed'),
+      PersonalSubject(
+          id: 'm1',
+          ownerId: 'u1',
+          name: 'Analyse numérique et méthodes de résolution approchée',
+          code: 'MAT204',
+          instructor: 'Pr. Très Long Nom De Famille',
+          credits: 6,
+          colorHex: '#7c3aed'),
       PersonalSubject(id: 'm2', ownerId: 'u1', name: 'Anglais'),
     ];
 
 List<PersonalTask> tachesDeTest() => [
-      PersonalTask(id: 't1', ownerId: 'u1', title: 'Rendre le TP de programmation orientée objet avant la fin de la semaine', courseId: 'm1', dueDate: '2026-09-21T23:59:00.000Z', priority: 4),
+      PersonalTask(
+          id: 't1',
+          ownerId: 'u1',
+          title: 'Rendre le TP de programmation orientée objet avant la fin de la semaine',
+          courseId: 'm1',
+          dueDate: '2026-09-21T23:59:00.000Z',
+          priority: 4),
       PersonalTask(id: 't2', ownerId: 'u1', title: 'Lire le chapitre 3', status: 'DONE', priority: 1),
     ];
 
 List<PersonalSchedule> creneauxDeTest() => [
-      const PersonalSchedule(id: 'c1', ownerId: 'u1', courseId: 'm1', dayOfWeek: 'LUNDI', startTime: '08:00', endTime: '10:00', classroom: 'Amphi 1000 — bâtiment principal', type: 'CM'),
-      const PersonalSchedule(id: 'c2', ownerId: 'u1', courseId: 'm2', dayOfWeek: 'MERCREDI', startTime: '14:00', endTime: '16:00'),
+      const PersonalSchedule(
+          id: 'c1',
+          ownerId: 'u1',
+          courseId: 'm1',
+          dayOfWeek: 'LUNDI',
+          startTime: '08:00',
+          endTime: '10:00',
+          classroom: 'Amphi 1000 — bâtiment principal',
+          type: 'CM'),
+      const PersonalSchedule(
+          id: 'c2', ownerId: 'u1', courseId: 'm2', dayOfWeek: 'MERCREDI', startTime: '14:00', endTime: '16:00'),
     ];
 
 List<PersonalGrade> notesPersonnellesDeTest() => [
-      const PersonalGrade(id: 'g1', ownerId: 'u1', courseId: 'm1', evaluationTitle: 'Contrôle continu numéro un de la session', score: 14.5, maxScore: 20, coefficient: 2),
-      const PersonalGrade(id: 'g2', ownerId: 'u1', courseId: '', evaluationTitle: '', score: 7, maxScore: 10, coefficient: 1),
+      const PersonalGrade(
+          id: 'g1',
+          ownerId: 'u1',
+          courseId: 'm1',
+          evaluationTitle: 'Contrôle continu numéro un de la session',
+          score: 14.5,
+          maxScore: 20,
+          coefficient: 2),
+      const PersonalGrade(
+          id: 'g2', ownerId: 'u1', courseId: '', evaluationTitle: '', score: 7, maxScore: 10, coefficient: 1),
     ];
 
 List<AcademicCourse> coursDeTest() => [
-      AcademicCourse(id: 'k1', code: 'INF211', name: 'Programmation orientée objet et conception de logiciels', university: 'UT', program: 'TEST', level: 'L2', teacherName: 'Pr. Nom Très Long Pour Déborder', type: 'CM'),
+      AcademicCourse(
+          id: 'k1',
+          code: 'INF211',
+          name: 'Programmation orientée objet et conception de logiciels',
+          university: 'UT',
+          program: 'TEST',
+          level: 'L2',
+          teacherName: 'Pr. Nom Très Long Pour Déborder',
+          type: 'CM'),
     ];
 
 List<AcademicSchedule> emploiDuTempsDeTest() => [
       for (final day in ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'])
-        AcademicSchedule(id: day, courseId: 'k1', courseCode: 'INF211', dayOfWeek: day, startTime: '08:00', endTime: '10:00', classroom: 'Amphi 1000 — bâtiment principal', type: 'CM'),
+        AcademicSchedule(
+            id: day,
+            courseId: 'k1',
+            courseCode: 'INF211',
+            dayOfWeek: day,
+            startTime: '08:00',
+            endTime: '10:00',
+            classroom: 'Amphi 1000 — bâtiment principal',
+            type: 'CM'),
     ];
 
 /// Enveloppe un écran dans son `ProviderScope` et son `MaterialApp`, avec les
@@ -204,7 +296,9 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       scopedSchedulesProvider.overrideWith((ref) async => emploiDuTempsDeTest()),
       universitiesProvider.overrideWith((ref) async => const [universiteDeTest, autreUniversite]),
       facultiesProvider.overrideWith((ref, code) async => code == 'UT1' ? const [faculteDeTest] : const []),
-      programsProvider.overrideWith((ref, key) async => key.startsWith('UT1') ? const [filiereDeTest] : const []),
+      programsProvider
+          .overrideWith((ref, key) async => key.startsWith('UT1') ? const [filiereDeTest, ...douzeFilieres] : const []),
+      selectableProgramsProvider.overrideWith((ref) async => douzeFilieres),
       ...overrides,
     ],
     child: MaterialApp(

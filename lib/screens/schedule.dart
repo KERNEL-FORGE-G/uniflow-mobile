@@ -6,15 +6,15 @@ import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/motion.dart';
+import '../widgets/scope_selector.dart';
 import 'personal_space.dart' show dayLabel;
 
 /// Emploi du temps officiel de la filière et du niveau du compte.
 ///
-/// L'onglet existait dans la table de navigation sans écran derrière. Les
-/// créneaux (`academic_schedules`) ne portent ni filière ni niveau : ils se
-/// rattachent à un cours, et c'est le cours qui décide (voir
-/// `scopedSchedulesProvider`). Un enseignant voit tous les niveaux de sa
-/// filière, l'administration toute l'université.
+/// Les séances (`academic_schedules`) portent filière et niveau et se lisent
+/// directement (voir `scopedSchedulesProvider`). Étudiant et délégué : leur
+/// filière et leur niveau ; enseignant : ses séances ; administration et
+/// plateforme : sélecteur filière → niveau alimenté par `academic_programs`.
 class ScheduleScreen extends ConsumerStatefulWidget {
   const ScheduleScreen({super.key});
 
@@ -31,8 +31,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = ref.watch(academicScopeProvider);
+    final scope = ref.watch(effectiveScopeProvider);
     final schedules = ref.watch(scopedSchedulesProvider);
+    final needsSelection = scope.selectable && !scope.filterByProgram;
     final courses = ref.watch(scopedCoursesProvider).value ?? const <AcademicCourse>[];
 
     return Scaffold(
@@ -42,60 +43,68 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             title: 'Emploi du temps',
             subtitle: scope.label.isEmpty ? 'Semaine de cours' : scope.label,
           ),
+          const ScopeSelector(),
           Expanded(
-            child: schedules.when(
-              loading: () => const ShimmerList(cardHeight: 70),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'L\'emploi du temps n\'a pas pu être chargé.\n$error',
-                  onRetry: () => ref.invalidate(scopedSchedulesProvider),
-                ),
-              ),
-              data: (all) {
-                if (all.isEmpty) {
-                  return EmptyState(
-                    icon: Icons.calendar_month_outlined,
-                    title: 'Aucun créneau',
-                    message: scope.label.isEmpty
-                        ? 'Aucun emploi du temps n\'est publié pour le moment.'
-                        : 'Aucun emploi du temps n\'est publié pour ${scope.label}.',
-                  );
-                }
-                final byDay = groupByDay(all);
-                final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
-                return Column(
-                  children: [
-                    _DayStrip(
-                      selected: _day,
-                      counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
-                      onSelect: (d) => setState(() => _day = d),
-                    ),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 220),
-                        child: slots.isEmpty
-                            ? EmptyState(
-                                key: ValueKey('vide-$_day'),
-                                icon: Icons.free_breakfast_outlined,
-                                title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
-                              )
-                            : Builder(
-                                key: ValueKey('jour-$_day'),
-                                builder: (context) {
-                                  final blocks = groupByTimeSlot(slots);
-                                  return StaggeredList(
-                                    itemCount: blocks.length,
-                                    itemBuilder: (context, index) => _TimeBlock(block: blocks[index], courses: courses),
-                                  );
-                                },
-                              ),
+            child: needsSelection
+                ? const EmptyState(
+                    icon: Icons.filter_alt_outlined,
+                    title: 'Choisissez une filière',
+                    message: 'L\'emploi du temps s\'affiche pour la filière et le niveau sélectionnés.',
+                  )
+                : schedules.when(
+                    loading: () => const ShimmerList(cardHeight: 70),
+                    error: (error, _) => Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ErrorBanner(
+                        message: 'L\'emploi du temps n\'a pas pu être chargé.\n$error',
+                        onRetry: () => ref.invalidate(scopedSchedulesProvider),
                       ),
                     ),
-                  ],
-                );
-              },
-            ),
+                    data: (all) {
+                      if (all.isEmpty) {
+                        return EmptyState(
+                          icon: Icons.calendar_month_outlined,
+                          title: 'Aucun créneau',
+                          message: scope.label.isEmpty
+                              ? 'Aucun emploi du temps n\'est publié pour le moment.'
+                              : 'Aucun emploi du temps n\'est publié pour ${scope.label}.',
+                        );
+                      }
+                      final byDay = groupByDay(all);
+                      final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
+                      return Column(
+                        children: [
+                          _DayStrip(
+                            selected: _day,
+                            counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
+                            onSelect: (d) => setState(() => _day = d),
+                          ),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: slots.isEmpty
+                                  ? EmptyState(
+                                      key: ValueKey('vide-$_day'),
+                                      icon: Icons.free_breakfast_outlined,
+                                      title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
+                                    )
+                                  : Builder(
+                                      key: ValueKey('jour-$_day'),
+                                      builder: (context) {
+                                        final blocks = groupByTimeSlot(slots);
+                                        return StaggeredList(
+                                          itemCount: blocks.length,
+                                          itemBuilder: (context, index) =>
+                                              _TimeBlock(block: blocks[index], courses: courses),
+                                        );
+                                      },
+                                    ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -178,9 +187,20 @@ String? tdGroupOf(String? type) {
 String normalizeDay(String raw) {
   final value = raw.trim().toUpperCase();
   const aliases = {
-    'MONDAY': 'LUNDI', 'TUESDAY': 'MARDI', 'WEDNESDAY': 'MERCREDI', 'THURSDAY': 'JEUDI',
-    'FRIDAY': 'VENDREDI', 'SATURDAY': 'SAMEDI', 'SUNDAY': 'DIMANCHE',
-    '1': 'LUNDI', '2': 'MARDI', '3': 'MERCREDI', '4': 'JEUDI', '5': 'VENDREDI', '6': 'SAMEDI', '7': 'DIMANCHE',
+    'MONDAY': 'LUNDI',
+    'TUESDAY': 'MARDI',
+    'WEDNESDAY': 'MERCREDI',
+    'THURSDAY': 'JEUDI',
+    'FRIDAY': 'VENDREDI',
+    'SATURDAY': 'SAMEDI',
+    'SUNDAY': 'DIMANCHE',
+    '1': 'LUNDI',
+    '2': 'MARDI',
+    '3': 'MERCREDI',
+    '4': 'JEUDI',
+    '5': 'VENDREDI',
+    '6': 'SAMEDI',
+    '7': 'DIMANCHE',
   };
   return aliases[value] ?? value;
 }
@@ -294,7 +314,8 @@ class _TimeBlock extends StatelessWidget {
             child: Text(
               '${block.start}\n${block.end}',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w700, fontSize: 12.5, height: 1.4),
+              style: const TextStyle(
+                  color: AppColors.primaryBlue, fontWeight: FontWeight.w700, fontSize: 12.5, height: 1.4),
             ),
           ),
           const SizedBox(width: 12),
@@ -314,7 +335,9 @@ class _TimeBlock extends StatelessWidget {
                   _SessionLine(
                     slot: block.sessions[i],
                     course: courses
-                        .where((c) => c.id == block.sessions[i].courseId || c.code.toUpperCase() == block.sessions[i].courseCode.toUpperCase())
+                        .where((c) =>
+                            c.id == block.sessions[i].courseId ||
+                            c.code.toUpperCase() == block.sessions[i].courseCode.toUpperCase())
                         .firstOrNull,
                   ),
                 ],
@@ -336,8 +359,12 @@ class _SessionLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = (slot.type ?? course?.type ?? '').trim();
-    final group = tdGroupOf(type);
-    final kind = group == null ? type : type.substring(0, type.length - group.length).trim();
+    // Le groupe vient du champ dédié quand la séance le porte (schéma du
+    // 2026-09-20), sinon il est lu dans le type (« TD Gr1 »).
+    final group = slot.group.isNotEmpty ? slot.group : tdGroupOf(type);
+    final kind = group == null || !type.endsWith(group) ? type : type.substring(0, type.length - group.length).trim();
+    final title = slot.courseName.isNotEmpty ? slot.courseName : (course?.name ?? slot.courseCode);
+    final teacher = slot.teacherName.isNotEmpty ? slot.teacherName : (course?.teacherName ?? '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -346,7 +373,7 @@ class _SessionLine extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                course?.name ?? slot.courseCode,
+                title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.h3,
@@ -371,7 +398,7 @@ class _SessionLine extends StatelessWidget {
             if (slot.courseCode.isNotEmpty) slot.courseCode,
             if (kind.isNotEmpty) kind,
             if (slot.classroom.isNotEmpty) slot.classroom,
-            if ((course?.teacherName ?? '').isNotEmpty) course!.teacherName!,
+            if (teacher.isNotEmpty) teacher,
           ].join(' · '),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,

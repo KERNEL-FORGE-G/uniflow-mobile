@@ -112,8 +112,7 @@ enum UniFlowRole {
 /// Seul lui peut créer d'autres comptes `ADMIN` ; un administrateur
 /// d'université crée enseignants, délégués et étudiants de sa propre
 /// université.
-bool isSuperAdmin(List<String> labels) =>
-    labels.any((label) => label.trim().toLowerCase() == 'superadmin');
+bool isSuperAdmin(List<String> labels) => labels.any((label) => label.trim().toLowerCase() == 'superadmin');
 
 /// Traduit le rôle stocké en base vers l'énumération.
 ///
@@ -365,8 +364,7 @@ const List<NavDestination> navDestinations = [
 ];
 
 /// Entrées visibles par [role], dans l'ordre de la table.
-List<NavDestination> destinationsFor(UniFlowRole role) =>
-    navDestinations.where((d) => d.allows(role)).toList();
+List<NavDestination> destinationsFor(UniFlowRole role) => navDestinations.where((d) => d.allows(role)).toList();
 
 /// Les onglets de la barre du bas pour [role].
 ///

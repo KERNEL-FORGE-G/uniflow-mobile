@@ -54,9 +54,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               children: [
-                _RoleChip(label: 'Tous', selected: _roleFilter == null, onTap: () => setState(() => _roleFilter = null)),
+                _RoleChip(
+                    label: 'Tous', selected: _roleFilter == null, onTap: () => setState(() => _roleFilter = null)),
                 for (final role in [UniFlowRole.admin, UniFlowRole.teacher, UniFlowRole.delegate, UniFlowRole.student])
-                  _RoleChip(label: role.label, selected: _roleFilter == role, onTap: () => setState(() => _roleFilter = role)),
+                  _RoleChip(
+                      label: role.label,
+                      selected: _roleFilter == role,
+                      onTap: () => setState(() => _roleFilter = role)),
               ],
             ),
           ),
@@ -73,7 +77,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               data: (list) {
                 final filtered = filterAccounts(list, query: _query, role: _roleFilter);
                 if (filtered.isEmpty) {
-                  return const EmptyState(icon: Icons.manage_accounts_outlined, title: 'Aucun compte', message: 'Aucun compte ne correspond à ce filtre.');
+                  return const EmptyState(
+                      icon: Icons.manage_accounts_outlined,
+                      title: 'Aucun compte',
+                      message: 'Aucun compte ne correspond à ce filtre.');
                 }
                 return StaggeredList(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
@@ -128,7 +135,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
       if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.success, title: title, message: message);
     } catch (error) {
       if (context.mounted) {
-        await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Opération refusée', message: error.toString());
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Opération refusée', message: error.toString());
       }
     }
   }
@@ -163,7 +171,8 @@ class _RoleChip extends StatelessWidget {
         selected: selected,
         onSelected: (_) => onTap(),
         selectedColor: AppColors.primary100,
-        labelStyle: TextStyle(fontWeight: FontWeight.w600, color: selected ? AppColors.primaryBlue : AppColors.textSecondary),
+        labelStyle:
+            TextStyle(fontWeight: FontWeight.w600, color: selected ? AppColors.primaryBlue : AppColors.textSecondary),
       ),
     );
   }
@@ -180,7 +189,8 @@ class _AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final role = account.uniflowRole;
     final suspended = account.status.toUpperCase() != 'ACTIVE';
-    final initials = account.name.trim().split(RegExp(r'\s+')).take(2).map((p) => p.isEmpty ? '' : p[0].toUpperCase()).join();
+    final initials =
+        account.name.trim().split(RegExp(r'\s+')).take(2).map((p) => p.isEmpty ? '' : p[0].toUpperCase()).join();
     return SectionCard(
       child: InkWell(
         onTap: onTap,
@@ -208,7 +218,9 @@ class _AccountCard extends StatelessWidget {
                     children: [
                       _Tag(label: account.isSuperAdmin ? 'Plateforme' : role.label, color: _roleColor(role)),
                       if (account.program.isNotEmpty)
-                        _Tag(label: [account.program, if (account.level.isNotEmpty) account.level].join(' · '), color: AppColors.teal),
+                        _Tag(
+                            label: [account.program, if (account.level.isNotEmpty) account.level].join(' · '),
+                            color: AppColors.teal),
                       if (suspended) const _Tag(label: 'Suspendu', color: AppColors.danger),
                     ],
                   ),
@@ -318,7 +330,8 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
       context: context,
       builder: (d) => AlertDialog(
         title: const Text('Supprimer ce compte ?'),
-        content: Text('${widget.account!.name} perdra son accès. Un compte qui porte des notes ou des présences sera refusé : suspendez-le plutôt.'),
+        content: Text(
+            '${widget.account!.name} perdra son accès. Un compte qui porte des notes ou des présences sera refusé : suspendez-le plutôt.'),
         actions: [
           TextButton(onPressed: () => Navigator.of(d).pop(false), child: const Text('Annuler')),
           FilledButton(
@@ -361,12 +374,22 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               FeedbackBanner(kind: FeedbackKind.failure, message: _error!),
               const SizedBox(height: 12),
             ],
-            TextField(controller: _name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nom complet')),
+            TextField(
+                controller: _name,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Nom complet')),
             const SizedBox(height: 12),
-            TextField(controller: _email, keyboardType: TextInputType.emailAddress, autocorrect: false, decoration: const InputDecoration(labelText: 'Email')),
+            TextField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                decoration: const InputDecoration(labelText: 'Email')),
             if (_creating) ...[
               const SizedBox(height: 12),
-              TextField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Mot de passe initial (8 caractères min.)')),
+              TextField(
+                  controller: _password,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Mot de passe initial (8 caractères min.)')),
             ],
             const SizedBox(height: 14),
             const Text('Rôle', style: AppTextStyles.label),
@@ -381,7 +404,9 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
                     selected: _role == role,
                     onSelected: (_) => setState(() => _role = role),
                     selectedColor: AppColors.primary100,
-                    labelStyle: TextStyle(fontWeight: FontWeight.w600, color: _role == role ? AppColors.primaryBlue : AppColors.textSecondary),
+                    labelStyle: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: _role == role ? AppColors.primaryBlue : AppColors.textSecondary),
                   ),
               ],
             ),
@@ -390,10 +415,13 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               DropdownButtonFormField<String>(
                 initialValue: selectedProgram?.code,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Filière', prefixIcon: Icon(Icons.school_outlined, size: 20)),
+                decoration:
+                    const InputDecoration(labelText: 'Filière', prefixIcon: Icon(Icons.school_outlined, size: 20)),
                 items: [
                   for (final p in programs)
-                    DropdownMenuItem(value: p.code, child: Text('${p.name} (${p.code})', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    DropdownMenuItem(
+                        value: p.code,
+                        child: Text('${p.name} (${p.code})', maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ],
                 onChanged: (v) => setState(() {
                   _program = v ?? '';
@@ -404,7 +432,8 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               TextField(
                 controller: TextEditingController(text: _program),
                 onChanged: (v) => _program = v,
-                decoration: const InputDecoration(labelText: 'Filière (code)', prefixIcon: Icon(Icons.school_outlined, size: 20)),
+                decoration: const InputDecoration(
+                    labelText: 'Filière (code)', prefixIcon: Icon(Icons.school_outlined, size: 20)),
               ),
             if (_learner) ...[
               const SizedBox(height: 12),
@@ -431,7 +460,10 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
                   ],
                 ),
               const SizedBox(height: 12),
-              TextField(controller: _matricule, autocorrect: false, decoration: const InputDecoration(labelText: 'Matricule (facultatif)')),
+              TextField(
+                  controller: _matricule,
+                  autocorrect: false,
+                  decoration: const InputDecoration(labelText: 'Matricule (facultatif)')),
             ],
             if (!_creating) ...[
               const SizedBox(height: 8),

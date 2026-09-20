@@ -65,12 +65,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
   Future<void> _load({bool markRead = false}) async {
     try {
-      final conversations =
-          await ref.read(messagingRepositoryProvider).getConversations();
-      final current = conversations
-          .where((item) => item.id == widget.conversationId)
-          .cast<Conversation?>()
-          .firstOrNull;
+      final conversations = await ref.read(messagingRepositoryProvider).getConversations();
+      final current = conversations.where((item) => item.id == widget.conversationId).cast<Conversation?>().firstOrNull;
       if (!mounted) return;
       setState(() {
         // Si la conversation a disparu de la liste (contact retiré de
@@ -107,8 +103,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       final path = picked.path;
       if (path == null) {
         if (!mounted) return;
-        setState(() => _error =
-            '« ${picked.name} » n\'est pas un fichier local : il ne peut pas être '
+        setState(() => _error = '« ${picked.name} » n\'est pas un fichier local : il ne peut pas être '
             'téléversé depuis cet appareil.');
         return;
       }
@@ -117,8 +112,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       final size = await picked.length() ?? await File(path).length();
       if (size > chatAttachmentMaxBytes) {
         if (!mounted) return;
-        setState(() => _error =
-            '« ${picked.name} » pèse ${_readable(size)} : la limite est de '
+        setState(() => _error = '« ${picked.name} » pèse ${_readable(size)} : la limite est de '
             '${_readable(chatAttachmentMaxBytes)}.');
         return;
       }
@@ -199,17 +193,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   Future<void> _openAttachment(ChatMessage message) async {
     setState(() => _error = null);
     try {
-      final bytes = await ref
-          .read(messagingRepositoryProvider)
-          .downloadAttachment(message.fileId);
+      final bytes = await ref.read(messagingRepositoryProvider).downloadAttachment(message.fileId);
       final directory = await getApplicationDocumentsDirectory();
       final safeName = message.fileName.isEmpty ? 'fichier' : message.fileName;
       final file = File('${directory.path}/uniflow_${message.id}_$safeName');
       await file.writeAsBytes(bytes);
       final result = await OpenFilex.open(file.path);
       if (result.type != ResultType.done && mounted) {
-        setState(() => _error =
-            'Aucune application ne sait ouvrir « $safeName ». Le fichier a été '
+        setState(() => _error = 'Aucune application ne sait ouvrir « $safeName ». Le fichier a été '
             'enregistré dans ${directory.path}.');
       }
     } catch (error) {
@@ -250,8 +241,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         title: Row(
           children: [
             Avatar(
-              initials:
-                  conversation == null ? '?' : initialsOf(conversation.name),
+              initials: conversation == null ? '?' : initialsOf(conversation.name),
               avatarFileId: conversation?.avatarFileId,
               size: 34,
             ),
@@ -310,8 +300,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         onRefresh: () => _load(markRead: true),
                         child: ListView.builder(
                           controller: _scroll,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           itemCount: messages.length,
                           itemBuilder: (context, index) => _Bubble(
                             message: messages[index],
@@ -359,9 +348,7 @@ class _EmptyThread extends StatelessWidget {
             const Icon(Icons.forum_outlined, size: 44, color: AppColors.textSecondary),
             const SizedBox(height: 12),
             Text(
-              name == null
-                  ? 'Aucun message pour l\'instant.'
-                  : 'Aucun message avec $name pour l\'instant.',
+              name == null ? 'Aucun message pour l\'instant.' : 'Aucun message avec $name pour l\'instant.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
@@ -398,9 +385,7 @@ class _Bubble extends StatelessWidget {
     final foreground = mine ? Colors.white : AppColors.textPrimary;
     // Un message urgent se signale par un liseré, pas par une couleur de fond :
     // la couleur porte déjà l'information « envoyé » / « reçu ».
-    final border = message.urgent
-        ? Border.all(color: mine ? Colors.amber.shade200 : AppColors.danger, width: 2)
-        : null;
+    final border = message.urgent ? Border.all(color: mine ? Colors.amber.shade200 : AppColors.danger, width: 2) : null;
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
@@ -421,15 +406,13 @@ class _Bubble extends StatelessWidget {
           ),
         ),
         child: Column(
-          crossAxisAlignment:
-              mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             if (message.urgent) ...[
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.priority_high,
-                      size: 13, color: mine ? Colors.amber.shade200 : AppColors.danger),
+                  Icon(Icons.priority_high, size: 13, color: mine ? Colors.amber.shade200 : AppColors.danger),
                   const SizedBox(width: 3),
                   Text(
                     'URGENT',
@@ -448,8 +431,7 @@ class _Bubble extends StatelessWidget {
               _Attachment(message: message, onOpen: onOpenAttachment, mine: mine),
               // Le texte qui accompagne un fichier est souvent son nom : on ne
               // le répète pas sous l'aperçu.
-              if (message.text.isNotEmpty && message.text != message.fileName)
-                const SizedBox(height: 6),
+              if (message.text.isNotEmpty && message.text != message.fileName) const SizedBox(height: 6),
             ],
             if (message.text.isNotEmpty && message.text != message.fileName)
               Text(
@@ -496,16 +478,13 @@ class _Attachment extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         constraints: const BoxConstraints(minWidth: 180),
         decoration: BoxDecoration(
-          color: mine
-              ? Colors.white.withValues(alpha: 0.15)
-              : AppColors.bg,
+          color: mine ? Colors.white.withValues(alpha: 0.15) : AppColors.bg,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_iconFor(message.kind), size: 26,
-                color: mine ? Colors.white : AppColors.primaryBlue),
+            Icon(_iconFor(message.kind), size: 26, color: mine ? Colors.white : AppColors.primaryBlue),
             const SizedBox(width: 10),
             Flexible(
               child: Column(
@@ -534,8 +513,7 @@ class _Attachment extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.download_outlined, size: 18,
-                color: mine ? Colors.white70 : AppColors.textSecondary),
+            Icon(Icons.download_outlined, size: 18, color: mine ? Colors.white70 : AppColors.textSecondary),
           ],
         ),
       ),
@@ -616,8 +594,7 @@ class _ImageAttachment extends ConsumerWidget {
 
 /// Aperçu d'image mis en cache par identifiant de fichier, afin qu'un
 /// défilement ne redemande pas les mêmes octets.
-final _attachmentPreviewProvider =
-    FutureProvider.family<Uint8List, String>((ref, fileId) {
+final _attachmentPreviewProvider = FutureProvider.family<Uint8List, String>((ref, fileId) {
   return ref.watch(messagingRepositoryProvider).attachmentPreview(fileId);
 });
 
@@ -717,11 +694,8 @@ class _Composer extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: urgent ? 'Message urgent…' : 'Votre message…',
                   filled: true,
-                  fillColor: urgent
-                      ? AppColors.danger.withValues(alpha: 0.06)
-                      : AppColors.bg,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  fillColor: urgent ? AppColors.danger.withValues(alpha: 0.06) : AppColors.bg,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
@@ -744,8 +718,7 @@ class _Composer extends StatelessWidget {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.send, color: Colors.white, size: 20),
                   ),

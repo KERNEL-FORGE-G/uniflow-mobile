@@ -44,8 +44,7 @@ class AccessDeniedScreen extends ConsumerWidget {
                       color: AppColors.primary50,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.lock_outline,
-                        size: 34, color: AppColors.primaryBlue),
+                    child: const Icon(Icons.lock_outline, size: 34, color: AppColors.primaryBlue),
                   ),
                   const SizedBox(height: 18),
                   Text(
@@ -90,10 +89,8 @@ class AccessDeniedScreen extends ConsumerWidget {
                     children: [
                       for (final destination in overflowFor(role).take(6))
                         ActionChip(
-                          avatar: Icon(destination.icon,
-                              size: 16, color: AppColors.primaryBlue),
-                          label: Text(destination.label,
-                              style: const TextStyle(fontSize: 12)),
+                          avatar: Icon(destination.icon, size: 16, color: AppColors.primaryBlue),
+                          label: Text(destination.label, style: const TextStyle(fontSize: 12)),
                           onPressed: () => context.go(destination.path),
                         ),
                     ],

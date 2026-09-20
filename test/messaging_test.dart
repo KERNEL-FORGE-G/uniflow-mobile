@@ -148,8 +148,7 @@ void main() {
 
     test('s\'arrête au premier paramètre suivant', () {
       expect(
-        build(link: '/messages?conversation=conv_abc&onglet=fichiers')
-            .conversationId,
+        build(link: '/messages?conversation=conv_abc&onglet=fichiers').conversationId,
         'conv_abc',
       );
     });

@@ -13,8 +13,7 @@ import 'layout_test_support.dart';
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  RegistrationInput universitaire({String? level, List<String> levels = const ['L1', 'L2', 'L3']}) =>
-      RegistrationInput(
+  RegistrationInput universitaire({String? level, List<String> levels = const ['L1', 'L2', 'L3']}) => RegistrationInput(
         email: 'etu@test.cm',
         password: 'motdepasse',
         name: 'Étu Test',
@@ -46,7 +45,8 @@ void main() {
 
     test('aucune université ni filière par défaut : ce que l\'utilisateur n\'a pas choisi reste vide', () {
       final doc = registrationProfileDocument(
-        const RegistrationInput(email: 'a@b.cm', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.university),
+        const RegistrationInput(
+            email: 'a@b.cm', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.university),
         email: 'a@b.cm',
         name: 'A B',
       );
@@ -57,7 +57,8 @@ void main() {
 
     test('un compte indépendant ne porte aucun rattachement académique', () {
       final doc = registrationProfileDocument(
-        const RegistrationInput(email: 'a@b.cm', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.personal),
+        const RegistrationInput(
+            email: 'a@b.cm', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.personal),
         email: 'a@b.cm',
         name: 'A B',
       );
@@ -85,13 +86,15 @@ void main() {
         university: 'U',
       );
       expect(validateRegistration(sansFiliere), 'Indiquez votre filière.');
-      const personnel = RegistrationInput(email: 'a@b.cm', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.personal);
+      const personnel = RegistrationInput(
+          email: 'a@b.cm', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.personal);
       expect(validateRegistration(personnel), isNull);
     });
 
     test('mot de passe court et adresse invalide sont refusés avant le réseau', () {
       expect(validateRegistration(universitaire(level: 'L1').copyWithPassword('court')), contains('8 caractères'));
-      const mauvaisEmail = RegistrationInput(email: 'pas-une-adresse', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.personal);
+      const mauvaisEmail = RegistrationInput(
+          email: 'pas-une-adresse', password: 'motdepasse', name: 'A B', accountType: UniFlowAccountType.personal);
       expect(validateRegistration(mauvaisEmail), 'Adresse e-mail invalide.');
     });
   });

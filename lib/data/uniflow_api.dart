@@ -5,17 +5,19 @@ class UniFlowApi {
   static const defaultBaseUrl = 'https://api-uniflow.kernelforge.codes/api/v1';
   final Dio _dio;
 
-  UniFlowApi({String? token}) : _dio = Dio(BaseOptions(
-    baseUrl: const String.fromEnvironment('UNIFLOW_API_BASE_URL', defaultValue: defaultBaseUrl),
-    connectTimeout: const Duration(seconds: 12),
-    receiveTimeout: const Duration(seconds: 20),
-    headers: {
-      'Accept': 'application/json',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    },
-  ));
+  UniFlowApi({String? token})
+      : _dio = Dio(BaseOptions(
+          baseUrl: const String.fromEnvironment('UNIFLOW_API_BASE_URL', defaultValue: defaultBaseUrl),
+          connectTimeout: const Duration(seconds: 12),
+          receiveTimeout: const Duration(seconds: 20),
+          headers: {
+            'Accept': 'application/json',
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+          },
+        ));
 
-  bool get isConfigured => const String.fromEnvironment('UNIFLOW_API_BASE_URL', defaultValue: defaultBaseUrl).isNotEmpty;
+  bool get isConfigured =>
+      const String.fromEnvironment('UNIFLOW_API_BASE_URL', defaultValue: defaultBaseUrl).isNotEmpty;
 
   Future<List<Student>> fetchStudents() async {
     final response = await _dio.get('/students', queryParameters: {'page': 1, 'pageSize': 100});

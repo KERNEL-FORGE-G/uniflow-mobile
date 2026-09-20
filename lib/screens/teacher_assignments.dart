@@ -49,13 +49,16 @@ class TeacherAssignmentsScreen extends ConsumerWidget {
               loading: () => const ShimmerList(),
               error: (error, _) => Padding(
                 padding: const EdgeInsets.all(16),
-                child: ErrorBanner(message: 'Vos devoirs n\'ont pas pu être chargés.\n$error', onRetry: () => ref.invalidate(teacherAssignmentsProvider)),
+                child: ErrorBanner(
+                    message: 'Vos devoirs n\'ont pas pu être chargés.\n$error',
+                    onRetry: () => ref.invalidate(teacherAssignmentsProvider)),
               ),
               data: (list) => list.isEmpty
                   ? const EmptyState(
                       icon: Icons.assignment_outlined,
                       title: 'Aucun devoir',
-                      message: 'Publiez un premier énoncé : les apprenants de la filière et du niveau du cours le recevront.',
+                      message:
+                          'Publiez un premier énoncé : les apprenants de la filière et du niveau du cours le recevront.',
                     )
                   : StaggeredList(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
@@ -91,7 +94,10 @@ class TeacherAssignmentsScreen extends ConsumerWidget {
         await showFeedbackSheet(context, kind: FeedbackKind.success, title: 'Devoir publié', message: draft.title);
       }
     } catch (error) {
-      if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Publication impossible', message: '$error');
+      if (context.mounted) {
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Publication impossible', message: '$error');
+      }
     }
   }
 
@@ -117,7 +123,10 @@ class TeacherAssignmentsScreen extends ConsumerWidget {
       ref.invalidate(teacherAssignmentsProvider);
       if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.success, title: 'Devoir supprimé');
     } catch (error) {
-      if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
+      if (context.mounted) {
+        await showFeedbackSheet(context,
+            kind: FeedbackKind.failure, title: 'Suppression impossible', message: '$error');
+      }
     }
   }
 }
@@ -162,7 +171,8 @@ class _AssignmentCard extends ConsumerWidget {
               children: [
                 Text(assignment.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppTextStyles.h3),
                 const SizedBox(height: 2),
-                Text('${assignment.courseCode} · échéance $due', maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.bodySmall),
+                Text('${assignment.courseCode} · échéance $due',
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.bodySmall),
                 const SizedBox(height: 4),
                 Text(
                   count.when(
@@ -175,7 +185,10 @@ class _AssignmentCard extends ConsumerWidget {
               ],
             ),
           ),
-          IconButton(tooltip: 'Supprimer', onPressed: onDelete, icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20)),
+          IconButton(
+              tooltip: 'Supprimer',
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20)),
         ],
       ),
     );
@@ -275,10 +288,14 @@ class _AssignmentFormState extends State<_AssignmentForm> {
               DropdownButtonFormField<String>(
                 initialValue: _course?.id,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
+                decoration:
+                    const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
                 items: [
                   for (final c in widget.courses)
-                    DropdownMenuItem(value: c.id, child: Text('${c.code} · ${c.name} (${c.program} ${c.level})', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    DropdownMenuItem(
+                        value: c.id,
+                        child: Text('${c.code} · ${c.name} (${c.program} ${c.level})',
+                            maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ],
                 onChanged: (v) => setState(() => _course = widget.courses.where((c) => c.id == v).firstOrNull),
               ),
@@ -307,11 +324,16 @@ class _AssignmentFormState extends State<_AssignmentForm> {
                   child: OutlinedButton.icon(
                     onPressed: _pickDue,
                     icon: const Icon(Icons.event_outlined, size: 18),
-                    label: Text(DateFormat('dd/MM/yyyy HH:mm').format(_due), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    label:
+                        Text(DateFormat('dd/MM/yyyy HH:mm').format(_due), maxLines: 1, overflow: TextOverflow.ellipsis),
                   ),
                 ),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _max, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Barème'))),
+                Expanded(
+                    child: TextField(
+                        controller: _max,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Barème'))),
               ],
             ),
             SwitchListTile(

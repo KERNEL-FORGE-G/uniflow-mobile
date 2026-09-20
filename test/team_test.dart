@@ -141,20 +141,16 @@ void main() {
         );
 
     test('la base de données prime sur l\'équipe', () {
-      expect(teamMemberIcon(membre('Backend Developer', 'SGBD & Infrastructure', 'Backend')),
-          Icons.storage_outlined);
+      expect(teamMemberIcon(membre('Backend Developer', 'SGBD & Infrastructure', 'Backend')), Icons.storage_outlined);
     });
 
     test('le mobile se reconnaît à la sous-équipe', () {
-      expect(teamMemberIcon(membre('Mobile Developer', 'Frontend Mobile App', 'Frontend')),
-          Icons.smartphone_outlined);
+      expect(teamMemberIcon(membre('Mobile Developer', 'Frontend Mobile App', 'Frontend')), Icons.smartphone_outlined);
     });
 
     test('sinon l\'icône suit l\'équipe', () {
-      expect(teamMemberIcon(membre('Chef de projet', 'Direction', 'Leadership')),
-          Icons.workspace_premium_outlined);
-      expect(teamMemberIcon(membre('Backend Developer', 'Microservices', 'Backend')),
-          Icons.dns_outlined);
+      expect(teamMemberIcon(membre('Chef de projet', 'Direction', 'Leadership')), Icons.workspace_premium_outlined);
+      expect(teamMemberIcon(membre('Backend Developer', 'Microservices', 'Backend')), Icons.dns_outlined);
       expect(teamMemberIcon(membre('Frontend Developer', 'Web', 'Frontend')), Icons.code_outlined);
     });
   });
@@ -196,8 +192,7 @@ void main() {
       expect(find.text('Aliyatou Rachid Oumou Tourab'), findsOneWidget);
     });
 
-    testWidgets('un membre sans photo reçoit une silhouette, pas des initiales',
-        (tester) async {
+    testWidgets('un membre sans photo reçoit une silhouette, pas des initiales', (tester) async {
       await afficher(tester);
 
       // Aucun des membres de test n'a de photo : chacun a sa silhouette, et
@@ -222,8 +217,7 @@ void main() {
       expect(find.text('Aliyatou Rachid Oumou Tourab'), findsNothing);
     });
 
-    testWidgets('un membre sans pseudo GitHub n\'a pas de bouton GitHub',
-        (tester) async {
+    testWidgets('un membre sans pseudo GitHub n\'a pas de bouton GitHub', (tester) async {
       await afficher(tester);
 
       // Deux membres de test sur trois ont un pseudo : le troisième, qui n'en a

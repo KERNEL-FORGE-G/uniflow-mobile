@@ -1,18 +1,27 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/appwrite_service.dart';
 import '../providers/appwrite_provider.dart';
+import '../providers/providers.dart';
 
 /// Référentiel académique lu sans session : universités, facultés, filières,
 /// salles. Ces quatre collections sont `read("any")` dans le schéma
 /// (`uniflow-we/scripts/appwrite-schema.mjs`) précisément pour que le
 /// formulaire d'inscription puisse les proposer avant toute connexion.
 ///
-/// Rien n'est codé en dur : « Université de Yaoundé I », « ICT4D » ou « L1 »
-/// ne sont que des documents parmi d'autres, et d'autres filières de l'UY1
-/// arrivent en base.
+/// Rien n'est codé en dur : une université, une faculté ou une filière ne
+/// sont que des documents parmi d'autres (douze filières et 34 salles à ce
+/// jour), et la base peut en recevoir d'autres sans mise à jour du mobile.
 class University {
   final String code;
   final String name;
@@ -66,7 +75,7 @@ class AcademicProgram {
   final String facultyCode;
 
   /// Code court, celui que portent `users.program` et
-  /// `academic_courses.program` (« ICT4D », « PHYS »…).
+  /// `academic_courses.program` (« PHY », « INF », « ENR »…).
   final String code;
   final String name;
 
@@ -189,6 +198,13 @@ class ReferenceRepository {
     return all.where((p) => p.active).toList();
   }
 
+  /// Toutes les filières actives, toutes universités : pour l'administrateur
+  /// de la plateforme, qui n'appartient à aucune.
+  Future<List<AcademicProgram>> allPrograms() async {
+    final all = await _list('academic_programs', AcademicProgram.fromDocument, queries: [Query.orderAsc('name')]);
+    return all.where((p) => p.active).toList();
+  }
+
   Future<List<Classroom>> classrooms(String universityCode) =>
       _list('classrooms', Classroom.fromDocument, queries: [Query.equal('universityCode', universityCode)]);
 }
@@ -214,3 +230,34 @@ final programsProvider = FutureProvider.family<List<AcademicProgram>, String>((r
   if (universityCode.isEmpty) return Future.value(const []);
   return ref.watch(referenceRepositoryProvider).programs(universityCode, facultyCode: facultyCode);
 });
+
+/// Filières que le compte connecté peut sélectionner (écrans Cours et Emploi
+/// du temps des comptes au périmètre « sélectionnable »).
+///
+/// `users.university` porte le **nom** de l'université, pas son code : on le
+/// résout contre `universities` (nom ou sigle, sans casse). Une administration
+/// est limitée à sa faculté (`users.faculty`) ; l'admin de la plateforme, sans
+/// université, voit toutes les filières.
+final selectableProgramsProvider = FutureProvider<List<AcademicProgram>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  final repo = ref.watch(referenceRepositoryProvider);
+  if (user == null || user.isPersonal) return const [];
+  final universityName = (user.university ?? '').trim();
+  if (user.isPlatform || universityName.isEmpty) return repo.allPrograms();
+  final universities = await repo.universities();
+  final match = resolveUniversity(universities, universityName);
+  if (match == null) return repo.allPrograms();
+  return repo.programs(match.code, facultyCode: (user.faculty ?? '').trim());
+});
+
+/// Université dont le nom, le sigle ou le code vaut [nameOrCode] (sans casse,
+/// espaces ignorés). Fonction pure, testée.
+University? resolveUniversity(List<University> all, String nameOrCode) {
+  String norm(String v) => v.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  final wanted = norm(nameOrCode);
+  if (wanted.isEmpty) return null;
+  for (final u in all) {
+    if (norm(u.name) == wanted || norm(u.shortName) == wanted || norm(u.code) == wanted) return u;
+  }
+  return null;
+}

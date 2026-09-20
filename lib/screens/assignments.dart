@@ -26,19 +26,15 @@ class AssignmentBoard {
   Submission? submissionFor(String assignmentId) => submissions[assignmentId];
 
   /// Reste à rendre, délai non dépassé.
-  List<Assignment> get todo => assignments
-      .where((a) => !submissions.containsKey(a.id) && a.acceptsSubmission)
-      .toList();
+  List<Assignment> get todo => assignments.where((a) => !submissions.containsKey(a.id) && a.acceptsSubmission).toList();
 
   /// Délai dépassé, rien de rendu : ce sont les seuls devoirs qu'un élève doit
   /// voir en rouge, et ils sont traités à part pour ne pas se noyer dans la
   /// liste des devoirs à venir.
-  List<Assignment> get overdue => assignments
-      .where((a) => !submissions.containsKey(a.id) && !a.acceptsSubmission)
-      .toList();
+  List<Assignment> get overdue =>
+      assignments.where((a) => !submissions.containsKey(a.id) && !a.acceptsSubmission).toList();
 
-  List<Assignment> get done =>
-      assignments.where((a) => submissions.containsKey(a.id)).toList();
+  List<Assignment> get done => assignments.where((a) => submissions.containsKey(a.id)).toList();
 
   bool get isEmpty => assignments.isEmpty;
 }
@@ -373,9 +369,7 @@ class _AssignmentTile extends StatelessWidget {
     }
     if (due.isBefore(now)) {
       final late = now.difference(due).inDays;
-      return assignment.allowLate
-          ? 'Délai dépassé de $late j — retard accepté'
-          : 'Délai dépassé de $late j';
+      return assignment.allowLate ? 'Délai dépassé de $late j — retard accepté' : 'Délai dépassé de $late j';
     }
     if (days == 0) return 'À rendre aujourd\'hui avant ${DateFormat('HH:mm').format(due)}';
     if (days == 1) return 'À rendre demain avant ${DateFormat('HH:mm').format(due)}';
@@ -385,8 +379,6 @@ class _AssignmentTile extends StatelessWidget {
   /// 12.0 s'affiche « 12 », 12.5 reste « 12,5 » : une note ronde ne doit pas
   /// traîner une décimale inutile.
   static String _format(double value) {
-    return value == value.roundToDouble()
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(1).replaceAll('.', ',');
+    return value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1).replaceAll('.', ',');
   }
 }

@@ -80,8 +80,7 @@ void main() {
         expect(
           [taille!.width, taille.height],
           [attendu, attendu],
-          reason:
-              'la couche avant de ${entree.key} doit faire ${attendu}px '
+          reason: 'la couche avant de ${entree.key} doit faire ${attendu}px '
               '(108dp) pour que le lanceur la masque sans rogner l\'écusson',
         );
       }
@@ -122,20 +121,14 @@ void main() {
       // On lit le pubspec *hors commentaires* : le fichier explique justement
       // pourquoi l'outil a été retiré, et citer son nom dans une explication ne
       // doit pas être pris pour une déclaration.
-      final declarations = File('$racine/pubspec.yaml')
-          .readAsLinesSync()
-          .map((ligne) {
-            final sansCommentaire = ligne.trimLeft().startsWith('#')
-                ? ''
-                : ligne.replaceAll(RegExp(r'\s+#.*$'), '');
-            return sansCommentaire;
-          })
-          .join('\n');
+      final declarations = File('$racine/pubspec.yaml').readAsLinesSync().map((ligne) {
+        final sansCommentaire = ligne.trimLeft().startsWith('#') ? '' : ligne.replaceAll(RegExp(r'\s+#.*$'), '');
+        return sansCommentaire;
+      }).join('\n');
       expect(
         declarations,
         isNot(contains('flutter_launcher_icons')),
-        reason:
-            'les icônes sont produites par tools/generer-icones-uniflow.py ; '
+        reason: 'les icônes sont produites par tools/generer-icones-uniflow.py ; '
             'une seconde configuration créerait un jeu parallèle',
       );
       expect(

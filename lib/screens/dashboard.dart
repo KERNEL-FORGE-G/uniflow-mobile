@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
+import '../providers/session_controller.dart';
 import '../utils/avatar.dart';
 // `gradesListProvider` et `assignmentBoardProvider` sont déclarés dans ces deux
 // écrans : l'accueil les réutilise plutôt que de relancer ses propres requêtes.
@@ -97,7 +98,12 @@ class DashboardScreen extends ConsumerWidget {
                 if (sync.hasError) ...[
                   ErrorBanner(
                     message: _syncMessage(sync.error),
-                    onRetry: () => ref.invalidate(gatewaySyncProvider),
+                    // Une session expirée ne se répare pas en réessayant : on
+                    // ferme proprement et la garde du routeur ramène à la
+                    // connexion, au lieu d'un bouton « Réessayer » sans effet.
+                    onRetry: isSessionExpired(sync.error)
+                        ? () => ref.read(sessionControllerProvider).signOut(deleteRemoteSession: false)
+                        : () => ref.invalidate(gatewaySyncProvider),
                   ),
                   const SizedBox(height: 18),
                 ],
@@ -125,7 +131,7 @@ class DashboardScreen extends ConsumerWidget {
     if (text.contains('SocketException') || text.contains('Failed host lookup')) {
       return 'Appwrite est injoignable depuis cet appareil.';
     }
-    if (text.contains('401') || text.contains('Unauthorized')) {
+    if (isSessionExpired(error)) {
       return 'Votre session a expiré. Reconnectez-vous.';
     }
     if (text.contains('403') || text.contains('not_authorized')) {
@@ -147,9 +153,7 @@ class DashboardScreen extends ConsumerWidget {
             value: gradesAsync.when(
               data: (grades) {
                 if (grades.isEmpty) return '--';
-                final avg =
-                    grades.map((e) => e.score / e.maxScore).reduce((a, b) => a + b) /
-                        grades.length;
+                final avg = grades.map((e) => e.score / e.maxScore).reduce((a, b) => a + b) / grades.length;
                 return '${(avg * 20).toStringAsFixed(1)}/20';
               },
               loading: () => '...',

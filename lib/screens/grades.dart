@@ -65,7 +65,7 @@ class GradesScreen extends ConsumerWidget {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              '${grade.score.toStringAsFixed(1)}',
+                              grade.score.toStringAsFixed(1),
                               style: TextStyle(
                                 color: isGood ? AppColors.success : AppColors.danger,
                                 fontWeight: FontWeight.bold,
@@ -78,8 +78,10 @@ class GradesScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(grade.evaluationTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                Text(grade.courseCode, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                Text(grade.evaluationTitle,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                Text(grade.courseCode,
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                               ],
                             ),
                           ),
