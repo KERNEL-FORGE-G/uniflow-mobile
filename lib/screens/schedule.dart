@@ -80,13 +80,14 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                                 icon: Icons.free_breakfast_outlined,
                                 title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
                               )
-                            : StaggeredList(
+                            : Builder(
                                 key: ValueKey('jour-$_day'),
-                                itemCount: slots.length,
-                                itemBuilder: (context, index) {
-                                  final slot = slots[index];
-                                  final course = courses.where((c) => c.id == slot.courseId || c.code.toUpperCase() == slot.courseCode.toUpperCase()).firstOrNull;
-                                  return _SlotCard(slot: slot, course: course);
+                                builder: (context) {
+                                  final blocks = groupByTimeSlot(slots);
+                                  return StaggeredList(
+                                    itemCount: blocks.length,
+                                    itemBuilder: (context, index) => _TimeBlock(block: blocks[index], courses: courses),
+                                  );
                                 },
                               ),
                       ),
@@ -111,9 +112,66 @@ Map<String, List<AcademicSchedule>> groupByDay(List<AcademicSchedule> slots) {
     map.putIfAbsent(normalizeDay(slot.dayOfWeek), () => []).add(slot);
   }
   for (final list in map.values) {
-    list.sort((a, b) => a.startTime.compareTo(b.startTime));
+    list.sort((a, b) {
+      final byStart = normalizeTime(a.startTime).compareTo(normalizeTime(b.startTime));
+      if (byStart != 0) return byStart;
+      final byType = (a.type ?? '').compareTo(b.type ?? '');
+      return byType != 0 ? byType : a.courseCode.compareTo(b.courseCode);
+    });
   }
   return map;
+}
+
+/// « 7:30 », « 07h30 », « 07:30:00 » → « 07:30 », pour que le tri des
+/// créneaux ne place pas « 11:00 » avant « 7:30 » par comparaison de chaînes.
+String normalizeTime(String raw) {
+  final match = RegExp(r'^\s*(\d{1,2})\s*[:hH]\s*(\d{2})').firstMatch(raw);
+  if (match == null) return raw.trim();
+  return '${match.group(1)!.padLeft(2, '0')}:${match.group(2)}';
+}
+
+/// Séances d'un même jour regroupées par plage horaire (même début et même
+/// fin), dans l'ordre des débuts.
+///
+/// Les emplois du temps réels de la Faculté des Sciences (2026-2027) placent
+/// plusieurs séances sur un même créneau — TD par groupes (« TD Gr1 »,
+/// « TD A »…), ou deux UE optionnelles en parallèle. Les lister une par une
+/// répétait l'heure et cachait qu'il s'agissait d'un choix ; un bloc par
+/// plage montre d'un coup d'œil ce qui se passe en même temps.
+class TimeBlock {
+  final String start;
+  final String end;
+  final List<AcademicSchedule> sessions;
+  const TimeBlock({required this.start, required this.end, required this.sessions});
+
+  bool get isParallel => sessions.length > 1;
+}
+
+List<TimeBlock> groupByTimeSlot(List<AcademicSchedule> daySlots) {
+  final blocks = <String, TimeBlock>{};
+  final order = <String>[];
+  for (final slot in daySlots) {
+    final start = normalizeTime(slot.startTime);
+    final end = normalizeTime(slot.endTime);
+    final key = '$start-$end';
+    final existing = blocks[key];
+    if (existing == null) {
+      blocks[key] = TimeBlock(start: start, end: end, sessions: [slot]);
+      order.add(key);
+    } else {
+      existing.sessions.add(slot);
+    }
+  }
+  order.sort((a, b) => blocks[a]!.start.compareTo(blocks[b]!.start));
+  return [for (final key in order) blocks[key]!];
+}
+
+/// Groupe de TD lu dans le type de séance (« TD Gr1 » → « Gr1 », « TD A » →
+/// « A », « CM » → null). Sert à afficher une pastille de groupe.
+String? tdGroupOf(String? type) {
+  if (type == null) return null;
+  final match = RegExp(r'^\s*(TD|TP)\s+(.+)$', caseSensitive: false).firstMatch(type.trim());
+  return match?.group(2)?.trim();
 }
 
 /// « lundi », « Lundi », « LUNDI », « Monday », « 1 » → « LUNDI ».
@@ -215,55 +273,111 @@ class _DayChip extends StatelessWidget {
   }
 }
 
-class _SlotCard extends StatelessWidget {
-  final AcademicSchedule slot;
-  final AcademicCourse? course;
+/// Un bloc horaire : l'heure une seule fois à gauche, une ou plusieurs
+/// séances à droite. Plusieurs séances = mention explicite « en parallèle ».
+class _TimeBlock extends StatelessWidget {
+  final TimeBlock block;
+  final List<AcademicCourse> courses;
 
-  const _SlotCard({required this.slot, required this.course});
+  const _TimeBlock({required this.block, required this.courses});
 
   @override
   Widget build(BuildContext context) {
-    final type = (slot.type ?? course?.type ?? '').trim();
     return SectionCard(
+      padding: const EdgeInsets.all(12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(color: AppColors.primary50, borderRadius: BorderRadius.circular(10)),
             child: Text(
-              '${slot.startTime}\n${slot.endTime}',
+              '${block.start}\n${block.end}',
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w700, fontSize: 12.5, height: 1.4),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  course?.name ?? slot.courseCode,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.h3,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  [
-                    if (slot.courseCode.isNotEmpty) slot.courseCode,
-                    if (type.isNotEmpty) type,
-                    if (slot.classroom.isNotEmpty) slot.classroom,
-                    if ((course?.teacherName ?? '').isNotEmpty) course!.teacherName!,
-                  ].join(' · '),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall,
-                ),
+                if (block.isParallel) ...[
+                  Text(
+                    '${block.sessions.length} séances en parallèle',
+                    style: AppTextStyles.label.copyWith(color: AppColors.teal),
+                  ),
+                  const SizedBox(height: 6),
+                ],
+                for (var i = 0; i < block.sessions.length; i++) ...[
+                  if (i > 0) const Divider(height: 14, color: AppColors.inputBorder),
+                  _SessionLine(
+                    slot: block.sessions[i],
+                    course: courses
+                        .where((c) => c.id == block.sessions[i].courseId || c.code.toUpperCase() == block.sessions[i].courseCode.toUpperCase())
+                        .firstOrNull,
+                  ),
+                ],
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SessionLine extends StatelessWidget {
+  final AcademicSchedule slot;
+  final AcademicCourse? course;
+
+  const _SessionLine({required this.slot, required this.course});
+
+  @override
+  Widget build(BuildContext context) {
+    final type = (slot.type ?? course?.type ?? '').trim();
+    final group = tdGroupOf(type);
+    final kind = group == null ? type : type.substring(0, type.length - group.length).trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                course?.name ?? slot.courseCode,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.h3,
+              ),
+            ),
+            if (group != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(color: const Color(0xFFCCFBF1), borderRadius: BorderRadius.circular(8)),
+                child: Text(
+                  'Gr. $group',
+                  style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.teal),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 3),
+        Text(
+          [
+            if (slot.courseCode.isNotEmpty) slot.courseCode,
+            if (kind.isNotEmpty) kind,
+            if (slot.classroom.isNotEmpty) slot.classroom,
+            if ((course?.teacherName ?? '').isNotEmpty) course!.teacherName!,
+          ].join(' · '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bodySmall,
+        ),
+      ],
     );
   }
 }

@@ -33,6 +33,7 @@ import 'package:uniflow_mobile/repositories/forum_repository.dart';
 import 'package:uniflow_mobile/repositories/messaging_repository.dart';
 import 'package:uniflow_mobile/repositories/personal_repository.dart';
 import 'package:uniflow_mobile/repositories/team_repository.dart';
+import 'package:uniflow_mobile/screens/schedule.dart';
 
 const _accountsFile = String.fromEnvironment('UNIFLOW_ACCOUNTS_FILE');
 
@@ -135,8 +136,11 @@ void main() {
           'photos=${members.where((m) => m.avatarFileId.isNotEmpty).length}');
       expect(members.length, greaterThanOrEqualTo(9), reason: 'les 9 membres de l\'équipe');
 
-      final courses = await academic.getCourses();
-      final schedules = await academic.getSchedules();
+      final courses = await academic.getCourses(
+        program: role.isLearner ? user.program : null,
+        level: role.isLearner ? user.level : null,
+      );
+      final schedules = await academic.getSchedulesForCourses([for (final c in courses) c.id]);
       final library = await academic.getLibrary();
       _log('$email courses=${courses.length} schedules=${schedules.length} library=${library.length}');
       final directory = await academic.getDirectory();
@@ -205,6 +209,38 @@ void main() {
     await messaging.markRead(conversation.id);
     final after = await messaging.getConversations();
     expect(after.any((c) => c.id == conversation.id), isTrue);
+  }, timeout: longTimeout);
+
+  /// Référentiel réel de la Faculté des Sciences (chargé le 2026-09-20) : le
+  /// filtrage doit se faire côté serveur par filière + niveau, puis charger
+  /// les séances par `courseId`. PHY L3 compte 40 séances avec plusieurs
+  /// séances simultanées ; ENR L3 a des créneaux 07:30-10:30 / 11:00-14:00 /
+  /// 14:30-17:30.
+  test('emplois du temps réels : PHY L3 (40 séances, parallèles) et ENR L3 (créneaux)', () async {
+    final email = accounts.keys.first;
+    await auth.login(email, accounts[email]!);
+
+    final phy = await academic.getCourses(program: 'PHY', level: 'L3');
+    final phySlots = await academic.getSchedulesForCourses([for (final c in phy) c.id]);
+    _log('PHY L3 -> cours=${phy.length} séances=${phySlots.length}');
+    expect(phy, isNotEmpty);
+    expect(phySlots.length, 40);
+    final phyDays = groupByDay(phySlots);
+    final parallel = phyDays.values.expand(groupByTimeSlot).where((b) => b.isParallel).toList();
+    _log('PHY L3 -> jours=${phyDays.keys.toList()} blocs parallèles=${parallel.length} '
+        'ex=${parallel.isEmpty ? '-' : '${parallel.first.start}-${parallel.first.end} × ${parallel.first.sessions.length}'}');
+    expect(parallel, isNotEmpty, reason: 'PHY L3 a plusieurs séances par créneau');
+
+    final enr = await academic.getCourses(program: 'ENR', level: 'L3');
+    final enrSlots = await academic.getSchedulesForCourses([for (final c in enr) c.id]);
+    final starts = enrSlots.map((s) => normalizeTime(s.startTime)).toSet();
+    _log('ENR L3 -> cours=${enr.length} séances=${enrSlots.length} débuts=$starts');
+    expect(enr, isNotEmpty);
+    expect(starts, containsAll(['07:30', '11:00', '14:30']));
+
+    final all = await academic.getCourses();
+    _log('academic_courses total=${all.length} filières=${all.map((c) => c.program).toSet()}');
+    expect(all.length, greaterThanOrEqualTo(290));
   }, timeout: longTimeout);
 
   test('Function inconnue : le routeur répond proprement', () async {

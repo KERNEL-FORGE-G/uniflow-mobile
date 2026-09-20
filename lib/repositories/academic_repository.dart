@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/appwrite_service.dart';
 import '../models/appwrite_models.dart';
@@ -11,22 +12,64 @@ class AcademicRepository {
 
   AcademicRepository(this._service);
 
-  Future<List<AcademicCourse>> getCourses() async {
-    final response = await _service.databases.listDocuments(
-      databaseId: _service.databaseId,
-      collectionId: 'academic_courses',
-      queries: [Query.limit(200)],
-    );
-    return response.documents.map((doc) => AcademicCourse.fromDocument(doc)).toList();
+  /// Cours du périmètre demandé, filtrés **par le serveur**.
+  ///
+  /// Depuis le chargement de toute la Faculté des Sciences (290 cours,
+  /// 2026-09-20), tout rapatrier avec `limit(200)` puis trier localement
+  /// tronquait silencieusement la liste : un étudiant de la dernière filière
+  /// alphabétique ne voyait aucun cours. On interroge donc par filière et
+  /// niveau (index `course_program_level`) et on paginate le reste.
+  Future<List<AcademicCourse>> getCourses({String? program, String? level}) async {
+    final filters = <String>[
+      if (program != null && program.trim().isNotEmpty) Query.equal('program', program.trim()),
+      if (level != null && level.trim().isNotEmpty) Query.equal('level', level.trim()),
+    ];
+    final docs = await _listAll('academic_courses', filters);
+    return docs.map(AcademicCourse.fromDocument).toList();
   }
 
+  /// Séances des cours donnés, par lots de 100 identifiants.
+  ///
+  /// Appwrite plafonne un `equal` à 100 valeurs ; une filière-niveau compte
+  /// aujourd'hui jusqu'à une quarantaine de cours, une filière entière (vue
+  /// enseignant) peut en dépasser cent.
+  Future<List<AcademicSchedule>> getSchedulesForCourses(List<String> courseIds) async {
+    final ids = courseIds.where((id) => id.isNotEmpty).toSet().toList();
+    if (ids.isEmpty) return const [];
+    final out = <AcademicSchedule>[];
+    for (var i = 0; i < ids.length; i += 100) {
+      final batch = ids.sublist(i, (i + 100).clamp(0, ids.length));
+      final docs = await _listAll('academic_schedules', [Query.equal('courseId', batch)]);
+      out.addAll(docs.map(AcademicSchedule.fromDocument));
+    }
+    return out;
+  }
+
+  /// Toutes les séances (vue administration, sans filière) — paginées.
   Future<List<AcademicSchedule>> getSchedules() async {
-    final response = await _service.databases.listDocuments(
-      databaseId: _service.databaseId,
-      collectionId: 'academic_schedules',
-      queries: [Query.limit(200)],
-    );
-    return response.documents.map((doc) => AcademicSchedule.fromDocument(doc)).toList();
+    final docs = await _listAll('academic_schedules', const []);
+    return docs.map(AcademicSchedule.fromDocument).toList();
+  }
+
+  /// Parcourt une collection page par page (curseur), sans plafond caché.
+  Future<List<models.Document>> _listAll(String collectionId, List<String> filters) async {
+    final out = <models.Document>[];
+    String? cursor;
+    while (true) {
+      final response = await _service.databases.listDocuments(
+        databaseId: _service.databaseId,
+        collectionId: collectionId,
+        queries: [
+          ...filters,
+          Query.limit(100),
+          if (cursor != null) Query.cursorAfter(cursor),
+        ],
+      );
+      out.addAll(response.documents);
+      if (response.documents.length < 100) break;
+      cursor = response.documents.last.$id;
+    }
+    return out;
   }
 
   Future<List<AcademicDirectoryEntry>> getDirectory() async {

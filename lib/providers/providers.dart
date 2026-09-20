@@ -45,7 +45,13 @@ final scopedCoursesProvider = FutureProvider<List<AcademicCourse>>((ref) async {
   if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return const [];
   final scope = ref.watch(academicScopeProvider);
   if (scope.nothing) return const [];
-  return scope.courses(await ref.read(academicRepositoryProvider).getCourses());
+  // Le filtre part au serveur : filière et niveau sont indexés, et la
+  // collection dépasse désormais toute limite raisonnable d'un seul appel.
+  final courses = await ref.read(academicRepositoryProvider).getCourses(
+        program: scope.filterByProgram ? scope.program : null,
+        level: scope.filterByLevel ? scope.level : null,
+      );
+  return scope.courses(courses);
 });
 
 /// Emploi du temps du périmètre : les créneaux se rattachent à un cours, et
@@ -53,9 +59,7 @@ final scopedCoursesProvider = FutureProvider<List<AcademicCourse>>((ref) async {
 final scopedSchedulesProvider = FutureProvider<List<AcademicSchedule>>((ref) async {
   final courses = await ref.watch(scopedCoursesProvider.future);
   if (courses.isEmpty) return const [];
-  final scope = ref.watch(academicScopeProvider);
-  final all = await ref.read(academicRepositoryProvider).getSchedules();
-  return scope.byCourse(all, courses, (s) => s.courseId, courseCodeOf: (s) => s.courseCode);
+  return ref.read(academicRepositoryProvider).getSchedulesForCourses([for (final c in courses) c.id]);
 });
 
 /// Résout la session Appwrite persistée sur l'appareil au démarrage.
@@ -82,7 +86,7 @@ final gatewaySyncProvider = FutureProvider<void>((ref) async {
   // ne voit ni les cours ni les camarades des L1, et rien n'est codé en dur.
   final scope = ref.read(academicScopeProvider);
   final directory = scope.directory(await academicRepo.getDirectory());
-  final courses = scope.courses(await academicRepo.getCourses());
+  final courses = await ref.read(scopedCoursesProvider.future);
 
   final students = directory
       .where((e) => e.role == 'STUDENT' || e.role == 'DELEGATE')
