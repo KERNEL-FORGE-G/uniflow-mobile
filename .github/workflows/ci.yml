@@ -1,0 +1,137 @@
+name: UniFlow Mobile
+
+on:
+  push:
+    branches: [main, team-fronted-dev-mo]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Un seul run par branche : un nouveau push annule celui en cours, sinon les
+# builds Android (les plus longs) s'empilent pour des commits déjà dépassés.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Même version qu'en local (`flutter --version`), sinon `dart format` et
+  # `flutter analyze` divergent entre le poste et le runner.
+  FLUTTER_VERSION: '3.47.1'
+
+jobs:
+  qualite:
+    name: Qualité (format, analyse, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Dépendances
+        run: flutter pub get
+
+      - name: Formatage
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyse statique
+        run: flutter analyze
+
+      # Les tests unitaires n'ont pas besoin de `.env` : `flutter_dotenv` n'est
+      # chargé que par `main.dart`, que les tests ne lancent pas.
+      - name: Tests avec couverture
+        run: flutter test --coverage
+
+      - name: Couverture (lcov)
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture-lcov
+          path: coverage/lcov.info
+          retention-days: 14
+
+  build-android:
+    name: Build Android (APK + AAB)
+    needs: qualite
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # Gradle 8.14 refuse le JDK par défaut du runner (« Java/Gradle
+      # incompatibility ») : on épingle celui du poste de développement.
+      - name: JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '21'
+
+      - name: Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Dépendances
+        run: flutter pub get
+
+      # Le binaire embarque `.env` en clair : il ne doit contenir que des
+      # identifiants publics (point d'accès, projet, base, bucket, Function),
+      # jamais une clé d'API — tout est lu depuis les secrets du dépôt.
+      - name: Fichier .env depuis les secrets
+        run: |
+          {
+            echo "APPWRITE_ENDPOINT=${{ secrets.APPWRITE_ENDPOINT }}"
+            echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}"
+            echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}"
+            echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}"
+            echo "APPWRITE_API_FUNCTION_ID=${{ secrets.APPWRITE_API_FUNCTION_ID }}"
+          } > .env
+          test -s .env
+
+      - name: APK (une archive par ABI)
+        run: flutter build apk --release --split-per-abi --no-pub
+
+      - name: App Bundle
+        run: flutter build appbundle --release --no-pub
+
+      - name: Artefact APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniFlow-Mobile-APK
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 30
+
+      - name: Artefact AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniFlow-Mobile-AAB
+          path: build/app/outputs/bundle/release/*.aab
+          retention-days: 30
+
+  release:
+    name: Publication GitHub (tag v*)
+    needs: build-android
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Récupérer les APK
+        uses: actions/download-artifact@v4
+        with:
+          name: UniFlow-Mobile-APK
+          path: apk
+
+      - name: Release ${{ github.ref_name }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: UniFlow Mobile ${{ github.ref_name }}
+          generate_release_notes: true
+          files: apk/*.apk
