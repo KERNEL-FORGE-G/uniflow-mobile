@@ -10,6 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uniflow_mobile/models/appwrite_models.dart';
 import 'package:uniflow_mobile/models/models.dart';
 import 'package:uniflow_mobile/models/team_member.dart';
+import 'package:uniflow_mobile/offline/local_database.dart';
+import 'package:uniflow_mobile/offline/offline_providers.dart';
+import 'package:uniflow_mobile/offline/sync_engine.dart';
 import 'package:uniflow_mobile/providers/providers.dart';
 import 'package:uniflow_mobile/repositories/messaging_repository.dart';
 import 'package:uniflow_mobile/repositories/reference_repository.dart';
@@ -272,7 +275,7 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       uesProvider.overrideWith((ref) => const [ue]),
       enrollmentsProvider.overrideWith((ref) => [enrollment()]),
       gatewaySyncProvider.overrideWith((ref) async {}),
-      gradesListProvider.overrideWith((ref) async => <AcademicGrade>[]),
+      gradesListProvider.overrideWith((ref) => Stream.value(<AcademicGrade>[])),
       assignmentBoardProvider.overrideWith(
         (ref) async => const AssignmentBoard(assignments: [], submissions: {}),
       ),
@@ -283,17 +286,25 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       // La messagerie et les notifications interrogent la Function Appwrite :
       // sans ces neutralisations, l'écran de messagerie lancerait un appel
       // réseau pendant un test de mise en page.
-      conversationsProvider.overrideWith((ref) async => const <Conversation>[]),
-      notificationsProvider.overrideWith((ref) async => const <AppNotification>[]),
+      conversationsProvider.overrideWith((ref) => Stream.value(const <Conversation>[])),
+      notificationsProvider.overrideWith((ref) => Stream.value(const <AppNotification>[])),
       urgentNotificationsProvider.overrideWith((ref) => Stream.value(0)),
+      // L'état de synchronisation lit la base locale et le service Appwrite :
+      // ni l'un ni l'autre n'existent dans un test de mise en page.
+      syncStateProvider.overrideWith((ref) => Stream.value(const SyncState())),
+      localDatabaseProvider.overrideWith((ref) {
+        final db = LocalDatabase.memory();
+        ref.onDispose(db.close);
+        return db;
+      }),
       // Espace personnel et emploi du temps : quelques documents pour que les
       // cartes aient du contenu à faire tenir.
       personalSubjectsProvider.overrideWith((ref) async => matieresDeTest()),
       personalTasksProvider.overrideWith((ref) async => tachesDeTest()),
       personalSchedulesProvider.overrideWith((ref) async => creneauxDeTest()),
       personalGradesProvider.overrideWith((ref) async => notesPersonnellesDeTest()),
-      scopedCoursesProvider.overrideWith((ref) async => coursDeTest()),
-      scopedSchedulesProvider.overrideWith((ref) async => emploiDuTempsDeTest()),
+      scopedCoursesProvider.overrideWith((ref) => Stream.value(coursDeTest())),
+      scopedSchedulesProvider.overrideWith((ref) => Stream.value(emploiDuTempsDeTest())),
       universitiesProvider.overrideWith((ref) async => const [universiteDeTest, autreUniversite]),
       facultiesProvider.overrideWith((ref, code) async => code == 'UT1' ? const [faculteDeTest] : const []),
       programsProvider

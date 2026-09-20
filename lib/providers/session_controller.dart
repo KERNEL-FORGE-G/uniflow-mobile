@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../data/appwrite_service.dart';
+import '../offline/offline_providers.dart';
 import '../repositories/auth_repository.dart';
 import 'appwrite_provider.dart';
 import 'providers.dart';
@@ -46,7 +47,12 @@ class SessionController {
 
   /// Ferme la session côté serveur (tolérant : déjà expirée = déjà fermée),
   /// puis oublie tout ce que l'appareil sait de l'utilisateur.
-  Future<void> signOut({bool deleteRemoteSession = true}) async {
+  ///
+  /// [keepLocalData] : session **expirée** (et non départ volontaire). On
+  /// redemande le mot de passe mais le cache hors ligne et l'outbox restent,
+  /// rattachés à l'identifiant : un mois d'appels de présence saisis hors
+  /// ligne ne doit pas disparaître parce que le jeton a expiré entre-temps.
+  Future<void> signOut({bool deleteRemoteSession = true, bool keepLocalData = false}) async {
     if (deleteRemoteSession) {
       try {
         await _auth.logout();
@@ -55,12 +61,21 @@ class SessionController {
         // il ne doit pas rester bloqué sur l'écran avec une erreur.
       }
     }
-    await clearLocalState();
+    await clearLocalState(keepLocalData: keepLocalData);
   }
 
   /// Vide providers, cookies et fichiers locaux, et bascule sur l'écran de
   /// connexion via `authStatusProvider` (la garde GoRouter fait le reste).
-  Future<void> clearLocalState() async {
+  Future<void> clearLocalState({bool keepLocalData = false}) async {
+    final userId = _ref.read(currentUserProvider)?.id;
+    try {
+      await _ref.read(sessionStoreProvider).clear();
+    } catch (_) {}
+    if (!keepLocalData && userId != null && userId.isNotEmpty) {
+      try {
+        await _ref.read(localDatabaseProvider).forgetOwner(userId);
+      } catch (_) {}
+    }
     try {
       await _gateway.clearCookies();
     } catch (_) {}

@@ -331,11 +331,26 @@ class AuthRepository {
   /// Un document `users` absent (404) n'invalide pas la session : le compte
   /// existe, son profil est simplement incomplet — le web fait de même.
   Future<UniFlowUser?> getCurrentUser() async {
+    try {
+      return await getCurrentUserStrict();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Comme [getCurrentUser], mais distingue « pas de session » (`null`, le
+  /// serveur a répondu 401) de « serveur injoignable » (exception).
+  ///
+  /// Le démarrage hors ligne en dépend : confondre les deux déconnectait
+  /// l'utilisateur dès que le réseau manquait, alors que sa session est
+  /// peut-être parfaitement valide.
+  Future<UniFlowUser?> getCurrentUserStrict() async {
     final models.User account;
     try {
       account = await _account.get();
-    } catch (_) {
-      return null;
+    } on AppwriteException catch (error) {
+      if (error.code == 401 || error.code == 403) return null;
+      rethrow;
     }
 
     Map<String, dynamic> data = const {};
@@ -347,9 +362,10 @@ class AuthRepository {
       );
       data = doc.data;
     } on AppwriteException catch (error) {
-      if (error.code != 404) return null;
-    } catch (_) {
-      return null;
+      // 404 : profil incomplet, la session reste valide. 401 : la session est
+      // tombée entre les deux appels. Le reste (réseau) remonte.
+      if (error.code == 401 || error.code == 403) return null;
+      if (error.code != 404) rethrow;
     }
 
     // Le document fait foi (il porte `PLATFORM` pour l'admin de la

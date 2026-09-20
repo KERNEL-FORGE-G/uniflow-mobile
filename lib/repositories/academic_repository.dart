@@ -32,7 +32,7 @@ class AcademicRepository {
       if (program != null && program.trim().isNotEmpty) Query.equal('program', program.trim()),
       if (level != null && level.trim().isNotEmpty) Query.equal('level', level.trim()),
     ];
-    final docs = await _listAll('academic_courses', filters);
+    final docs = await listAll('academic_courses', filters);
     return docs.map(AcademicCourse.fromDocument).toList();
   }
 
@@ -47,7 +47,7 @@ class AcademicRepository {
     final out = <AcademicSchedule>[];
     for (var i = 0; i < ids.length; i += 100) {
       final batch = ids.sublist(i, (i + 100).clamp(0, ids.length));
-      final docs = await _listAll('academic_schedules', [Query.equal('courseId', batch)]);
+      final docs = await listAll('academic_schedules', [Query.equal('courseId', batch)]);
       out.addAll(docs.map(AcademicSchedule.fromDocument));
     }
     return out;
@@ -67,7 +67,7 @@ class AcademicRepository {
       if (level != null && level.trim().isNotEmpty) Query.equal('level', level.trim()),
       if (teacherName != null && teacherName.trim().isNotEmpty) Query.contains('teacherName', teacherName.trim()),
     ];
-    final docs = await _listAll('academic_schedules', filters);
+    final docs = await listAll('academic_schedules', filters);
     return docs.map(AcademicSchedule.fromDocument).toList();
   }
 
@@ -75,7 +75,7 @@ class AcademicRepository {
   Future<List<AcademicSchedule>> getSchedules() => getSchedulesByScope();
 
   /// Parcourt une collection page par page (curseur), sans plafond caché.
-  Future<List<models.Document>> _listAll(String collectionId, List<String> filters) async {
+  Future<List<models.Document>> listAll(String collectionId, List<String> filters) async {
     final out = <models.Document>[];
     String? cursor;
     while (true) {

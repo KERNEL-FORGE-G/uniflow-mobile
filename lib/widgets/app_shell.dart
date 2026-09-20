@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/user_role.dart';
+import '../offline/offline_widgets.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 
@@ -35,7 +36,9 @@ class AppShell extends ConsumerWidget {
     final current = _currentIndex(tabs);
 
     return Scaffold(
-      body: child,
+      // Le bandeau hors ligne / en attente d'envoi coiffe chaque page ; il
+      // se replie tout seul quand tout est synchronisé.
+      body: Column(children: [const OfflineBanner(), Expanded(child: child)]),
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: AppColors.cardWhite,

@@ -1,11 +1,16 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/uniflow_api.dart';
+import '../offline/cached_providers.dart';
+import '../offline/offline_providers.dart';
+import '../offline/sync_engine.dart';
 import '../models/models.dart';
 import '../models/appwrite_models.dart';
 import '../models/user_role.dart';
 import '../models/academic_scope.dart';
 import '../repositories/academic_repository.dart';
 import '../repositories/auth_repository.dart';
+import 'session_controller.dart';
 
 /// État d'authentification Appwrite.
 ///
@@ -62,54 +67,116 @@ final effectiveScopeProvider = Provider<AcademicScope>((ref) {
 
 /// Cours du périmètre du compte, sous leur forme Appwrite (les `UE` de
 /// [uesProvider] en sont la projection pour les écrans historiques).
-final scopedCoursesProvider = FutureProvider<List<AcademicCourse>>((ref) async {
-  if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return const [];
+///
+/// « Cache d'abord » : la liste locale s'affiche tout de suite, la réponse
+/// du serveur la remplace quand elle arrive — ou jamais, hors ligne.
+final scopedCoursesProvider = StreamProvider<List<AcademicCourse>>((ref) {
+  if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return Stream.value(const []);
   final scope = ref.watch(effectiveScopeProvider);
-  if (scope.nothing) return const [];
+  if (scope.nothing) return Stream.value(const []);
+  final repo = ref.read(academicRepositoryProvider);
   // Le filtre part au serveur : filière et niveau sont indexés, et la
   // collection (296 UE) dépasse la limite d'un seul appel.
-  final courses = await ref.read(academicRepositoryProvider).getCourses(
-        program: scope.filterByProgram ? scope.program : null,
-        level: scope.filterByLevel ? scope.level : null,
-      );
-  return scope.courses(courses);
+  final filters = <String>[
+    if (scope.filterByProgram) Query.equal('program', scope.program.trim()),
+    if (scope.filterByLevel) Query.equal('level', scope.level.trim()),
+  ];
+  return cachedDocumentList<AcademicCourse>(
+    ref,
+    collection: 'academic_courses',
+    fetch: () => repo.listAll('academic_courses', filters),
+    fromDocument: AcademicCourse.fromDocument,
+    select: scope.courses,
+  );
 });
 
 /// Emploi du temps du périmètre, lu directement par filière + niveau
-/// (`academic_schedules.program/level`, schéma du 2026-09-20).
+/// (`academic_schedules.program/level`, schéma du 2026-09-20), cache d'abord.
 ///
 /// Enseignant : ses séances (`teacherName` contient son nom) ; s'il n'en a
 /// aucune sous ce nom, on retombe sur sa filière pour ne pas afficher un
 /// écran vide à cause d'une orthographe différente en base.
-final scopedSchedulesProvider = FutureProvider<List<AcademicSchedule>>((ref) async {
-  if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return const [];
+final scopedSchedulesProvider = StreamProvider<List<AcademicSchedule>>((ref) {
+  if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return Stream.value(const []);
   final scope = ref.watch(effectiveScopeProvider);
-  if (scope.nothing) return const [];
+  if (scope.nothing) return Stream.value(const []);
   final repo = ref.read(academicRepositoryProvider);
   final user = ref.watch(currentUserProvider);
   final role = ref.watch(currentRoleProvider);
 
-  if (role == UniFlowRole.teacher && ref.watch(scopeSelectionProvider) == null) {
-    final name = (user?.name ?? '').trim();
-    if (name.isNotEmpty) {
-      final mine = await repo.getSchedulesByScope(teacherName: name);
-      if (mine.isNotEmpty) return mine;
-    }
-  }
-  if (!scope.filterByProgram && !scope.filterByLevel && scope.selectable) {
+  final teacherName = (user?.name ?? '').trim();
+  final byTeacher = role == UniFlowRole.teacher && ref.watch(scopeSelectionProvider) == null && teacherName.isNotEmpty;
+
+  if (!byTeacher && !scope.filterByProgram && !scope.filterByLevel && scope.selectable) {
     // Administration ou plateforme sans sélection : tout charger ferait 527
     // séances illisibles ; l'écran montre le sélecteur à la place.
-    return const [];
+    return Stream.value(const []);
   }
-  return repo.getSchedulesByScope(
-    program: scope.filterByProgram ? scope.program : null,
-    level: scope.filterByLevel ? scope.level : null,
+
+  final program = scope.filterByProgram ? scope.program.trim() : null;
+  final level = scope.filterByLevel ? scope.level.trim() : null;
+  final filters = <String>[
+    if (program != null) Query.equal('program', program),
+    if (level != null) Query.equal('level', level),
+  ];
+
+  return cachedDocumentList<AcademicSchedule>(
+    ref,
+    collection: 'academic_schedules',
+    fetch: () async {
+      if (byTeacher) {
+        final mine = await repo.listAll('academic_schedules', [Query.contains('teacherName', teacherName)]);
+        if (mine.isNotEmpty) return mine;
+      }
+      return repo.listAll('academic_schedules', filters);
+    },
+    fromDocument: AcademicSchedule.fromDocument,
+    // Le cache peut contenir d'anciens périmètres (changement de niveau, vue
+    // enseignant) : on ne montre que le courant.
+    select: byTeacher
+        ? (all) {
+            final mine = all.where((s) => s.teacherName.toLowerCase().contains(teacherName.toLowerCase())).toList();
+            return mine.isNotEmpty ? mine : schedulesForScope(all, program: program, level: level);
+          }
+        : (all) => schedulesForScope(all, program: program, level: level),
   );
 });
 
-/// Résout la session Appwrite persistée sur l'appareil au démarrage.
+/// Résout la session au démarrage — **sans jamais bloquer sur le réseau**.
+///
+/// L'identité vient d'abord du stockage chiffré (profil, labels, périmètre) :
+/// l'application s'ouvre tout de suite, même après un mois sans réseau. Le
+/// serveur n'est consulté qu'ensuite, en arrière-plan : session confirmée →
+/// profil rafraîchi ; session expirée (401) → retour à la connexion **sans**
+/// perdre l'outbox ni le cache, rattachés à l'identifiant ; réseau absent →
+/// on reste connecté sur le profil en cache.
 final sessionBootstrapProvider = FutureProvider<void>((ref) async {
-  final user = await ref.read(authRepositoryProvider).getCurrentUser();
+  final store = ref.read(sessionStoreProvider);
+  final auth = ref.read(authRepositoryProvider);
+  final snapshot = await store.read();
+
+  if (snapshot != null) {
+    ref.read(currentUserProvider.notifier).state = snapshot.user;
+    ref.read(authStatusProvider.notifier).state = AuthStatus.signedIn;
+    // Vérification silencieuse, hors du chemin critique.
+    Future<void>(() async {
+      try {
+        final fresh = await auth.getCurrentUserStrict().timeout(const Duration(seconds: 12));
+        if (fresh == null) {
+          // Session réellement expirée ou révoquée : on redemande le mot de
+          // passe, en gardant tout ce qui est local.
+          await ref.read(sessionControllerProvider).signOut(deleteRemoteSession: false, keepLocalData: true);
+          return;
+        }
+        ref.read(currentUserProvider.notifier).state = fresh;
+      } catch (_) {
+        // Réseau absent ou serveur injoignable : on reste sur le cache.
+      }
+    });
+    return;
+  }
+
+  final user = await auth.getCurrentUser();
   ref.read(currentUserProvider.notifier).state = user;
   ref.read(authStatusProvider.notifier).state = user == null ? AuthStatus.signedOut : AuthStatus.signedIn;
 });
@@ -131,7 +198,14 @@ final gatewaySyncProvider = FutureProvider<void>((ref) async {
   // `watch` : un changement de filière dans le sélecteur (administration,
   // plateforme) doit recharger les UE, pas seulement la prochaine connexion.
   final scope = ref.watch(effectiveScopeProvider);
-  final directory = scope.directory(await academicRepo.getDirectory());
+  // Annuaire : cache d'abord (première valeur émise), le frais suit.
+  final directory = scope.directory(await cachedDocumentList<AcademicDirectoryEntry>(
+    ref,
+    collection: 'academic_directory',
+    fetch: () => academicRepo.listAll('academic_directory', const []),
+    fromDocument: AcademicDirectoryEntry.fromDocument,
+    replace: true,
+  ).first);
   final courses = await ref.watch(scopedCoursesProvider.future);
 
   final students = directory

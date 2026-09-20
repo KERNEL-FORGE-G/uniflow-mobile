@@ -9,9 +9,18 @@ import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../models/appwrite_models.dart';
+import '../offline/cached_providers.dart';
 
 final libraryListProvider = FutureProvider<List<AcademicLibraryEntry>>((ref) async {
-  final all = await ref.read(academicRepositoryProvider).getLibrary();
+  // Cache d'abord : la première valeur émise est le cache s'il existe, le
+  // réseau sinon ; l'écran se rafraîchit au prochain passage.
+  final all = await cachedDocumentList<AcademicLibraryEntry>(
+    ref,
+    collection: 'academic_library',
+    fetch: () => ref.read(academicRepositoryProvider).listAll('academic_library', const []),
+    fromDocument: AcademicLibraryEntry.fromDocument,
+    replace: true,
+  ).first;
   // Une ressource se rattache à un cours, et le cours porte filière et niveau :
   // un L2 ne voit pas les polycopiés des L1. Les ressources sans cours (guides,
   // règlements) restent visibles de tous les comptes universitaires.

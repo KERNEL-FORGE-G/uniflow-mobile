@@ -11,6 +11,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:uniflow_mobile/models/appwrite_models.dart';
+import 'package:uniflow_mobile/offline/local_database.dart';
+import 'package:uniflow_mobile/offline/offline_providers.dart';
+import 'package:uniflow_mobile/offline/outbox.dart';
+import 'package:uniflow_mobile/offline/session_store.dart';
+import 'package:uniflow_mobile/offline/sync_engine.dart';
 import 'package:uniflow_mobile/providers/providers.dart';
 import 'package:uniflow_mobile/providers/session_controller.dart';
 import 'package:uniflow_mobile/repositories/auth_repository.dart';
@@ -58,6 +63,8 @@ class _Auth implements AuthRepository {
   @override
   Future<UniFlowUser?> getCurrentUser() async => user();
   @override
+  Future<UniFlowUser?> getCurrentUserStrict() async => user();
+  @override
   Future<UniFlowUser?> refreshProfile() async => user();
   @override
   Future<void> login(String email, String password, {UniFlowAccountType? accountTypeHint}) async {}
@@ -88,8 +95,17 @@ class _Auth implements AuthRepository {
     teachersProvider.overrideWith((ref) => const [teacher]),
     uesProvider.overrideWith((ref) => const [ue]),
     gatewaySyncProvider.overrideWith((ref) async {}),
-    scopedCoursesProvider.overrideWith((ref) async => const []),
-    scopedSchedulesProvider.overrideWith((ref) async => const []),
+    scopedCoursesProvider.overrideWith((ref) => Stream.value(const [])),
+    scopedSchedulesProvider.overrideWith((ref) => Stream.value(const [])),
+    // Base locale et stockage chiffré en mémoire : la déconnexion volontaire
+    // oublie les données du compte, ce qu'on vérifie ici sans greffon natif.
+    localDatabaseProvider.overrideWith((ref) {
+      final db = LocalDatabase.memory();
+      ref.onDispose(db.close);
+      return db;
+    }),
+    sessionStoreProvider.overrideWithValue(SessionStore(InMemoryKeyValueStore())),
+    syncStateProvider.overrideWith((ref) => Stream.value(const SyncState())),
     sessionControllerProvider.overrideWith(
       (ref) => SessionController(ref, g, a, localDirectories: () async => const []),
     ),
@@ -113,6 +129,28 @@ void main() {
       expect(r.container.read(teachersProvider), isEmpty);
       expect(r.container.read(uesProvider), isEmpty);
       expect(r.container.read(authStatusProvider), AuthStatus.signedOut);
+    });
+
+    test('départ volontaire : cache et outbox du compte oubliés ; expiration : conservés', () async {
+      final r = _rig();
+      addTearDown(r.container.dispose);
+      final db = r.container.read(localDatabaseProvider);
+      final owner = r.container.read(currentUserProvider)!.id;
+      final outbox = Outbox(db);
+      await db.upsertDocuments('academic_courses', owner, [const CachedDocument(id: 'c1', data: {})]);
+      await outbox.enqueue(owner: owner, kind: OutboxKind.service, payload: {'path': '/x'});
+
+      // Session expirée : on redemande le mot de passe, rien n'est perdu.
+      await r.container.read(sessionControllerProvider).signOut(deleteRemoteSession: false, keepLocalData: true);
+      expect(r.container.read(authStatusProvider), AuthStatus.signedOut);
+      expect(await db.countDocuments('academic_courses', owner: owner), 1);
+      expect(await outbox.pendingCount(owner), 1);
+
+      // Départ volontaire : l'appareil oublie le compte.
+      r.container.read(currentUserProvider.notifier).state = user();
+      await r.container.read(sessionControllerProvider).signOut();
+      expect(await db.countDocuments('academic_courses', owner: owner), 0);
+      expect(await outbox.pendingCount(owner), 0);
     });
 
     test('une session déjà expirée côté serveur ne bloque pas la sortie', () async {
@@ -202,7 +240,12 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // La section « Hors ligne » a allongé la page : le bouton est sous le
+      // pli en 800×600, `scrollUntilVisible` ne garantit pas qu'il soit
+      // réellement à l'écran, `ensureVisible` oui.
       await tester.scrollUntilVisible(find.text('Se déconnecter'), 200);
+      await tester.ensureVisible(find.text('Se déconnecter'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Se déconnecter'));
       await tester.pumpAndSettle();
       expect(find.text('Se déconnecter ?'), findsOneWidget);

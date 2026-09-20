@@ -4,11 +4,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/providers.dart';
+import 'offline/background_sync.dart';
+import 'offline/offline_providers.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  // Synchronisation périodique application fermée (Android). La contrainte
+  // réseau est reposée par les Réglages quand « Wi-Fi seulement » change.
+  await BackgroundSync.initialize();
   runApp(const ProviderScope(child: UniFlowApp()));
 }
 
@@ -34,6 +39,17 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
     // session — une socket laissée ouverte sur le compte précédent enverrait
     // les alertes du mauvais utilisateur.
     ref.listenManual(urgentNotificationsProvider, (_, __) {});
+    // Hors ligne : le coordinateur écoute le réseau et le premier plan ; la
+    // session chiffrée suit le profil pour redémarrer sans réseau.
+    ref.read(syncCoordinatorProvider);
+    ref.listenManual(currentUserProvider, (previous, next) {
+      if (next == null) return;
+      ref.read(sessionStoreProvider).save(next, now: DateTime.now()).catchError((_) {});
+      if (previous?.id != next.id) {
+        BackgroundSync.schedule(wifiOnly: ref.read(offlinePreferencesProvider).wifiOnly);
+        ref.read(syncCoordinatorProvider).syncNow(reason: 'connexion');
+      }
+    });
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/common.dart';
@@ -5,14 +6,22 @@ import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../models/appwrite_models.dart';
+import '../offline/cached_providers.dart';
 import 'personal_space.dart';
 import 'grading.dart';
 import '../models/user_role.dart';
 
-final gradesListProvider = FutureProvider<List<AcademicGrade>>((ref) async {
+/// Notes de l'étudiant, cache local d'abord.
+final gradesListProvider = StreamProvider<List<AcademicGrade>>((ref) {
   final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  return ref.read(academicRepositoryProvider).getGrades(user.id);
+  if (user == null) return Stream.value(const []);
+  final repo = ref.read(academicRepositoryProvider);
+  return cachedDocumentList<AcademicGrade>(
+    ref,
+    collection: 'academic_grades',
+    fetch: () => repo.listAll('academic_grades', [Query.equal('studentId', user.id)]),
+    fromDocument: AcademicGrade.fromDocument,
+  );
 });
 
 class GradesScreen extends ConsumerWidget {

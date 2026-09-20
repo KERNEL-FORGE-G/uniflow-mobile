@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../offline/offline_widgets.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
@@ -49,6 +50,7 @@ class DashboardScreen extends ConsumerWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const SyncIndicator(),
                 // Affiché seulement si une photo existe : sans elle, l'en-tête
                 // reste exactement celui d'avant, logo compris.
                 if (user?.avatarFileId != null && user!.avatarFileId!.isNotEmpty) ...[
@@ -102,7 +104,8 @@ class DashboardScreen extends ConsumerWidget {
                     // ferme proprement et la garde du routeur ramène à la
                     // connexion, au lieu d'un bouton « Réessayer » sans effet.
                     onRetry: isSessionExpired(sync.error)
-                        ? () => ref.read(sessionControllerProvider).signOut(deleteRemoteSession: false)
+                        ? () =>
+                            ref.read(sessionControllerProvider).signOut(deleteRemoteSession: false, keepLocalData: true)
                         : () => ref.invalidate(gatewaySyncProvider),
                   ),
                   const SizedBox(height: 18),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../offline/offline_settings_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -276,6 +277,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: const TextStyle(fontSize: 12, color: AppColors.danger),
                         ),
                       ),
+                    const Divider(height: 24),
+                    const OfflineSettingsSection(),
                     const Divider(height: 24),
                     ListTile(
                       contentPadding: EdgeInsets.zero,

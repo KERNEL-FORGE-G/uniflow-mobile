@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../offline/cached_providers.dart';
 import '../providers/appwrite_provider.dart';
 import '../providers/providers.dart';
 import '../repositories/messaging_repository.dart';
@@ -187,7 +188,13 @@ final urgentNotificationsProvider = StreamProvider<int>((ref) async* {
   }
 });
 
-/// Liste des notifications, rechargée à la demande.
-final notificationsProvider = FutureProvider<List<AppNotification>>((ref) {
-  return ref.watch(messagingRepositoryProvider).getNotifications();
+/// Liste des notifications : cache local d'abord, puis la Function.
+final notificationsProvider = StreamProvider<List<AppNotification>>((ref) {
+  final repo = ref.watch(messagingRepositoryProvider);
+  return cachedJsonList<AppNotification>(
+    ref,
+    collection: 'chat_notifications',
+    fetch: repo.getNotificationsJson,
+    fromJson: AppNotification.fromJson,
+  );
 });

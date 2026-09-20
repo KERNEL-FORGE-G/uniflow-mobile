@@ -5,6 +5,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/appwrite_service.dart';
+import '../offline/cached_providers.dart';
 import '../providers/appwrite_provider.dart';
 
 /// Identifiant du fichier dans la réponse de téléversement, ou `null` si elle
@@ -307,11 +308,16 @@ class MessagingRepository {
     return data;
   }
 
-  Future<List<Conversation>> getConversations() async {
+  Future<List<Conversation>> getConversations() async =>
+      (await getConversationsJson()).map(Conversation.fromJson).toList();
+
+  /// Même liste, en JSON brut : c'est cette forme que le cache hors ligne
+  /// conserve, pour la relire avec `Conversation.fromJson` sans réseau.
+  Future<List<Map<String, dynamic>>> getConversationsJson() async {
     final data = await _invoke({'action': 'list'});
     final list = data['conversations'];
     if (list is! List) return const [];
-    return list.whereType<Map>().map((item) => Conversation.fromJson(Map<String, dynamic>.from(item))).toList();
+    return list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
   }
 
   /// Retrouve des contacts par pseudo, nom ou email (au moins deux caractères).
@@ -463,11 +469,14 @@ class MessagingRepository {
   }
 
   /// Notifications de l'utilisateur courant, les plus récentes d'abord.
-  Future<List<AppNotification>> getNotifications() async {
+  Future<List<AppNotification>> getNotifications() async =>
+      (await getNotificationsJson()).map(AppNotification.fromJson).toList();
+
+  Future<List<Map<String, dynamic>>> getNotificationsJson() async {
     final data = await _invoke({'action': 'notifications'});
     final list = data['notifications'];
     if (list is! List) return const [];
-    return list.whereType<Map>().map((item) => AppNotification.fromJson(Map<String, dynamic>.from(item))).toList();
+    return list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
   }
 
   /// Marque une notification comme lue, ou toutes si [notificationId] est vide.
@@ -542,7 +551,13 @@ final messagingRepositoryProvider = Provider<MessagingRepository>((ref) {
   return MessagingRepository(service);
 });
 
-/// Liste des conversations, rechargée à la demande.
-final conversationsProvider = FutureProvider<List<Conversation>>((ref) {
-  return ref.watch(messagingRepositoryProvider).getConversations();
+/// Liste des conversations : cache local d'abord, puis la Function.
+final conversationsProvider = StreamProvider<List<Conversation>>((ref) {
+  final repo = ref.watch(messagingRepositoryProvider);
+  return cachedJsonList<Conversation>(
+    ref,
+    collection: 'chat_conversations',
+    fetch: repo.getConversationsJson,
+    fromJson: Conversation.fromJson,
+  );
 });

@@ -37,6 +37,9 @@ class _AuthFactice implements AuthRepository {
   final List<String> enregistres = [];
 
   @override
+  Future<UniFlowUser?> getCurrentUserStrict() async => user();
+
+  @override
   Future<UniFlowUser> updateUsername(String userId, String username) async {
     enregistres.add(username);
     if (erreur != null) throw erreur!;
