@@ -517,6 +517,40 @@ class UniFlowUser {
   /// d'autres comptes `ADMIN`.
   bool get isSuperAdmin => labels.any((label) => label.trim().toLowerCase() == 'superadmin');
 
+  /// Forme conservée dans le stockage sécurisé pour redémarrer hors ligne
+  /// sans `account.get()` : identité, labels (donc rôle) et périmètre.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'email': email,
+        'name': name,
+        'accountType': accountType,
+        'role': role,
+        'labels': labels,
+        'university': university,
+        'faculty': faculty,
+        'program': program,
+        'level': level,
+        'country': country,
+        'username': username,
+        'avatarFileId': avatarFileId,
+      };
+
+  factory UniFlowUser.fromJson(Map<String, dynamic> json) => UniFlowUser(
+        id: json['id']?.toString() ?? '',
+        email: json['email']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        accountType: json['accountType']?.toString() ?? 'UNIVERSITY',
+        role: json['role']?.toString() ?? 'STUDENT',
+        labels: (json['labels'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        university: json['university'] as String?,
+        faculty: json['faculty'] as String?,
+        program: json['program'] as String?,
+        level: json['level'] as String?,
+        country: json['country'] as String?,
+        username: json['username'] as String?,
+        avatarFileId: json['avatarFileId'] as String?,
+      );
+
   UniFlowUser copyWith({String? name, String? username, String? avatarFileId}) {
     return UniFlowUser(
       id: id,
