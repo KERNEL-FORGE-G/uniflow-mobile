@@ -18,8 +18,13 @@ import 'user_role.dart';
 ///   aucun périmètre — il n'appartient à aucune université ;
 /// - compte indépendant : aucun périmètre académique.
 ///
-/// Un champ absent sur le compte ne filtre pas : un profil incomplet montre
-/// tout plutôt qu'un écran vide inexpliqué.
+/// Règle stricte pour un étudiant ou un délégué (propriétaire, 2026-09-20 :
+/// « je ne dois voir que les horaires de ma filière et uniquement pour mon
+/// niveau, rien d'autre ») : si la filière **ou** le niveau manque sur le
+/// profil, le périmètre est vide ([nothing] + [incomplete]) et l'écran
+/// l'explique, au lieu de montrer les 527 séances de la faculté — c'est ce
+/// que faisait la capture du 2026-09-20 14:18 (un L1 ICT4D voyant BCH 311 de
+/// MIB L3).
 class AcademicScope {
   final String university;
   final String faculty;
@@ -33,6 +38,10 @@ class AcademicScope {
   /// plateforme, enseignant sans filière) : l'écran affiche un sélecteur.
   final bool selectable;
 
+  /// Profil d'apprenant sans filière ou sans niveau : rien n'est affiché et
+  /// l'écran invite à compléter le profil auprès de l'administration.
+  final bool incomplete;
+
   const AcademicScope._({
     this.university = '',
     this.faculty = '',
@@ -42,6 +51,7 @@ class AcademicScope {
     this.filterByLevel = false,
     this.nothing = false,
     this.selectable = false,
+    this.incomplete = false,
   });
 
   /// Tout est visible (compte inconnu ou profil sans rattachement).
@@ -67,14 +77,23 @@ class AcademicScope {
           filterByProgram: program.isNotEmpty,
           selectable: program.isEmpty,
         ),
-      _ => AcademicScope._(
-          university: university,
-          faculty: faculty,
-          program: program,
-          level: level,
-          filterByProgram: program.isNotEmpty,
-          filterByLevel: level.isNotEmpty,
-        ),
+      _ => (program.isEmpty || level.isEmpty)
+          ? AcademicScope._(
+              university: university,
+              faculty: faculty,
+              program: program,
+              level: level,
+              nothing: true,
+              incomplete: true,
+            )
+          : AcademicScope._(
+              university: university,
+              faculty: faculty,
+              program: program,
+              level: level,
+              filterByProgram: true,
+              filterByLevel: true,
+            ),
     };
   }
 

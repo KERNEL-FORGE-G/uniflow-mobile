@@ -101,10 +101,26 @@ void main() {
     expect(scope.byCourse([cours1], [cours1], (c) => c.id), isEmpty);
   });
 
-  test('un profil sans filière ni niveau ne filtre pas : tout vaut mieux qu\'un écran vide', () {
-    final scope = AcademicScope.forUser(compte('STUDENT', program: '', level: ''));
-    expect(scope.courses([cours1, cours2, phys]).length, 3);
+  test('un apprenant sans filière ou sans niveau ne voit rien, et le périmètre le dit', () {
+    // Règle stricte du 2026-09-20 : la capture d'un L1 ICT4D voyant les
+    // séances de MIB L3 venait d'un périmètre qui « ne filtrait pas » quand un
+    // champ manquait. Désormais il est vide et marqué incomplet.
+    for (final scope in [
+      AcademicScope.forUser(compte('STUDENT', program: '', level: '')),
+      AcademicScope.forUser(compte('STUDENT', level: '')),
+      AcademicScope.forUser(compte('DELEGATE', program: '')),
+    ]) {
+      expect(scope.nothing, isTrue);
+      expect(scope.incomplete, isTrue);
+      expect(scope.courses([cours1, cours2, phys]), isEmpty);
+      expect(scope.byCourse([cours1], [cours1], (c) => c.id), isEmpty);
+    }
+    // Compte inconnu (déconnecté) : rien n'est décidé ici, le routeur renvoie
+    // vers la connexion.
     expect(AcademicScope.forUser(null).courses([cours1]), [cours1]);
+    // Un profil complet n'est pas incomplet, un compte indépendant non plus.
+    expect(AcademicScope.forUser(compte('STUDENT')).incomplete, isFalse);
+    expect(AcademicScope.forUser(compte('STUDENT', type: 'PERSONAL')).incomplete, isFalse);
   });
 
   test('l\'annuaire garde les enseignants et l\'administration de la filière, mais filtre les étudiants par niveau',

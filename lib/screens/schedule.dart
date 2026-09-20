@@ -45,66 +45,77 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           ),
           const ScopeSelector(),
           Expanded(
-            child: needsSelection
+            child: scope.incomplete
+                // Règle stricte : sans filière **et** niveau sur le profil, on
+                // n'affiche rien plutôt que l'emploi du temps d'une autre
+                // filière (capture du 2026-09-20 : un L1 ICT4D voyait MIB L3).
                 ? const EmptyState(
-                    icon: Icons.filter_alt_outlined,
-                    title: 'Choisissez une filière',
-                    message: 'L\'emploi du temps s\'affiche pour la filière et le niveau sélectionnés.',
+                    icon: Icons.badge_outlined,
+                    title: 'Profil académique incomplet',
+                    message:
+                        'Votre filière ou votre niveau n\'est pas renseigné : aucun emploi du temps ne peut être affiché. '
+                        'Complétez votre profil ou contactez l\'administration de votre université.',
                   )
-                : schedules.when(
-                    loading: () => const ShimmerList(cardHeight: 70),
-                    error: (error, _) => Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: ErrorBanner(
-                        message: 'L\'emploi du temps n\'a pas pu être chargé.\n$error',
-                        onRetry: () => ref.invalidate(scopedSchedulesProvider),
+                : needsSelection
+                    ? const EmptyState(
+                        icon: Icons.filter_alt_outlined,
+                        title: 'Choisissez une filière',
+                        message: 'L\'emploi du temps s\'affiche pour la filière et le niveau sélectionnés.',
+                      )
+                    : schedules.when(
+                        loading: () => const ShimmerList(cardHeight: 70),
+                        error: (error, _) => Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: ErrorBanner(
+                            message: 'L\'emploi du temps n\'a pas pu être chargé.\n$error',
+                            onRetry: () => ref.invalidate(scopedSchedulesProvider),
+                          ),
+                        ),
+                        data: (all) {
+                          if (all.isEmpty) {
+                            return EmptyState(
+                              icon: Icons.calendar_month_outlined,
+                              title: 'Aucun créneau',
+                              message: scope.label.isEmpty
+                                  ? 'Aucun emploi du temps n\'est publié pour le moment.'
+                                  : 'Aucun emploi du temps n\'est publié pour ${scope.label}.',
+                            );
+                          }
+                          final byDay = groupByDay(all);
+                          final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
+                          return Column(
+                            children: [
+                              _DayStrip(
+                                selected: _day,
+                                counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
+                                onSelect: (d) => setState(() => _day = d),
+                              ),
+                              Expanded(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 220),
+                                  child: slots.isEmpty
+                                      ? EmptyState(
+                                          key: ValueKey('vide-$_day'),
+                                          icon: Icons.free_breakfast_outlined,
+                                          title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
+                                        )
+                                      : Builder(
+                                          key: ValueKey('jour-$_day'),
+                                          builder: (context) {
+                                            final blocks = groupByTimeSlot(slots);
+                                            return StaggeredList(
+                                              itemCount: blocks.length,
+                                              itemBuilder: (context, index) =>
+                                                  _TimeBlock(block: blocks[index], courses: courses),
+                                            );
+                                          },
+                                        ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    ),
-                    data: (all) {
-                      if (all.isEmpty) {
-                        return EmptyState(
-                          icon: Icons.calendar_month_outlined,
-                          title: 'Aucun créneau',
-                          message: scope.label.isEmpty
-                              ? 'Aucun emploi du temps n\'est publié pour le moment.'
-                              : 'Aucun emploi du temps n\'est publié pour ${scope.label}.',
-                        );
-                      }
-                      final byDay = groupByDay(all);
-                      final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
-                      return Column(
-                        children: [
-                          _DayStrip(
-                            selected: _day,
-                            counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
-                            onSelect: (d) => setState(() => _day = d),
-                          ),
-                          Expanded(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 220),
-                              child: slots.isEmpty
-                                  ? EmptyState(
-                                      key: ValueKey('vide-$_day'),
-                                      icon: Icons.free_breakfast_outlined,
-                                      title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
-                                    )
-                                  : Builder(
-                                      key: ValueKey('jour-$_day'),
-                                      builder: (context) {
-                                        final blocks = groupByTimeSlot(slots);
-                                        return StaggeredList(
-                                          itemCount: blocks.length,
-                                          itemBuilder: (context, index) =>
-                                              _TimeBlock(block: blocks[index], courses: courses),
-                                        );
-                                      },
-                                    ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
           ),
         ],
       ),
