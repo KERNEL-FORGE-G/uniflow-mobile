@@ -280,7 +280,7 @@ const List<NavDestination> navDestinations = [
     icon: Icons.grading_outlined,
     activeIcon: Icons.grading,
     roles: {..._learnersAndTeacher, UniFlowRole.personal},
-    barRoles: _learnersAndTeacher,
+    barRoles: {..._learnersAndTeacher, UniFlowRole.personal},
   ),
   NavDestination(
     path: '/devoirs',
@@ -327,20 +327,25 @@ const List<NavDestination> navDestinations = [
     activeIcon: Icons.forum,
     roles: everyRole,
   ),
+  // Messagerie et notifications passent par le service `/messaging`, qui
+  // refuse tout compte hors de l'annuaire académique (vérifié en direct le
+  // 2026-09-20 : « La messagerie est réservée aux membres de l'annuaire… »).
+  // Les proposer à un compte indépendant afficherait une erreur à chaque
+  // ouverture.
   NavDestination(
     path: '/messages',
     label: 'Messages',
     icon: Icons.chat_bubble_outline,
     activeIcon: Icons.chat_bubble,
-    roles: everyRole,
-    barRoles: everyRole,
+    roles: universityRoles,
+    barRoles: universityRoles,
   ),
   NavDestination(
     path: '/notifications',
     label: 'Notifications',
     icon: Icons.notifications_outlined,
     activeIcon: Icons.notifications,
-    roles: everyRole,
+    roles: universityRoles,
   ),
   NavDestination(
     path: '/sentinelle',

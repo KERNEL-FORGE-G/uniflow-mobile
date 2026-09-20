@@ -212,9 +212,13 @@ void main() {
       for (final chemin in ['/ues', '/etudiants', '/enseignants', '/presence', '/devoirs', '/bibliotheque', '/comptes', '/inscriptions', '/emploi-du-temps']) {
         expect(canAccessPath(UniFlowRole.personal, chemin), isFalse, reason: chemin);
       }
-      for (final chemin in ['/matieres', '/taches', '/agenda', '/notes', '/messages', '/forum', '/equipe', '/settings']) {
+      for (final chemin in ['/matieres', '/taches', '/agenda', '/notes', '/forum', '/equipe', '/settings']) {
         expect(canAccessPath(UniFlowRole.personal, chemin), isTrue, reason: chemin);
       }
+      // Le service `/messaging` refuse un compte hors annuaire académique :
+      // ne pas afficher un onglet qui échouera à chaque ouverture.
+      expect(canAccessPath(UniFlowRole.personal, '/messages'), isFalse);
+      expect(canAccessPath(UniFlowRole.personal, '/notifications'), isFalse);
     });
 
     test('l\'espace personnel est fermé aux comptes universitaires', () {
