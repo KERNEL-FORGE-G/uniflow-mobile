@@ -25,9 +25,10 @@ enum UniFlowAccountType {
   }
 }
 
-/// Niveaux admis par le schéma (`academicLevels` dans
-/// `uniflow-we/scripts/appwrite-schema.mjs`).
-const List<String> academicLevels = ['L1', 'L2', 'L3'];
+/// Forme d'un niveau académique (« L1 », « M2 », « D1 »…). Les niveaux
+/// réellement ouverts viennent de `academic_programs.levels` : rien n'est
+/// figé ici, d'autres filières que l'ICT4D arrivent en base.
+final RegExp academicLevelPattern = RegExp(r'^[A-Z]\d$');
 
 /// Page d'inscription du web, pour qui préfère s'inscrire depuis un navigateur
 /// (`uniflow-we/src/App.tsx`, route `/register`).
@@ -50,6 +51,10 @@ class RegistrationInput {
   final String matricule;
   final String country;
 
+  /// Niveaux ouverts par la filière choisie (`academic_programs.levels`) :
+  /// la validation refuse un niveau que la filière n'offre pas.
+  final List<String> availableLevels;
+
   const RegistrationInput({
     required this.email,
     required this.password,
@@ -60,6 +65,7 @@ class RegistrationInput {
     this.level,
     this.matricule = '',
     this.country = 'Cameroun',
+    this.availableLevels = const [],
   });
 }
 
@@ -87,14 +93,13 @@ Map<String, dynamic> registrationProfileDocument(
     // compte indépendant y porte aussi STUDENT, c'est `accountType` qui le
     // distingue.
     'role': 'STUDENT',
-    'university': university
-        ? (input.university.trim().isEmpty ? 'Université de Yaoundé I' : input.university.trim())
-        : '',
-    'program': university
-        ? (input.program.trim().isEmpty ? 'ICT4D' : input.program.trim())
-        : '',
-    if (university && input.level != null && academicLevels.contains(input.level))
-      'level': input.level,
+    // `university` porte le NOM de l'université et `program` le CODE de la
+    // filière (celui de `academic_courses.program`) : c'est sur ce couple
+    // program + level que se filtrent cours, emploi du temps et annuaire.
+    'university': university ? input.university.trim() : '',
+    'program': university ? input.program.trim().toUpperCase() : '',
+    if (university && input.level != null && academicLevelPattern.hasMatch(input.level!.trim().toUpperCase()))
+      'level': input.level!.trim().toUpperCase(),
     'country': input.country.trim().isEmpty ? 'Cameroun' : input.country.trim(),
   };
 }
@@ -114,8 +119,10 @@ String? validateRegistration(RegistrationInput input) {
   if (input.accountType == UniFlowAccountType.university) {
     if (input.university.trim().isEmpty) return 'Indiquez votre université.';
     if (input.program.trim().isEmpty) return 'Indiquez votre filière.';
-    if (input.level == null || !academicLevels.contains(input.level)) {
-      return 'Choisissez votre niveau (L1, L2 ou L3).';
+    final level = input.level?.trim().toUpperCase() ?? '';
+    if (level.isEmpty || !academicLevelPattern.hasMatch(level)) return 'Choisissez votre niveau.';
+    if (input.availableLevels.isNotEmpty && !input.availableLevels.contains(level)) {
+      return 'Le niveau $level n\'est pas ouvert dans cette filière.';
     }
   }
   return null;
@@ -128,7 +135,11 @@ class AuthRepository {
   Account get _account => _service.account;
   Databases get _databases => _service.databases;
 
-  Future<void> login(String email, String password) async {
+  /// Ouvre la session. `accountTypeHint` est le choix fait sur l'écran de
+  /// connexion : il n'est enregistré que si le compte n'a encore aucun type
+  /// (ni dans `users.accountType`, ni dans ses préférences), comme sur le web.
+  /// Un compte déjà typé garde son type quoi que l'utilisateur ait coché.
+  Future<void> login(String email, String password, {UniFlowAccountType? accountTypeHint}) async {
     try {
       await _account.deleteSession(sessionId: 'current');
     } catch (_) {}
@@ -136,6 +147,21 @@ class AuthRepository {
       email: email.trim(),
       password: password,
     );
+    if (accountTypeHint == null) return;
+    try {
+      final account = await _account.get();
+      if (UniFlowAccountType.tryParse(account.prefs.data['uniflowAccountType']) != null) return;
+      final docs = await _databases.listDocuments(
+        databaseId: _service.databaseId,
+        collectionId: 'users',
+        queries: [Query.equal('email', account.email), Query.limit(1)],
+      );
+      final typed = docs.documents.isNotEmpty &&
+          UniFlowAccountType.tryParse(docs.documents.first.data['accountType']) != null;
+      if (!typed) await _persistAccountTypePreference(accountTypeHint);
+    } catch (_) {
+      // L'indication est un confort, pas une condition de connexion.
+    }
   }
 
   Future<void> logout() async {

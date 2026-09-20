@@ -41,8 +41,8 @@ une page, plutôt qu'une page vide.
   ```
 
   Ne montez pas Gradle en 9.x pour contourner : AGP 8.11.1 n'y est pas
-  compatible, il faudrait migrer AGP, Kotlin et les plugins (`flutter_webrtc`,
-  `workmanager`, `drift`, `image_picker`) ensemble.
+  compatible, il faudrait migrer AGP, Kotlin et les plugins (`workmanager`,
+  `drift`, `image_picker`) ensemble.
 
 ## Installation et lancement
 

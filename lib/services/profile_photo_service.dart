@@ -63,8 +63,7 @@ class ProfilePhotoService {
     } on AppwriteException catch (error) {
       if (error.code == 404) {
         throw ProfilePhotoException(
-          'Le bucket « $_bucket » est introuvable sur Appwrite. '
-          'Lancez scripts/provision-appwrite-selfhosted.mjs pour le créer.',
+          'Le bucket « $_bucket » est introuvable sur Appwrite.',
         );
       }
       throw ProfilePhotoException(_readable(error, 'le téléversement'));
@@ -84,8 +83,7 @@ class ProfilePhotoService {
       } catch (_) {}
       if (error is AppwriteException && (error.message ?? '').contains('avatarFileId')) {
         throw ProfilePhotoException(
-          'L\'attribut « avatarFileId » manque sur la collection users. '
-          'Lancez scripts/provision-appwrite-selfhosted.mjs.',
+          'L\'attribut « avatarFileId » manque sur la collection users.',
         );
       }
       throw ProfilePhotoException(

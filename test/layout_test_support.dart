@@ -12,6 +12,7 @@ import 'package:uniflow_mobile/models/models.dart';
 import 'package:uniflow_mobile/models/team_member.dart';
 import 'package:uniflow_mobile/providers/providers.dart';
 import 'package:uniflow_mobile/repositories/messaging_repository.dart';
+import 'package:uniflow_mobile/repositories/reference_repository.dart';
 import 'package:uniflow_mobile/repositories/team_repository.dart';
 import 'package:uniflow_mobile/services/notification_service.dart';
 import 'package:uniflow_mobile/theme/app_theme.dart';
@@ -122,6 +123,21 @@ List<TeamMember> equipeDeTest() => [
       ),
     ];
 
+/// Référentiel académique de test pour le formulaire d'inscription : deux
+/// universités, une faculté, une filière à trois niveaux. Les libellés sont
+/// longs à dessein, pour que les listes déroulantes prouvent qu'elles
+/// tronquent au lieu de déborder.
+const universiteDeTest = University(code: 'UT1', name: 'Université de Test Numéro Un', shortName: 'UT1', city: 'Yaoundé');
+const autreUniversite = University(code: 'UT2', name: 'Université de Test Deux', shortName: 'UT2');
+const faculteDeTest = Faculty(universityCode: 'UT1', code: 'FS', name: 'Faculté des Sciences et Technologies Appliquées');
+const filiereDeTest = AcademicProgram(
+  universityCode: 'UT1',
+  facultyCode: 'FS',
+  code: 'TEST',
+  name: 'Filière de Test aux Technologies de l\'Information',
+  levels: ['L1', 'L2', 'L3'],
+);
+
 /// Enveloppe un écran dans son `ProviderScope` et son `MaterialApp`, avec les
 /// providers réseau neutralisés : un test de mise en page ne doit dépendre
 /// d'aucun accès à Appwrite.
@@ -148,6 +164,9 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       conversationsProvider.overrideWith((ref) async => const <Conversation>[]),
       notificationsProvider.overrideWith((ref) async => const <AppNotification>[]),
       urgentNotificationsProvider.overrideWith((ref) => Stream.value(0)),
+      universitiesProvider.overrideWith((ref) async => const [universiteDeTest, autreUniversite]),
+      facultiesProvider.overrideWith((ref, code) async => code == 'UT1' ? const [faculteDeTest] : const []),
+      programsProvider.overrideWith((ref, key) async => key.startsWith('UT1') ? const [filiereDeTest] : const []),
       ...overrides,
     ],
     child: MaterialApp(

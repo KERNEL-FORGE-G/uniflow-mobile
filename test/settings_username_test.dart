@@ -50,7 +50,7 @@ class _AuthFactice implements AuthRepository {
   Future<UniFlowUser?> refreshProfile() async => resultat;
 
   @override
-  Future<void> login(String email, String password) async {}
+  Future<void> login(String email, String password, {UniFlowAccountType? accountTypeHint}) async {}
 
   @override
   Future<void> logout() async {}

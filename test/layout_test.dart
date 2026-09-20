@@ -27,6 +27,8 @@ import 'package:uniflow_mobile/screens/presence.dart';
 import 'package:uniflow_mobile/screens/sentinelle.dart';
 import 'package:uniflow_mobile/screens/settings.dart';
 import 'package:uniflow_mobile/screens/students_list.dart';
+import 'package:uniflow_mobile/screens/register.dart';
+import 'package:uniflow_mobile/screens/forgot_password.dart';
 import 'package:uniflow_mobile/screens/teachers_list.dart';
 import 'package:uniflow_mobile/screens/teams.dart';
 import 'package:uniflow_mobile/screens/ues_list.dart';
@@ -56,6 +58,8 @@ void main() {
   /// Les écrans testés, avec leur nom pour le message d'échec.
   final screens = <String, Widget>{
     'Login': const LoginScreen(),
+    'Inscription': const RegisterScreen(),
+    'Mot de passe oublié': const ForgotPasswordScreen(),
     'Dashboard': const DashboardScreen(),
     'Étudiants': const StudentsListScreen(),
     'Enseignants': const TeachersListScreen(),

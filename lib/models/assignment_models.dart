@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:appwrite/appwrite.dart';
 // Les modèles de réponse ne sont pas ré-exportés par `appwrite.dart`.
 import 'package:appwrite/models.dart' as models;
 

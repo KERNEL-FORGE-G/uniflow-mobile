@@ -7,6 +7,9 @@ import '../models/user_role.dart';
 import '../widgets/app_shell.dart';
 import '../screens/access_denied.dart';
 import '../screens/login.dart';
+import '../screens/register.dart';
+import '../screens/forgot_password.dart';
+import '../repositories/auth_repository.dart';
 import '../screens/dashboard.dart';
 import '../screens/students_list.dart';
 import '../screens/student_detail.dart';
@@ -27,6 +30,11 @@ import '../screens/conversation.dart';
 import '../repositories/messaging_repository.dart';
 import '../screens/sentinelle.dart';
 import '../screens/teams.dart';
+
+/// Adresses accessibles sans session. Une fois connecté, elles ramènent à
+/// l'accueil : revenir sur l'inscription avec une session ouverte ferait
+/// échouer `account.create`.
+const Set<String> publicPaths = {'/login', '/register', '/mot-de-passe-oublie'};
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   // GoRouter ne suit pas nativement les providers Riverpod : ce notifier lui
@@ -51,9 +59,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     // atteignable par URL n'est pas restreint du tout.
     redirect: (context, state) {
       final signedIn = ref.read(authStatusProvider) == AuthStatus.signedIn;
-      final atLogin = state.matchedLocation == '/login';
-      if (!signedIn) return atLogin ? null : '/login';
-      if (atLogin) return '/accueil';
+      final atPublic = publicPaths.contains(state.matchedLocation);
+      if (!signedIn) return atPublic ? null : '/login';
+      if (atPublic) return '/accueil';
 
       final role = ref.read(currentRoleProvider);
       if (!canAccessPath(role, state.matchedLocation)) {
@@ -63,6 +71,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+      GoRoute(
+        path: '/register',
+        builder: (_, s) => RegisterScreen(
+          initialType: UniFlowAccountType.tryParse(s.uri.queryParameters['type']) ?? UniFlowAccountType.university,
+        ),
+      ),
+      GoRoute(path: '/mot-de-passe-oublie', builder: (_, __) => const ForgotPasswordScreen()),
       ShellRoute(
         builder: (context, state, child) =>
             AppShell(location: state.uri.path, child: child),
