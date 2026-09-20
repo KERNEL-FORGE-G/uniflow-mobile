@@ -30,6 +30,8 @@ import '../screens/conversation.dart';
 import '../repositories/messaging_repository.dart';
 import '../screens/sentinelle.dart';
 import '../screens/teams.dart';
+import '../screens/personal_space.dart';
+import '../screens/schedule.dart';
 
 /// Adresses accessibles sans session. Une fois connecté, elles ramènent à
 /// l'accueil : revenir sur l'inscription avec une session ouverte ferait
@@ -91,6 +93,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/ues/:id', builder: (_, s) => UEDetailScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/inscriptions', builder: (_, __) => const EnrollmentsScreen()),
           GoRoute(path: '/presence', builder: (_, __) => const PresenceScreen()),
+          GoRoute(path: '/emploi-du-temps', builder: (_, __) => const ScheduleScreen()),
           GoRoute(path: '/notes', builder: (_, __) => const GradesScreen()),
           GoRoute(path: '/devoirs', builder: (_, __) => const AssignmentsScreen()),
           GoRoute(path: '/bibliotheque', builder: (_, __) => const LibraryScreen()),
@@ -109,6 +112,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(path: '/sentinelle', builder: (_, __) => const SentinelleScreen()),
+          // Espace personnel (comptes indépendants uniquement, voir navDestinations).
+          GoRoute(path: '/matieres', builder: (_, __) => const PersonalSubjectsScreen()),
+          GoRoute(path: '/taches', builder: (_, __) => const PersonalTasksScreen()),
+          GoRoute(path: '/agenda', builder: (_, __) => const PersonalAgendaScreen()),
           GoRoute(path: '/equipe', builder: (_, __) => const TeamsScreen()),
           GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
           // Hors de la barre du bas : cette page ne s'atteint qu'en se faisant

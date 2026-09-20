@@ -3,6 +3,7 @@ import '../data/uniflow_api.dart';
 import '../models/models.dart';
 import '../models/appwrite_models.dart';
 import '../models/user_role.dart';
+import '../models/academic_scope.dart';
 import '../repositories/academic_repository.dart';
 import '../repositories/auth_repository.dart';
 
@@ -33,6 +34,30 @@ final currentRoleProvider = Provider<UniFlowRole>((ref) {
   return mapRole(ref.watch(currentUserProvider)?.role);
 });
 
+/// Périmètre académique du compte connecté (voir [AcademicScope]).
+final academicScopeProvider = Provider<AcademicScope>((ref) {
+  return AcademicScope.forUser(ref.watch(currentUserProvider));
+});
+
+/// Cours du périmètre du compte, sous leur forme Appwrite (les `UE` de
+/// [uesProvider] en sont la projection pour les écrans historiques).
+final scopedCoursesProvider = FutureProvider<List<AcademicCourse>>((ref) async {
+  if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return const [];
+  final scope = ref.watch(academicScopeProvider);
+  if (scope.nothing) return const [];
+  return scope.courses(await ref.read(academicRepositoryProvider).getCourses());
+});
+
+/// Emploi du temps du périmètre : les créneaux se rattachent à un cours, et
+/// c'est le cours qui porte filière et niveau.
+final scopedSchedulesProvider = FutureProvider<List<AcademicSchedule>>((ref) async {
+  final courses = await ref.watch(scopedCoursesProvider.future);
+  if (courses.isEmpty) return const [];
+  final scope = ref.watch(academicScopeProvider);
+  final all = await ref.read(academicRepositoryProvider).getSchedules();
+  return scope.byCourse(all, courses, (s) => s.courseId, courseCodeOf: (s) => s.courseCode);
+});
+
 /// Résout la session Appwrite persistée sur l'appareil au démarrage.
 final sessionBootstrapProvider = FutureProvider<void>((ref) async {
   final user = await ref.read(authRepositoryProvider).getCurrentUser();
@@ -53,8 +78,11 @@ final gatewaySyncProvider = FutureProvider<void>((ref) async {
   // Awaits séquentiels plutôt que `(f1(), f2()).wait` : le `.wait` sur record
   // enveloppe tout échec dans un `ParallelWaitError`, ce qui masquerait le
   // message Appwrite d'origine dans la bannière d'erreur du dashboard.
-  final directory = await academicRepo.getDirectory();
-  final courses = await academicRepo.getCourses();
+  // Périmètre du compte (filière + niveau, lus dans `users`) : un étudiant L2
+  // ne voit ni les cours ni les camarades des L1, et rien n'est codé en dur.
+  final scope = ref.read(academicScopeProvider);
+  final directory = scope.directory(await academicRepo.getDirectory());
+  final courses = scope.courses(await academicRepo.getCourses());
 
   final students = directory
       .where((e) => e.role == 'STUDENT' || e.role == 'DELEGATE')

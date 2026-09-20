@@ -6,11 +6,21 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
+import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../models/appwrite_models.dart';
 
 final libraryListProvider = FutureProvider<List<AcademicLibraryEntry>>((ref) async {
-  return ref.read(academicRepositoryProvider).getLibrary();
+  final all = await ref.read(academicRepositoryProvider).getLibrary();
+  // Une ressource se rattache à un cours, et le cours porte filière et niveau :
+  // un L2 ne voit pas les polycopiés des L1. Les ressources sans cours (guides,
+  // règlements) restent visibles de tous les comptes universitaires.
+  final scope = ref.watch(academicScopeProvider);
+  if (scope.nothing) return const [];
+  final courses = await ref.watch(scopedCoursesProvider.future);
+  final general = all.where((e) => e.courseId.isEmpty && e.course.isEmpty).toList();
+  final scoped = scope.byCourse(all, courses, (e) => e.courseId, courseCodeOf: (e) => e.course);
+  return [...scoped, ...general.where((g) => !scoped.contains(g))];
 });
 
 class LibraryScreen extends ConsumerStatefulWidget {

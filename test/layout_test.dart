@@ -28,6 +28,8 @@ import 'package:uniflow_mobile/screens/sentinelle.dart';
 import 'package:uniflow_mobile/screens/settings.dart';
 import 'package:uniflow_mobile/screens/students_list.dart';
 import 'package:uniflow_mobile/screens/register.dart';
+import 'package:uniflow_mobile/screens/personal_space.dart';
+import 'package:uniflow_mobile/screens/schedule.dart';
 import 'package:uniflow_mobile/screens/forgot_password.dart';
 import 'package:uniflow_mobile/screens/teachers_list.dart';
 import 'package:uniflow_mobile/screens/teams.dart';
@@ -67,6 +69,11 @@ void main() {
     'Inscriptions': const EnrollmentsScreen(),
     'Présence': const PresenceScreen(),
     'Notes': const GradesScreen(),
+    'Emploi du temps': const ScheduleScreen(),
+    'Matières personnelles': const PersonalSubjectsScreen(),
+    'Tâches personnelles': const PersonalTasksScreen(),
+    'Agenda personnel': const PersonalAgendaScreen(),
+    'Notes personnelles': const PersonalGradesView(),
     'Devoirs': const AssignmentsScreen(),
     'Bibliothèque': const LibraryScreen(),
     'Messagerie': const MessagesScreen(),

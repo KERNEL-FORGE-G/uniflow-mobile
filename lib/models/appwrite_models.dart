@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:appwrite/models.dart' as models;
 
 class AcademicCourse {
@@ -317,6 +318,104 @@ class PersonalTask {
       status: doc.data['status'],
     );
   }
+}
+
+/// Créneau personnel. Le web range le détail (jour, heures, salle, type) dans
+/// `title` derrière le préfixe `[UNIFLOW_SCHEDULE]`, faute d'attributs dédiés
+/// dans `personal_schedules` ; le mobile lit et écrit le même format pour que
+/// les deux clients voient les mêmes créneaux.
+class PersonalSchedule {
+  static const String metaPrefix = '[UNIFLOW_SCHEDULE]';
+  static const List<String> days = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
+
+  final String id;
+  final String ownerId;
+  final String courseId;
+  final String dayOfWeek;
+  final String startTime;
+  final String endTime;
+  final String classroom;
+  final String type;
+  final DateTime? startsAt;
+
+  const PersonalSchedule({
+    required this.id,
+    required this.ownerId,
+    required this.courseId,
+    required this.dayOfWeek,
+    required this.startTime,
+    required this.endTime,
+    this.classroom = '',
+    this.type = '',
+    this.startsAt,
+  });
+
+  factory PersonalSchedule.fromDocument(models.Document doc) {
+    final startsAt = DateTime.tryParse(doc.data['startsAt']?.toString() ?? '')?.toLocal();
+    final endsAt = DateTime.tryParse(doc.data['endsAt']?.toString() ?? '')?.toLocal();
+    final meta = decodeMeta(doc.data['title']?.toString() ?? '');
+    String clock(DateTime? d) => d == null ? '' : '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    return PersonalSchedule(
+      id: doc.$id,
+      ownerId: doc.data['ownerId'] ?? '',
+      courseId: meta?['courseId']?.toString() ?? '',
+      dayOfWeek: meta?['dayOfWeek']?.toString() ?? (startsAt == null ? '' : days[startsAt.weekday - 1]),
+      startTime: meta?['startTime']?.toString() ?? clock(startsAt),
+      endTime: meta?['endTime']?.toString() ?? clock(endsAt),
+      classroom: meta?['classroom']?.toString() ?? '',
+      type: meta?['type']?.toString() ?? '',
+      startsAt: startsAt,
+    );
+  }
+
+  static Map<String, dynamic>? decodeMeta(String title) {
+    if (!title.startsWith(metaPrefix)) return null;
+    try {
+      final decoded = jsonDecode(title.substring(metaPrefix.length).trim());
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int get dayIndex => days.indexOf(dayOfWeek.toUpperCase());
+}
+
+class PersonalGrade {
+  final String id;
+  final String ownerId;
+  final String courseId;
+  final String evaluationTitle;
+  final double score;
+  final double maxScore;
+  final double coefficient;
+
+  const PersonalGrade({
+    required this.id,
+    required this.ownerId,
+    required this.courseId,
+    required this.evaluationTitle,
+    required this.score,
+    required this.maxScore,
+    required this.coefficient,
+  });
+
+  factory PersonalGrade.fromDocument(models.Document doc) {
+    double num_(Object? v, double fallback) => double.tryParse(v?.toString() ?? '') ?? fallback;
+    final d = doc.data;
+    return PersonalGrade(
+      id: doc.$id,
+      ownerId: d['ownerId'] ?? '',
+      courseId: (d['courseId'] ?? d['subjectId'] ?? '').toString(),
+      evaluationTitle: (d['evaluationTitle'] ?? d['label'] ?? d['title'] ?? '').toString(),
+      score: num_(d['score'], 0),
+      maxScore: num_(d['maxScore'], 20),
+      coefficient: num_(d['coefficient'], 1),
+    );
+  }
+
+  /// Note ramenée sur 20, pour comparer des évaluations aux barèmes différents.
+  double get outOf20 => maxScore <= 0 ? 0 : score / maxScore * 20;
 }
 
 class UniFlowUser {

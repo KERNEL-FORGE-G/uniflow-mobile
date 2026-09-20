@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../models/appwrite_models.dart';
+import 'personal_space.dart';
 
 final gradesListProvider = FutureProvider<List<AcademicGrade>>((ref) async {
   final user = ref.watch(currentUserProvider);
@@ -17,6 +18,10 @@ class GradesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Un compte indépendant n'a pas de notes officielles : il saisit les
+    // siennes. Même adresse, écran différent, pour que la barre du bas reste
+    // la même dans les deux espaces.
+    if (ref.watch(currentUserProvider)?.isPersonal ?? false) return const PersonalGradesView();
     final gradesAsync = ref.watch(gradesListProvider);
 
     return Scaffold(

@@ -13,6 +13,7 @@ import 'package:uniflow_mobile/models/team_member.dart';
 import 'package:uniflow_mobile/providers/providers.dart';
 import 'package:uniflow_mobile/repositories/messaging_repository.dart';
 import 'package:uniflow_mobile/repositories/reference_repository.dart';
+import 'package:uniflow_mobile/repositories/personal_repository.dart';
 import 'package:uniflow_mobile/repositories/team_repository.dart';
 import 'package:uniflow_mobile/services/notification_service.dart';
 import 'package:uniflow_mobile/theme/app_theme.dart';
@@ -138,6 +139,35 @@ const filiereDeTest = AcademicProgram(
   levels: ['L1', 'L2', 'L3'],
 );
 
+List<PersonalSubject> matieresDeTest() => [
+      PersonalSubject(id: 'm1', ownerId: 'u1', name: 'Analyse numérique et méthodes de résolution approchée', code: 'MAT204', instructor: 'Pr. Très Long Nom De Famille', credits: 6, colorHex: '#7c3aed'),
+      PersonalSubject(id: 'm2', ownerId: 'u1', name: 'Anglais'),
+    ];
+
+List<PersonalTask> tachesDeTest() => [
+      PersonalTask(id: 't1', ownerId: 'u1', title: 'Rendre le TP de programmation orientée objet avant la fin de la semaine', courseId: 'm1', dueDate: '2026-09-21T23:59:00.000Z', priority: 4),
+      PersonalTask(id: 't2', ownerId: 'u1', title: 'Lire le chapitre 3', status: 'DONE', priority: 1),
+    ];
+
+List<PersonalSchedule> creneauxDeTest() => [
+      const PersonalSchedule(id: 'c1', ownerId: 'u1', courseId: 'm1', dayOfWeek: 'LUNDI', startTime: '08:00', endTime: '10:00', classroom: 'Amphi 1000 — bâtiment principal', type: 'CM'),
+      const PersonalSchedule(id: 'c2', ownerId: 'u1', courseId: 'm2', dayOfWeek: 'MERCREDI', startTime: '14:00', endTime: '16:00'),
+    ];
+
+List<PersonalGrade> notesPersonnellesDeTest() => [
+      const PersonalGrade(id: 'g1', ownerId: 'u1', courseId: 'm1', evaluationTitle: 'Contrôle continu numéro un de la session', score: 14.5, maxScore: 20, coefficient: 2),
+      const PersonalGrade(id: 'g2', ownerId: 'u1', courseId: '', evaluationTitle: '', score: 7, maxScore: 10, coefficient: 1),
+    ];
+
+List<AcademicCourse> coursDeTest() => [
+      AcademicCourse(id: 'k1', code: 'INF211', name: 'Programmation orientée objet et conception de logiciels', university: 'UT', program: 'TEST', level: 'L2', teacherName: 'Pr. Nom Très Long Pour Déborder', type: 'CM'),
+    ];
+
+List<AcademicSchedule> emploiDuTempsDeTest() => [
+      for (final day in ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'])
+        AcademicSchedule(id: day, courseId: 'k1', courseCode: 'INF211', dayOfWeek: day, startTime: '08:00', endTime: '10:00', classroom: 'Amphi 1000 — bâtiment principal', type: 'CM'),
+    ];
+
 /// Enveloppe un écran dans son `ProviderScope` et son `MaterialApp`, avec les
 /// providers réseau neutralisés : un test de mise en page ne doit dépendre
 /// d'aucun accès à Appwrite.
@@ -164,6 +194,14 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       conversationsProvider.overrideWith((ref) async => const <Conversation>[]),
       notificationsProvider.overrideWith((ref) async => const <AppNotification>[]),
       urgentNotificationsProvider.overrideWith((ref) => Stream.value(0)),
+      // Espace personnel et emploi du temps : quelques documents pour que les
+      // cartes aient du contenu à faire tenir.
+      personalSubjectsProvider.overrideWith((ref) async => matieresDeTest()),
+      personalTasksProvider.overrideWith((ref) async => tachesDeTest()),
+      personalSchedulesProvider.overrideWith((ref) async => creneauxDeTest()),
+      personalGradesProvider.overrideWith((ref) async => notesPersonnellesDeTest()),
+      scopedCoursesProvider.overrideWith((ref) async => coursDeTest()),
+      scopedSchedulesProvider.overrideWith((ref) async => emploiDuTempsDeTest()),
       universitiesProvider.overrideWith((ref) async => const [universiteDeTest, autreUniversite]),
       facultiesProvider.overrideWith((ref, code) async => code == 'UT1' ? const [faculteDeTest] : const []),
       programsProvider.overrideWith((ref, key) async => key.startsWith('UT1') ? const [filiereDeTest] : const []),
