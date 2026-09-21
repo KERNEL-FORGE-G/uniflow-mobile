@@ -155,6 +155,7 @@ class _VersionCard extends StatelessWidget {
             child: Image.asset(
               'assets/brand/uniflow_marque.png',
               fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
               errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, color: AppColors.primaryBlue),
             ),
           ),
