@@ -242,10 +242,12 @@ class _UniPeekState extends State<UniPeek> {
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: widget.edge == UniPeekEdge.right
+            // La bulle est souple : dans une fenêtre étroite (420 px avec la
+            // barre latérale), une largeur fixe débordait de 55 px à droite.
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  UniBubble(side: UniBubbleSide.left, child: Text(widget.message)),
+                  Flexible(child: UniBubble(side: UniBubbleSide.left, child: Text(widget.message))),
                   const SizedBox(width: 4),
                   UniMascot(pose: pose, size: 96, effects: false),
                 ],

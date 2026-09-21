@@ -111,6 +111,37 @@ void main() {
       expect(again.offset, isNot(Offset.zero));
       await tester.pump(const Duration(seconds: 8));
     });
+
+    testWidgets('UniPeek : dans une fenêtre étroite, la bulle se replie au lieu de déborder', (tester) async {
+      // Symptôme corrigé : en 420 px avec la barre latérale, la bulle
+      // (260 px) plus Uni (96 px) dépassaient de 55 px à droite — un
+      // « RenderFlex overflowed » à chaque premier lancement.
+      UniPeek.shown.clear();
+      const host = ValueKey('hote-etroit');
+      await tester.pumpWidget(_wrap(const SizedBox(
+        key: host,
+        width: 300,
+        height: 400,
+        child: Stack(children: [
+          UniPeek(
+            id: 'etroit',
+            message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’appli ? Touche-moi.',
+            delay: Duration(milliseconds: 10),
+          ),
+        ]),
+      )));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(tester.takeException(), isNull);
+      final cadre = tester.getRect(find.byKey(host));
+      final uni = tester.getRect(find.byType(UniMascot));
+      final bulle = tester.getRect(find.byType(UniBubble));
+      expect(uni.right, lessThanOrEqualTo(cadre.right + 0.5));
+      expect(bulle.left, greaterThanOrEqualTo(cadre.left - 0.5));
+      expect(bulle.width, lessThan(260));
+      await tester.pump(const Duration(seconds: 8));
+    });
   });
 
   group('UniMarkdownLite', () {
