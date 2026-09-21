@@ -271,7 +271,25 @@ List<AcademicSchedule> emploiDuTempsDeTest() => [
 /// d'aucun accès à Appwrite.
 Widget host(Widget child, {List<Override> overrides = const []}) {
   return ProviderScope(
-    overrides: [
+    overrides: [...neutralOverrides(), ...overrides],
+    child: MaterialApp(
+      theme: AppTheme.light,
+      // Uni boucle sans fin sur les écrans hors session et les états vides ;
+      // `pumpAndSettle` ne se poserait jamais. La mascotte respecte la
+      // préférence « moins de mouvement » : on la déclare pour tous les tests.
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: true),
+        child: child!,
+      ),
+      home: Scaffold(body: child),
+    ),
+  );
+}
+
+/// Les providers réseau neutralisés de [host], exposés à part pour les tests
+/// qui montent l'application entière derrière son routeur (démarrage à froid,
+/// présentation puis tableau de bord) plutôt qu'un écran isolé.
+List<Override> neutralOverrides() => [
       currentUserProvider.overrideWith((ref) => user()),
       studentsProvider.overrideWith((ref) => const [student]),
       teachersProvider.overrideWith((ref) => const [teacher]),
@@ -319,18 +337,4 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       myAttendanceProvider.overrideWith((ref) => Stream.value(const <AttendanceMark>[])),
       myForumPostCountProvider.overrideWith((ref) => Stream.value(0)),
       teacherAssignmentsProvider.overrideWith((ref) async => const <Assignment>[]),
-      ...overrides,
-    ],
-    child: MaterialApp(
-      theme: AppTheme.light,
-      // Uni boucle sans fin sur les écrans hors session et les états vides ;
-      // `pumpAndSettle` ne se poserait jamais. La mascotte respecte la
-      // préférence « moins de mouvement » : on la déclare pour tous les tests.
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(disableAnimations: true),
-        child: child!,
-      ),
-      home: Scaffold(body: child),
-    ),
-  );
-}
+    ];

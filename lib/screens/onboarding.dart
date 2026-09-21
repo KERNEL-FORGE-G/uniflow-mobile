@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/onboarding_provider.dart';
+import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/phosphor.dart';
@@ -70,19 +71,24 @@ const List<DialogueLine> onboardingDialogue = [
   DialogueLine.archlord('Tes retours font le produit. Bonne rentrée !'),
 ];
 
-/// Présentation du premier lancement : quatre pages, un indicateur animé,
-/// « Passer », et la mémorisation « déjà vue » dans les préférences locales.
+/// Présentation affichée à chaque lancement : quatre pages, un indicateur
+/// animé, « Passer », et l'état « vu » posé en mémoire pour le processus.
 ///
-/// Elle ne s'affiche qu'hors session (routeur : `/bienvenue`) ; l'écran
-/// « À propos » la rejoue avec [replay], et ferme alors la page au lieu
-/// d'aller à la connexion.
+/// Le routeur l'ouvre en premier (`/bienvenue`), session ou pas : la dernière
+/// page mène au tableau de bord (« Continuer ») si une session est ouverte, à
+/// la connexion (« Commencer ») sinon. L'écran « À propos » la rejoue avec
+/// [replay], et ferme alors la page au lieu de naviguer.
 class OnboardingScreen extends ConsumerStatefulWidget {
   final bool replay;
+
+  /// Adresse à ouvrir après la présentation quand une session est ouverte
+  /// (lien externe reçu au démarrage) ; l'accueil par défaut.
+  final String? next;
 
   /// Remplace la navigation de fin (tests, ou hôte sans routeur).
   final VoidCallback? onFinished;
 
-  const OnboardingScreen({super.key, this.replay = false, this.onFinished});
+  const OnboardingScreen({super.key, this.replay = false, this.next, this.onFinished});
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -113,9 +119,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
+  bool get _signedIn => ref.read(authStatusProvider) == AuthStatus.signedIn;
+
   Future<void> _finish() async {
-    // Mémorisé avant de naviguer : si l'application est tuée pendant la
-    // transition, la présentation ne reviendra pas.
+    // Posé avant de naviguer : le routeur écoute cet état et cesserait sinon
+    // de laisser passer la destination, en renvoyant ici en boucle.
     await ref.read(onboardingSeenProvider.notifier).markSeen();
     if (!mounted) return;
     if (widget.onFinished != null) {
@@ -126,11 +134,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       Navigator.of(context).maybePop();
       return;
     }
-    context.go('/login');
+    // Session persistée : droit au tableau de bord (ou au lien reçu au
+    // lancement) ; sinon la connexion. « Passer » suit le même chemin.
+    context.go(_signedIn ? (widget.next ?? '/accueil') : '/login');
   }
 
   @override
   Widget build(BuildContext context) {
+    // Le libellé de la dernière page dit où l'on va : « Continuer » vers son
+    // tableau de bord quand la session est déjà ouverte, « Commencer » vers la
+    // connexion sinon.
+    final signedIn = ref.watch(authStatusProvider) == AuthStatus.signedIn;
+    final lastLabel = signedIn ? 'Continuer' : 'Commencer';
     return Scaffold(
       backgroundColor: AppColors.background,
       body: DecoratedBox(
@@ -155,7 +170,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               _Footer(
                 index: _index,
                 count: onboardingPages.length,
-                label: _last ? 'Commencer' : 'Suivant',
+                label: _last ? lastLabel : 'Suivant',
                 onNext: _next,
               ),
             ],

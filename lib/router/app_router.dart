@@ -46,15 +46,33 @@ const Set<String> publicPaths = {onboardingPath, '/login', '/register', '/mot-de
 /// Présentation du premier lancement, avant la connexion.
 const String onboardingPath = '/bienvenue';
 
-/// Où envoyer quelqu'un qui n'a pas de session : la présentation s'il ne l'a
-/// jamais vue, la connexion sinon. `null` (préférence pas encore lue) vaut
-/// « déjà vue » : mieux vaut sauter la présentation une fois que bloquer
-/// l'écran de connexion.
-String signedOutDestination({required bool? onboardingSeen, required String location}) {
-  final seen = onboardingSeen ?? true;
-  if (!seen) return location == onboardingPath ? location : onboardingPath;
+/// Requête portée par `/bienvenue` : l'adresse à ouvrir une fois la
+/// présentation terminée, pour qu'un lien externe ou un raccourci du lanceur
+/// reçu au démarrage à froid ne se perde pas derrière l'onboarding.
+const String onboardingNextParam = 'suite';
+
+/// Où envoyer quelqu'un qui n'a pas de session : la présentation tant qu'elle
+/// n'a pas été parcourue dans ce processus (elle revient à chaque lancement,
+/// décision du propriétaire du 2026-09-21), la connexion ensuite. Les autres
+/// adresses publiques (inscription, mot de passe oublié) restent atteignables.
+String signedOutDestination({required bool onboardingSeen, required String location}) {
+  if (!onboardingSeen) return location == onboardingPath ? location : onboardingPath;
   if (location == onboardingPath) return '/login';
   return publicPaths.contains(location) ? location : '/login';
+}
+
+/// Où envoyer quelqu'un dont la session est ouverte : la présentation d'abord,
+/// tant qu'elle n'a pas été parcourue dans ce processus, avec l'adresse visée
+/// en requête `suite` si elle mérite d'être conservée ; ensuite l'accueil pour
+/// les adresses publiques, sinon l'adresse demandée (la règle des rôles
+/// s'applique après). `requested` est l'URI complète (chemin + requête).
+String signedInDestination({required bool onboardingSeen, required String location, required String requested}) {
+  if (!onboardingSeen) {
+    if (location == onboardingPath) return location;
+    final worthKeeping = !publicPaths.contains(location) && location != '/accueil';
+    return worthKeeping ? '$onboardingPath?$onboardingNextParam=${Uri.encodeComponent(requested)}' : onboardingPath;
+  }
+  return publicPaths.contains(location) ? '/accueil' : location;
 }
 
 /// Adresse interne visée par un lien externe (`uniflow:///emploi-du-temps`,
@@ -105,17 +123,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   // qui corrige le rôle d'un compte pendant que celui-ci est ouvert. Sans cette
   // écoute, le routeur garderait la décision prise au démarrage.
   ref.listen(currentUserProvider, (_, __) => sessionChanged.value++);
-  // « Passer » ou « Commencer » sur la présentation : la préférence bascule,
-  // et /bienvenue doit aussitôt céder la place à /login.
+  // « Passer », « Commencer » ou « Continuer » sur la présentation : l'état
+  // bascule, et /bienvenue doit aussitôt céder la place à la suite.
   ref.listen(onboardingSeenProvider, (_, __) => sessionChanged.value++);
   ref.onDispose(sessionChanged.dispose);
 
   return GoRouter(
     initialLocation: '/accueil',
     refreshListenable: sessionChanged,
-    // Tant que la session n'est pas résolue ou qu'aucun compte n'est connecté,
-    // tout ramène à /login (ou à la présentation du premier lancement) ; une
-    // fois connecté, les adresses publiques renvoient vers l'accueil.
+    // À chaque lancement, la présentation passe d'abord, session ou pas. Puis,
+    // tant qu'aucun compte n'est connecté, tout ramène à /login ; une fois
+    // connecté, les adresses publiques renvoient vers l'accueil.
     //
     // La seconde règle est celle des rôles : une adresse que le rôle n'a pas le
     // droit d'atteindre ramène à l'accueil, avec un message. Masquer un onglet
@@ -128,15 +146,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (external != null) return external;
 
       final signedIn = ref.read(authStatusProvider) == AuthStatus.signedIn;
+      final onboardingSeen = ref.read(onboardingSeenProvider);
       final location = state.matchedLocation;
       if (!signedIn) {
-        final target = signedOutDestination(
-          onboardingSeen: ref.read(onboardingSeenProvider),
-          location: location,
-        );
+        final target = signedOutDestination(onboardingSeen: onboardingSeen, location: location);
         return target == location ? null : target;
       }
-      if (publicPaths.contains(location)) return '/accueil';
+      final target = signedInDestination(
+        onboardingSeen: onboardingSeen,
+        location: location,
+        requested: state.uri.toString(),
+      );
+      if (target != location) return target;
 
       final role = ref.read(currentRoleProvider);
       if (!canAccessPath(role, location)) {
@@ -151,10 +172,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 List<RouteBase> _appRoutes() => [
       // Présentation → connexion en fondu : un glissement latéral laisserait
-      // croire qu'on peut revenir en arrière alors que la préférence est posée.
+      // croire qu'on peut revenir en arrière alors que l'état « vu » est posé.
       GoRoute(
         path: onboardingPath,
-        pageBuilder: (_, s) => _fadePage(s, const OnboardingScreen()),
+        pageBuilder: (_, s) => _fadePage(s, OnboardingScreen(next: s.uri.queryParameters[onboardingNextParam])),
       ),
       GoRoute(
         path: '/login',

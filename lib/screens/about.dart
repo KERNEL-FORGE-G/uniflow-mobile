@@ -5,7 +5,6 @@ import '../widgets/phosphor.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_info.dart';
-import '../providers/onboarding_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/uni_icons.dart';
@@ -41,12 +40,11 @@ class AboutScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _replayOnboarding(BuildContext context, WidgetRef ref) async {
-    // La préférence est effacée avant d'ouvrir : si l'utilisateur ferme
-    // l'application en cours de route, la présentation reviendra quand même
-    // au prochain démarrage hors session.
-    await ref.read(onboardingSeenProvider.notifier).reset();
-    if (!context.mounted) return;
+  Future<void> _replayOnboarding(BuildContext context) async {
+    // On n'efface plus l'état « vu » : il ne vit qu'en mémoire et la
+    // présentation revient de toute façon au prochain lancement. Le remettre
+    // à `false` ici ferait aussitôt rediriger le routeur vers /bienvenue,
+    // par-dessus la page poussée.
     await Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const OnboardingScreen(replay: true)),
     );
@@ -117,7 +115,7 @@ class AboutScreen extends ConsumerWidget {
                       icon: PhosphorIconsDuotone.arrowCounterClockwise,
                       title: 'Revoir la présentation',
                       subtitle: 'Les quatre écrans du premier lancement',
-                      onTap: () => _replayOnboarding(context, ref),
+                      onTap: () => _replayOnboarding(context),
                     ),
                   ],
                 ),
