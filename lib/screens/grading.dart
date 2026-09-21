@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/feedback.dart';
 import '../widgets/motion.dart';
+import '../widgets/phosphor.dart';
 
 /// Saisie des notes, face enseignant/administration de l'onglet « Notes ».
 ///
@@ -52,7 +53,7 @@ class _GradingScreenState extends ConsumerState<GradingScreen> {
                     : list;
                 if (mine.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.grading_outlined,
+                    icon: PhosphorIconsDuotone.chartLineUp,
                     title: 'Aucun cours à noter',
                     message: 'Aucun cours de votre périmètre ne vous est affecté pour l\'instant.',
                   );
@@ -66,7 +67,7 @@ class _GradingScreenState extends ConsumerState<GradingScreen> {
                         initialValue: course.id,
                         isExpanded: true,
                         decoration: const InputDecoration(
-                            labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
+                            labelText: 'Cours', prefixIcon: PhosphorIcon(PhosphorIconsBold.bookOpenText, size: 20)),
                         items: [
                           for (final c in mine)
                             DropdownMenuItem(
@@ -115,7 +116,7 @@ class _RosterView extends ConsumerWidget {
       data: (data) {
         if (data.students.isEmpty) {
           return const EmptyState(
-              icon: Icons.people_outline,
+              icon: PhosphorIconsDuotone.graduationCap,
               title: 'Aucun inscrit',
               message: 'Aucun apprenant n\'est inscrit à ce cours.');
         }
@@ -140,7 +141,7 @@ class _RosterView extends ConsumerWidget {
                       ),
                     ),
                   ActionChip(
-                    avatar: const Icon(Icons.add, size: 16),
+                    avatar: const PhosphorIcon(PhosphorIconsBold.plus, size: 16),
                     label: const Text('Évaluation'),
                     onPressed: () async {
                       final title = await _askTitle(context);
@@ -153,7 +154,7 @@ class _RosterView extends ConsumerWidget {
             if (current == null)
               const Expanded(
                 child: EmptyState(
-                  icon: Icons.post_add_outlined,
+                  icon: PhosphorIconsDuotone.filePlus,
                   title: 'Créez une évaluation',
                   message: 'CC1, TP, Examen… puis notez chaque apprenant.',
                 ),
@@ -416,7 +417,7 @@ class _GradeSheetState extends State<_GradeSheet> {
               TextButton.icon(
                 onPressed: () => Navigator.of(context).pop(const _GradeInput(delete: true)),
                 style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                icon: const Icon(Icons.delete_outline, size: 18),
+                icon: const PhosphorIcon(PhosphorIconsBold.trash, size: 18),
                 label: const Text('Supprimer cette note'),
               ),
             ],

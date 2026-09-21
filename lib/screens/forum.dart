@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 import '../theme/app_theme.dart';
 import '../repositories/forum_repository.dart';
 import '../providers/providers.dart';
@@ -110,7 +111,7 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
               data: (posts) {
                 if (posts.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.forum_outlined,
+                    icon: PhosphorIconsDuotone.usersThree,
                     title: 'Aucune publication',
                     message: 'Lancez la première discussion du forum.',
                   );
@@ -192,7 +193,9 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
         onPressed: _creerBillet,
         backgroundColor: AppColors.primaryBlue,
         tooltip: 'Écrire une publication',
-        child: const Icon(Icons.add, color: Colors.white),
+        // Un bloc-notes plutôt qu'un « + » : le bouton ouvre une rédaction,
+        // et le « + » de Phosphor n'a pas de graisse pleine (c'est un trait).
+        child: const PhosphorIcon(PhosphorIconsFill.notePencil, color: Colors.white),
       ),
     );
   }
@@ -217,7 +220,7 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
             if (enCours)
               const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
             else
-              Icon(aime ? Icons.thumb_up : Icons.thumb_up_outlined, size: 16, color: couleur),
+              PhosphorIcon(aime ? PhosphorIconsFill.thumbsUp : PhosphorIconsBold.thumbsUp, size: 16, color: couleur),
             const SizedBox(width: 4),
             Text(
               '${post.likes}',

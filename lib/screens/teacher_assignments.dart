@@ -12,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/feedback.dart';
 import '../widgets/motion.dart';
+import '../widgets/phosphor.dart';
 
 /// Devoirs, face enseignant : ses énoncés (brouillons compris), leur nombre de
 /// rendus, et la création d'un nouveau devoir PDF/TD visant la filière et le
@@ -37,7 +38,7 @@ class TeacherAssignmentsScreen extends ConsumerWidget {
     final assignments = ref.watch(teacherAssignmentsProvider);
     return Scaffold(
       floatingActionButton: GradientFab(
-        icon: Icons.post_add_rounded,
+        icon: PhosphorIconsFill.filePlus,
         label: 'Devoir',
         onPressed: () => _create(context, ref),
       ),
@@ -54,7 +55,7 @@ class TeacherAssignmentsScreen extends ConsumerWidget {
               ),
               data: (list) => list.isEmpty
                   ? const EmptyState(
-                      icon: Icons.assignment_outlined,
+                      icon: PhosphorIconsDuotone.clipboardText,
                       title: 'Aucun devoir',
                       message:
                           'Publiez un premier énoncé : les apprenants de la filière et du niveau du cours le recevront.',
@@ -154,11 +155,12 @@ class _AssignmentCard extends ConsumerWidget {
             height: 44,
             decoration: BoxDecoration(color: AppColors.primary50, borderRadius: BorderRadius.circular(12)),
             alignment: Alignment.center,
-            child: Icon(
+            // Mêmes glyphes que la liste des devoirs côté apprenant.
+            child: PhosphorIcon(
               switch (assignment.type) {
-                AssignmentType.quiz => Icons.quiz_outlined,
-                AssignmentType.pdf => Icons.picture_as_pdf_outlined,
-                AssignmentType.td => Icons.edit_note_outlined,
+                AssignmentType.quiz => PhosphorIconsDuotone.exam,
+                AssignmentType.pdf => PhosphorIconsDuotone.filePdf,
+                AssignmentType.td => PhosphorIconsDuotone.pencilSimpleLine,
               },
               color: AppColors.primaryBlue,
             ),
@@ -187,7 +189,7 @@ class _AssignmentCard extends ConsumerWidget {
           IconButton(
               tooltip: 'Supprimer',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20)),
+              icon: const PhosphorIcon(PhosphorIconsBold.trash, color: AppColors.textMuted, size: 20)),
         ],
       ),
     );
@@ -287,8 +289,8 @@ class _AssignmentFormState extends State<_AssignmentForm> {
               DropdownButtonFormField<String>(
                 initialValue: _course?.id,
                 isExpanded: true,
-                decoration:
-                    const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
+                decoration: const InputDecoration(
+                    labelText: 'Cours', prefixIcon: PhosphorIcon(PhosphorIconsBold.bookOpenText, size: 20)),
                 items: [
                   for (final c in widget.courses)
                     DropdownMenuItem(
@@ -322,7 +324,7 @@ class _AssignmentFormState extends State<_AssignmentForm> {
                   flex: 2,
                   child: OutlinedButton.icon(
                     onPressed: _pickDue,
-                    icon: const Icon(Icons.event_outlined, size: 18),
+                    icon: const PhosphorIcon(PhosphorIconsBold.calendarBlank, size: 18),
                     label:
                         Text(DateFormat('dd/MM/yyyy HH:mm').format(_due), maxLines: 1, overflow: TextOverflow.ellipsis),
                   ),

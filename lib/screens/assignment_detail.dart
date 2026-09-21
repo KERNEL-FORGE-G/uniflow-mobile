@@ -11,6 +11,7 @@ import '../providers/providers.dart';
 import '../repositories/assignment_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 /// Détail d'un devoir, côté élève : passer un quiz ou rendre un PDF/TD.
 ///
@@ -162,7 +163,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
             children: [
               Expanded(
                 child: _MetaTile(
-                  icon: Icons.event_outlined,
+                  icon: PhosphorIconsDuotone.calendarBlank,
                   label: 'Échéance',
                   value: DateFormat('dd/MM/yyyy à HH:mm').format(assignment.dueDate),
                   color: deadlineColor,
@@ -170,7 +171,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
               ),
               Expanded(
                 child: _MetaTile(
-                  icon: Icons.grade_outlined,
+                  icon: PhosphorIconsDuotone.star,
                   label: 'Barème',
                   value: '${_number(assignment.maxScore)} points',
                   color: AppColors.purple,
@@ -183,7 +184,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
             children: [
               Expanded(
                 child: _MetaTile(
-                  icon: Icons.timelapse_outlined,
+                  icon: PhosphorIconsDuotone.clockCountdown,
                   label: 'Temps restant',
                   value:
                       late ? (assignment.allowLate ? 'Retard accepté' : 'Délai dépassé') : _remainingLabel(remaining),
@@ -192,7 +193,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
               ),
               Expanded(
                 child: _MetaTile(
-                  icon: assignment.allowLate ? Icons.lock_open_outlined : Icons.lock_outline,
+                  icon: assignment.allowLate ? PhosphorIconsDuotone.lockOpen : PhosphorIconsDuotone.lock,
                   label: 'Retard',
                   value: assignment.allowLate ? 'Accepté' : 'Refusé',
                   color: AppColors.textSecondary,
@@ -204,7 +205,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
             const Divider(height: 28),
             Row(
               children: [
-                const Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
+                const PhosphorIcon(PhosphorIconsBold.chalkboardTeacher, size: 16, color: AppColors.textSecondary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -261,7 +262,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
                   color: AppColors.danger.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.danger, size: 21),
+                child: const PhosphorIcon(PhosphorIconsDuotone.filePdf, color: AppColors.danger, size: 21),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -279,7 +280,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _openSubject,
-              icon: const Icon(Icons.open_in_new, size: 17),
+              icon: const PhosphorIcon(PhosphorIconsBold.arrowSquareOut, size: 17),
               label: const Text('Ouvrir l\'énoncé'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 13),
@@ -313,7 +314,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
         SectionCard(
           child: Row(
             children: [
-              const Icon(Icons.quiz_outlined, size: 18, color: AppColors.primaryBlue),
+              const PhosphorIcon(PhosphorIconsDuotone.exam, size: 18, color: AppColors.primaryBlue),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -403,7 +404,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 15, color: accent),
+                  PhosphorIcon(PhosphorIconsDuotone.lightbulb, size: 15, color: accent),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -524,7 +525,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
     if (_attached != null) {
       return Row(
         children: [
-          const Icon(Icons.image_outlined, size: 18, color: AppColors.teal),
+          const PhosphorIcon(PhosphorIconsDuotone.image, size: 18, color: AppColors.teal),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -536,7 +537,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
           ),
           IconButton(
             onPressed: locked ? null : () => setState(() => _attached = null),
-            icon: const Icon(Icons.close, size: 18),
+            icon: const PhosphorIcon(PhosphorIconsBold.x, size: 18),
             color: AppColors.danger,
             tooltip: 'Retirer',
           ),
@@ -548,7 +549,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: locked ? null : _pickPhoto,
-        icon: const Icon(Icons.photo_camera_outlined, size: 18),
+        icon: const PhosphorIcon(PhosphorIconsBold.camera, size: 18),
         label: const Text('Photographier mon travail'),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -563,8 +564,8 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
     final submission = widget.submission!;
     return Row(
       children: [
-        Icon(
-          submission.hasFile ? Icons.check_circle_outline : Icons.notes_outlined,
+        PhosphorIcon(
+          submission.hasFile ? PhosphorIconsFill.checkCircle : PhosphorIconsFill.notepad,
           size: 18,
           color: AppColors.success,
         ),
@@ -586,7 +587,7 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
   Widget _buildSubmitButton() {
     return PrimaryButton(
       label: widget.assignment.quiz != null ? 'Rendre mon devoir' : 'Marquer comme rendu',
-      icon: Icons.send_outlined,
+      icon: PhosphorIconsFill.paperPlaneTilt,
       isLoading: _submitting,
       onPressed: _submitting ? null : _submit,
     );
@@ -602,8 +603,8 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
         children: [
           Row(
             children: [
-              Icon(
-                graded ? Icons.emoji_events_outlined : Icons.hourglass_bottom,
+              PhosphorIcon(
+                graded ? PhosphorIconsFill.trophy : PhosphorIconsFill.hourglassMedium,
                 size: 18,
                 color: graded ? AppColors.success : AppColors.warning,
               ),
@@ -861,8 +862,8 @@ class _ChoiceRow extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                PhosphorIcon(
+                  selected ? PhosphorIconsFill.radioButton : PhosphorIconsBold.circle,
                   size: 19,
                   color: selected ? AppColors.primaryBlue : AppColors.textMuted,
                 ),
@@ -879,7 +880,7 @@ class _ChoiceRow extends StatelessWidget {
                 ),
                 if (isAnswer) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.check_circle, size: 16, color: AppColors.success),
+                  const PhosphorIcon(PhosphorIconsFill.checkCircle, size: 16, color: AppColors.success),
                 ],
               ],
             ),
@@ -911,7 +912,7 @@ class _MetaTile extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, size: 13, color: AppColors.textSecondary),
+            PhosphorIcon(icon, size: 13, color: AppColors.textSecondary),
             const SizedBox(width: 5),
             Flexible(
               child: Text(
