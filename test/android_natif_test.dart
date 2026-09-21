@@ -129,6 +129,66 @@ void main() {
     });
   });
 
+  group('Release', () {
+    final gradle = File('$racine/android/app/build.gradle.kts').readAsStringSync();
+
+    test('la release est réduite par R8, avec les règles du dépôt', () {
+      expect(gradle, contains('isMinifyEnabled = true'));
+      expect(gradle, contains('isShrinkResources = true'));
+      expect(gradle, contains('"proguard-rules.pro"'));
+      expect(File('$racine/android/app/proguard-rules.pro').existsSync(), isTrue);
+    });
+
+    test('la signature vient de key.properties, jamais versionné, sans clé dans le dépôt', () {
+      expect(gradle, contains('rootProject.file("key.properties")'));
+      // Sans le fichier, on retombe sur la clé de debug : la compilation reste
+      // vérifiable sur un poste sans secret.
+      expect(gradle, contains('signingConfigs.getByName(if (signatureRelease) "release" else "debug")'));
+      final ignore = File('$racine/android/.gitignore').readAsStringSync().split('\n').map((l) => l.trim());
+      expect(ignore, containsAll(['key.properties', '**/*.keystore', '**/*.jks']));
+      final suivis = Process.runSync('git', ['ls-files'], workingDirectory: racine).stdout as String;
+      final secrets = suivis.split('\n').where(
+        (f) => f.endsWith('key.properties') || f.endsWith('.jks') || f.endsWith('.keystore'),
+      );
+      expect(secrets, isEmpty, reason: 'un keystore ou ses mots de passe sont suivis par Git');
+    });
+
+    test('la réduction des ressources conserve l\'icône de notification désignée depuis Dart', () {
+      // Référencée par une chaîne Dart, elle est invisible au réducteur, qui
+      // la retirerait de l'APK : le système refuserait alors la notification.
+      final keep = File('$res/raw/keep.xml').readAsStringSync();
+      final conserves = RegExp(r'tools:keep="([^"]+)"').firstMatch(keep)?.group(1)?.split(',').map((s) => s.trim());
+      expect(conserves, isNotNull, reason: 'res/raw/keep.xml sans attribut tools:keep');
+      expect(conserves, contains(notificationIcon));
+    });
+
+    test('le .env embarqué ne contient que des identifiants publics', () {
+      // Flutter déclare .env comme asset : il est lisible en clair dans l'APK.
+      // Une clé d'API Appwrite y a déjà figuré ; ce test empêche son retour.
+      final lignes = File('$racine/.env')
+          .readAsLinesSync()
+          .map((l) => l.trim())
+          .where((l) => l.isNotEmpty && !l.startsWith('#'));
+      const publics = {
+        'APPWRITE_ENDPOINT',
+        'APPWRITE_PROJECT_ID',
+        'APPWRITE_DATABASE_ID',
+        'APPWRITE_STORAGE_BUCKET_ID',
+        'APPWRITE_AVATAR_BUCKET_ID',
+        'APPWRITE_CHAT_FILES_BUCKET_ID',
+        'APPWRITE_API_FUNCTION_ID',
+      };
+      for (final ligne in lignes) {
+        final nom = ligne.split('=').first;
+        final valeur = ligne.substring(nom.length + 1);
+        expect(publics, contains(nom), reason: '$nom : variable inconnue dans .env, à justifier ici si elle est publique');
+        expect(nom, isNot(matches(RegExp(r'KEY|SECRET|TOKEN|PASSWORD'))));
+        // Une clé d'API Appwrite fait plus de 200 caractères hexadécimaux.
+        expect(valeur.length, lessThan(80), reason: '$nom a une valeur de la taille d\'un secret');
+      }
+    });
+  });
+
   group('launchLocationFromLink', () {
     test('ramène les deux écritures du schéma uniflow à la même route', () {
       // Trois barres : chemin. Deux barres : Uri y voit un hôte et un chemin

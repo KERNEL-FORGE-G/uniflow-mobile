@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ressources à conserver malgré isShrinkResources (release).
+
+     Le réducteur de ressources ne garde que ce qui est référencé depuis le
+     code Java/Kotlin, le manifeste ou une autre ressource. Une ressource
+     désignée uniquement depuis Dart par son nom (chaîne passée au greffon)
+     lui paraît inutilisée et disparaît de l'APK : c'est le cas de l'icône de
+     barre d'état ic_stat_uniflow, que flutter_local_notifications résout par
+     nom à l'exécution (notificationIcon dans lib/services/notification_service.dart).
+     Sans cette liste, la notification est refusée par le système (« invalid
+     small icon ») et plus aucune alerte de message urgent ne s'affiche en
+     release — silencieusement. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_uniflow" />
