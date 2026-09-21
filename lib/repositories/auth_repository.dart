@@ -7,6 +7,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/appwrite_provider.dart';
@@ -138,6 +139,15 @@ Map<String, dynamic> registrationProfileDocument(
   };
 }
 
+/// Message d'erreur si la confirmation ne reprend pas le mot de passe, ou
+/// `null`. Vérifié après [validateRegistration] : un mot de passe trop court
+/// se signale avant sa confirmation.
+String? passwordConfirmationError(String password, String confirmation) {
+  if (confirmation.isEmpty) return 'Confirmez votre mot de passe.';
+  if (password != confirmation) return 'Les deux mots de passe ne correspondent pas.';
+  return null;
+}
+
 /// Message d'erreur du formulaire d'inscription, ou `null` s'il est valide.
 ///
 /// Appliqué avant l'appel réseau pour un retour immédiat ; l'unicité de
@@ -262,7 +272,16 @@ class AuthRepository {
     }
 
     if (input.accountType == UniFlowAccountType.university) {
-      await provisionAcademicRegistration(matricule: input.matricule);
+      // Le raccordement ne conditionne plus l'inscription : compte et session
+      // existent, et l'échec courant — cours de la filière pas encore publiés —
+      // se rattrape à la connexion suivante (`retryAcademicProvisioning`).
+      // Avant, l'étudiant lisait « Compte créé, mais… » devant le formulaire.
+      try {
+        await provisionAcademicRegistration(matricule: input.matricule);
+      } on AuthException catch (error) {
+        debugPrint('Raccordement académique différé : ${error.message}');
+        _academicProvisioningPending = true;
+      }
     }
 
     final user = await getCurrentUser();
@@ -272,9 +291,14 @@ class AuthRepository {
     return user;
   }
 
+  /// Vrai tant qu'un raccordement académique reste à rejouer dans ce processus.
+  bool _academicProvisioningPending = false;
+
   /// Rattache l'étudiant connecté à l'annuaire et aux cours de sa filière
-  /// (service `/academic-registration`, action `provision`).
-  Future<void> provisionAcademicRegistration({String matricule = ''}) async {
+  /// (service `/academic-registration`, action `provision`). Renvoie `false`
+  /// quand le serveur signale que les cours de la filière ne sont pas encore
+  /// publiés (`coursesReady: false`) : l'appel est à rejouer plus tard.
+  Future<bool> provisionAcademicRegistration({String matricule = ''}) async {
     Map<String, dynamic> data;
     try {
       data = await _service.callService('/academic-registration', {
@@ -282,18 +306,32 @@ class AuthRepository {
         'matricule': matricule.trim(),
       });
     } catch (error) {
-      throw AuthException(
-        'Compte créé, mais le raccordement académique a échoué ($error). '
-        'Connectez-vous puis relancez l\'inscription universitaire depuis cette session.',
-      );
+      throw AuthException('Le raccordement académique a échoué ($error).');
     }
     if (data['ok'] != true) {
       throw AuthException(
-        'Compte créé, mais ${data['message'] ?? 'le raccordement académique a été refusé.'} '
-        'Connectez-vous puis relancez l\'inscription universitaire depuis cette session.',
+        (data['message'] as String?) ?? 'Le raccordement académique a été refusé.',
       );
     }
+    return data['coursesReady'] != false;
   }
+
+  /// Rejoue le raccordement d'un apprenant universitaire à la connexion, si
+  /// celui de l'inscription n'a pas abouti. Idempotent côté serveur (annuaire
+  /// et inscriptions existants conservés). Ne lève jamais : c'est un
+  /// rattrapage, pas une condition d'accès.
+  Future<void> retryAcademicProvisioning(UniFlowUser user) async {
+    if (!user.isUniversity || user.isPlatform) return;
+    if (!const {'STUDENT', 'DELEGATE'}.contains(user.role.toUpperCase())) return;
+    if ((user.program ?? '').isEmpty || (user.level ?? '').isEmpty) return;
+    try {
+      _academicProvisioningPending = !await provisionAcademicRegistration();
+    } on AuthException catch (error) {
+      debugPrint('Raccordement académique toujours différé : ${error.message}');
+    }
+  }
+
+  bool get academicProvisioningPending => _academicProvisioningPending;
 
   /// Envoie l'e-mail de réinitialisation du mot de passe.
   Future<void> sendPasswordRecovery(String email) async {
@@ -503,3 +541,16 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final service = ref.watch(appwriteServiceProvider);
   return AuthRepository(service);
 });
+
+/// Mot de bienvenue affiché à l'arrivée sur le tableau de bord après
+/// l'inscription. Il remplace l'ancien écran « Entrer dans l'application » :
+/// un étudiant dont les cours ne sont pas encore publiés est prévenu ici.
+String welcomeMessage(UniFlowUser user, {bool pendingCourses = false}) {
+  final prenom = user.name.trim().split(RegExp(r'\s+')).first;
+  final salut = prenom.isEmpty ? 'Bienvenue sur UniFlow' : 'Bienvenue sur UniFlow, $prenom';
+  if (user.isPersonal) return '$salut. Votre espace personnel est prêt.';
+  if (pendingCourses) {
+    return '$salut. Les cours de votre filière ne sont pas encore publiés : vous y serez inscrit automatiquement.';
+  }
+  return '$salut. Votre filière et votre niveau déterminent vos cours, votre emploi du temps et votre annuaire.';
+}

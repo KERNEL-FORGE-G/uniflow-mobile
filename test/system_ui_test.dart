@@ -57,10 +57,14 @@ void main() {
       expect(SystemChrome.latestStyle?.statusBarColor, Colors.transparent);
     });
 
-    testWidgets('l\'écran de connexion demande des icônes de statut sombres', (tester) async {
+    testWidgets('l\'écran de connexion (bandeau bleu, feuille blanche) : statut clair, navigation sombre',
+        (tester) async {
+      // Depuis la maquette du 2026-09-21, le haut de l'écran est un bandeau
+      // bleu → icônes de statut claires ; la feuille blanche repose sur la
+      // barre de navigation → icônes sombres.
       await tester.pumpWidget(host(const AuthScaffold(showBrand: false, child: SizedBox(height: 40))));
       await tester.pump();
-      expect(SystemChrome.latestStyle?.statusBarIconBrightness, Brightness.dark);
+      expect(SystemChrome.latestStyle?.statusBarIconBrightness, Brightness.light);
       expect(SystemChrome.latestStyle?.systemNavigationBarIconBrightness, Brightness.dark);
     });
 

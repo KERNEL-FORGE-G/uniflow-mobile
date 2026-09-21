@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,6 +84,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.read(currentUserProvider.notifier).state = user;
       ref.read(authStatusProvider.notifier).state = AuthStatus.signedIn;
       // Le redirect du routeur bascule alors automatiquement sur /accueil.
+      // Un étudiant inscrit avant la publication des cours de sa filière est
+      // raccordé ici, en arrière-plan, sans retarder l'entrée.
+      unawaited(auth.retryAcademicProvisioning(user));
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -99,49 +103,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final university = _type == UniFlowAccountType.university;
     return AuthScaffold(
+      // Uni accueille, réfléchit pendant la connexion et s'excuse sur une
+      // erreur : l'état se lit avant même le message.
+      pose: _error != null
+          ? UniPose.sorry
+          : _busy
+              ? UniPose.thinking
+              : UniPose.wave,
+      headline: const AuthHeadline('Connectez-vous pour rester ', 'au fil', ' de vos cours, devoirs et notes.'),
       child: AuthCard(
         children: [
-          // Uni accueille, réfléchit pendant la connexion et s'excuse sur une
-          // erreur : l'état se lit avant même le message.
-          Center(
-            child: UniMascot(
-              pose: _error != null
-                  ? UniPose.sorry
-                  : _busy
-                      ? UniPose.thinking
-                      : UniPose.wave,
-              size: 96,
-              effects: false,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Se connecter',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.h1,
-          ),
-          const SizedBox(height: 6),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Text(
-              university ? 'Connectez-vous à votre espace académique' : 'Connectez-vous à votre espace personnel',
-              key: ValueKey(university),
-              textAlign: TextAlign.center,
-              style: AppTextStyles.body,
-            ),
+          AuthSheetTitle(
+            title: 'Connexion',
+            prompt: 'Pas encore de compte ?',
+            actionLabel: 'S\'inscrire',
+            onAction: _busy ? null : () => context.push('/register?type=${_type.wireValue}'),
           ),
           const SizedBox(height: 18),
           AccountTypeSelector(
             value: _type,
             onChanged: _busy ? null : (type) => setState(() => _type = type),
           ),
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Text(
+              university
+                  ? 'Votre espace académique : cours, notes, présences.'
+                  : 'Votre espace personnel : matières, tâches, agenda.',
+              key: ValueKey(university),
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall,
+            ),
+          ),
           if (_error != null) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             FeedbackBanner(kind: FeedbackKind.failure, message: _error!),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           TextField(
             controller: _email,
             enabled: !_busy,
@@ -189,25 +188,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 16),
           GradientButton(label: 'Se connecter', isLoading: _busy, onPressed: _busy ? null : _submit),
-          const SizedBox(height: 18),
-          // `Wrap` plutôt que `Row` : aux grandes échelles de texte les deux
-          // segments ne tiennent pas côte à côte et déborderaient.
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              const Text('Pas encore de compte ? ', style: AppTextStyles.bodySmall),
-              TextButton(
-                onPressed: _busy ? null : () => context.push('/register?type=${_type.wireValue}'),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text('Créer un compte', style: AppTextStyles.link),
-              ),
-            ],
-          ),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/feedback.dart';
+import '../widgets/uni/uni_mascot.dart';
 
 /// Récupération de mot de passe : Appwrite envoie un e-mail dont le lien mène
 /// à la page `reset-password` du web, la seule plateforme d'où un mot de passe
@@ -55,7 +56,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      showBrand: false,
+      pose: _sent
+          ? UniPose.celebrate
+          : _error != null
+              ? UniPose.sorry
+              : UniPose.search,
+      headline: const AuthHeadline('Un ', 'lien', ' suffit pour retrouver l\'accès à votre espace.'),
+      onBack: _busy ? null : _back,
       child: AuthCard(
         children: [
           if (_sent)
@@ -69,23 +76,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               onAction: _back,
             )
           else ...[
-            Row(
-              children: [
-                IconButton(
-                  onPressed: _busy ? null : _back,
-                  tooltip: 'Retour à la connexion',
-                  icon: const Icon(Icons.arrow_back_rounded),
-                ),
-                const Expanded(
-                  child: Text('Mot de passe oublié',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.h1),
-                ),
-              ],
+            AuthSheetTitle(
+              title: 'Mot de passe oublié',
+              prompt: 'Vous vous en souvenez ?',
+              actionLabel: 'Se connecter',
+              onAction: _busy ? null : _back,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 10),
             const Text(
               'Indiquez l\'adresse de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.',
-              style: AppTextStyles.body,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall,
             ),
             if (_error != null) ...[
               const SizedBox(height: 16),

@@ -25,6 +25,7 @@ import '../screens/presence.dart';
 import '../screens/settings.dart';
 import '../screens/grades.dart';
 import '../screens/assignments.dart';
+import '../screens/badges.dart';
 import '../screens/teacher_assignments.dart';
 import '../screens/library.dart';
 import '../screens/forum.dart';
@@ -170,6 +171,7 @@ List<RouteBase> _appRoutes() => [
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(path: '/accueil', builder: (_, __) => const DashboardScreen()),
+          GoRoute(path: '/badges', builder: (_, __) => const BadgesScreen()),
           GoRoute(path: '/etudiants', builder: (_, __) => const StudentsListScreen()),
           GoRoute(path: '/etudiants/:id', builder: (_, s) => StudentDetailScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/enseignants', builder: (_, __) => const TeachersListScreen()),

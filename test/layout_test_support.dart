@@ -25,6 +25,10 @@ import 'package:uniflow_mobile/theme/app_theme.dart';
 import 'package:uniflow_mobile/screens/assignments.dart';
 import 'package:uniflow_mobile/screens/grades.dart';
 import 'package:uniflow_mobile/screens/library.dart';
+import 'package:uniflow_mobile/models/assignment_models.dart';
+import 'package:uniflow_mobile/models/badges.dart';
+import 'package:uniflow_mobile/providers/badges_provider.dart';
+import 'package:uniflow_mobile/screens/teacher_assignments.dart';
 
 UniFlowUser user() => UniFlowUser(
       id: 'u1',
@@ -310,10 +314,22 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       programsProvider
           .overrideWith((ref, key) async => key.startsWith('UT1') ? const [filiereDeTest, ...douzeFilieres] : const []),
       selectableProgramsProvider.overrideWith((ref) async => douzeFilieres),
+      // Badges et accueil enseignant : présences, sujets du forum et devoirs
+      // publiés viennent d'Appwrite ; ici, des listes vides suffisent.
+      myAttendanceProvider.overrideWith((ref) => Stream.value(const <AttendanceMark>[])),
+      myForumPostCountProvider.overrideWith((ref) => Stream.value(0)),
+      teacherAssignmentsProvider.overrideWith((ref) async => const <Assignment>[]),
       ...overrides,
     ],
     child: MaterialApp(
       theme: AppTheme.light,
+      // Uni boucle sans fin sur les écrans hors session et les états vides ;
+      // `pumpAndSettle` ne se poserait jamais. La mascotte respecte la
+      // préférence « moins de mouvement » : on la déclare pour tous les tests.
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: true),
+        child: child!,
+      ),
       home: Scaffold(body: child),
     ),
   );

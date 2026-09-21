@@ -148,6 +148,19 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
+  /// Bandeau des écrans hors session (maquette du 2026-09-21) : bleu marine
+  /// en haut, teal en bas, là où la feuille blanche vient se poser.
+  static const LinearGradient authHeroGradient = LinearGradient(
+    colors: [primaryBlue, Color(0xFF15558F), teal],
+    stops: [0, 0.55, 1],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  /// Mot mis en couleur dans l'accroche du bandeau ; l'ambre des badges,
+  /// lisible sur le bleu comme sur le teal.
+  static const Color authAccent = Color(0xFFFBBF24);
+
   /// Dégradé « mesh » des fonds de page d'authentification
   /// (`bg-gradient-mesh` du web).
   static const LinearGradient meshGradient = LinearGradient(
@@ -275,6 +288,9 @@ class AppTheme {
 
   /// Rayon des grandes surfaces (feuilles, cartes de connexion).
   static const double radiusSheet = 20;
+
+  /// Rayon des coins hauts de la feuille des écrans hors session.
+  static const double radiusAuthSheet = 30;
 
   static ThemeData get light {
     // `GoogleFonts.interTextTheme` a besoin d'un `TextTheme` de départ, qui ne

@@ -9,6 +9,7 @@ import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/feedback.dart';
+import '../widgets/uni/uni_mascot.dart';
 
 /// Inscription native, miroir de la page `/register` du web.
 ///
@@ -33,6 +34,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirm = TextEditingController();
   final _matricule = TextEditingController();
   late UniFlowAccountType _type = widget.initialType;
   University? _university;
@@ -41,7 +43,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   String? _level;
   bool _obscure = true;
   bool _busy = false;
-  bool _done = false;
   String? _error;
 
   @override
@@ -49,6 +50,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _name.dispose();
     _email.dispose();
     _password.dispose();
+    _confirm.dispose();
     _matricule.dispose();
     super.dispose();
   }
@@ -68,7 +70,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     final input = _input();
-    final invalid = validateRegistration(input);
+    final invalid = validateRegistration(input) ?? passwordConfirmationError(_password.text, _confirm.text);
     if (invalid != null) {
       setState(() => _error = invalid);
       return;
@@ -82,11 +84,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       final auth = ref.read(authRepositoryProvider);
       final user = await auth.register(input);
       if (!mounted) return;
+      // Le compte est créé et la session ouverte : on entre directement dans
+      // l'application (le routeur mène au tableau de bord du rôle), sans écran
+      // intermédiaire à valider. Le mot de bienvenue s'affiche par-dessus.
+      setState(() => _busy = false);
       ref.read(currentUserProvider.notifier).state = user;
-      setState(() {
-        _busy = false;
-        _done = true;
-      });
+      ref.read(authStatusProvider.notifier).state = AuthStatus.signedIn;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(welcomeMessage(user, pendingCourses: auth.academicProvisioningPending)),
+          duration: const Duration(seconds: 6),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -96,12 +106,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
-  /// Le compte est créé et la session ouverte : basculer l'état
-  /// d'authentification suffit, le routeur mène à l'accueil.
-  void _enter() {
-    ref.read(authStatusProvider.notifier).state = AuthStatus.signedIn;
-  }
-
   Future<void> _openWeb() async {
     final uri = Uri.parse(webRegisterUrl);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted) {
@@ -109,66 +113,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  void _back() => context.canPop() ? context.pop() : context.go('/login');
+
   @override
   Widget build(BuildContext context) {
-    if (_done) {
-      return AuthScaffold(
-        child: AuthCard(
-          children: [
-            FeedbackView(
-              kind: FeedbackKind.success,
-              title: 'Bienvenue sur UniFlow',
-              message: _type == UniFlowAccountType.university
-                  ? 'Votre compte étudiant est créé. Votre filière et votre niveau '
-                      'déterminent les cours, l\'emploi du temps et l\'annuaire que vous verrez.'
-                  : 'Votre espace personnel est prêt : matières, tâches, agenda et notes.',
-              actionLabel: 'Entrer dans l\'application',
-              onAction: _enter,
-            ),
-          ],
-        ),
-      );
-    }
-
     final university = _type == UniFlowAccountType.university;
     return AuthScaffold(
-      showBrand: false,
+      pose: _error != null ? UniPose.sorry : UniPose.pointing,
+      headline: const AuthHeadline('Créez votre compte et ', 'simplifiez', ' votre vie étudiante.'),
+      onBack: _busy ? null : _back,
       child: AuthCard(
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: _busy ? null : () => context.canPop() ? context.pop() : context.go('/login'),
-                tooltip: 'Retour à la connexion',
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
-              const Expanded(
-                child: Text(
-                  'Créer un compte',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.h1,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            university
-                ? 'Compte étudiant rattaché à votre université.'
-                : 'Espace personnel pour organiser vos propres études.',
-            style: AppTextStyles.body,
+          AuthSheetTitle(
+            title: 'Créer un compte',
+            prompt: 'Déjà un compte ?',
+            actionLabel: 'Se connecter',
+            onAction: _busy ? null : _back,
           ),
           const SizedBox(height: 18),
           AccountTypeSelector(
             value: _type,
             onChanged: _busy ? null : (type) => setState(() => _type = type),
           ),
+          const SizedBox(height: 8),
+          Text(
+            university
+                ? 'Compte étudiant rattaché à votre université.'
+                : 'Espace personnel pour organiser vos propres études.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall,
+          ),
           if (_error != null) ...[
             const SizedBox(height: 16),
             FeedbackBanner(kind: FeedbackKind.failure, message: _error!),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           TextField(
             controller: _name,
             enabled: !_busy,
@@ -196,7 +175,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             controller: _password,
             enabled: !_busy,
             obscureText: _obscure,
-            textInputAction: university ? TextInputAction.next : TextInputAction.done,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Mot de passe (8 caractères minimum)',
               prefixIcon: const Icon(Icons.lock_outline, size: 20),
@@ -205,6 +184,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 tooltip: _obscure ? 'Afficher le mot de passe' : 'Masquer le mot de passe',
                 icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
               ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Confirmation, comme sur la maquette : une faute de frappe dans un
+          // mot de passe masqué se découvre sinon à la première reconnexion.
+          TextField(
+            controller: _confirm,
+            enabled: !_busy,
+            obscureText: _obscure,
+            textInputAction: university ? TextInputAction.next : TextInputAction.done,
+            onSubmitted: (_) => university || _busy ? null : _submit(),
+            decoration: const InputDecoration(
+              labelText: 'Confirmer le mot de passe',
+              prefixIcon: Icon(Icons.lock_reset_outlined, size: 20),
             ),
           ),
           // La partie académique glisse en place quand on passe d'un type à

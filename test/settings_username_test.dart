@@ -62,7 +62,11 @@ class _AuthFactice implements AuthRepository {
   Future<UniFlowUser> register(RegistrationInput input) async => resultat ?? user();
 
   @override
-  Future<void> provisionAcademicRegistration({String matricule = ''}) async {}
+  Future<bool> provisionAcademicRegistration({String matricule = ''}) async => true;
+  @override
+  Future<void> retryAcademicProvisioning(UniFlowUser user) async {}
+  @override
+  bool get academicProvisioningPending => false;
 
   @override
   Future<void> sendPasswordRecovery(String email) async {}

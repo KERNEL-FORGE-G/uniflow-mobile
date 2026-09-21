@@ -68,3 +68,6 @@ flutter:
     - assets/assistant/
     - assets/logos/
     - assets/onboarding/
+    # Les six badges de l'apprenant (WebP détourés) : affichés hors ligne sur
+    # l'accueil, ils ne peuvent pas dépendre du réseau.
+    - assets/badges/

@@ -133,6 +133,10 @@ class ShimmerList extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       physics: const NeverScrollableScrollPhysics(),
+      // Le squelette vit aussi dans une Column d'un écran déjà défilant (état
+      // de chargement des « Séances du jour » du tableau de bord) : sans
+      // shrinkWrap, hauteur non bornée et écran rouge au premier rendu.
+      shrinkWrap: true,
       itemCount: count,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) => FadeSlideIn(

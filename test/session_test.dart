@@ -71,7 +71,11 @@ class _Auth implements AuthRepository {
   @override
   Future<UniFlowUser> register(RegistrationInput input) async => user();
   @override
-  Future<void> provisionAcademicRegistration({String matricule = ''}) async {}
+  Future<bool> provisionAcademicRegistration({String matricule = ''}) async => true;
+  @override
+  Future<void> retryAcademicProvisioning(UniFlowUser user) async {}
+  @override
+  bool get academicProvisioningPending => false;
   @override
   Future<void> sendPasswordRecovery(String email) async {}
   @override
