@@ -9,6 +9,14 @@ import '../offline/cached_providers.dart';
 import '../providers/appwrite_provider.dart';
 import '../providers/providers.dart';
 import '../repositories/messaging_repository.dart';
+import '../theme/app_theme.dart';
+
+/// Icône de barre d'état : la silhouette blanche de l'écusson,
+/// `res/drawable-*/ic_stat_uniflow.png`, générée par
+/// `tools/generer-icones-uniflow.py`. Android ne garde que l'alpha d'une icône
+/// de notification et la teinte lui-même ; l'ancien `@mipmap/ic_launcher`, en
+/// couleurs, y devenait un carré gris.
+const String notificationIcon = '@drawable/ic_stat_uniflow';
 
 /// Notifications système d'UniFlow.
 ///
@@ -36,7 +44,7 @@ class LocalNotifications {
   static Future<void> ensureInitialized() async {
     if (_initialized) return;
     const settings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      android: AndroidInitializationSettings(notificationIcon),
       iOS: DarwinInitializationSettings(
         requestAlertPermission: true,
         requestBadgePermission: true,
@@ -91,6 +99,10 @@ class LocalNotifications {
         channelDescription: channelDescription,
         importance: Importance.max,
         priority: Priority.high,
+        icon: notificationIcon,
+        // Couleur d'accent : teinte la silhouette dans le volet et le nom de
+        // l'application dans l'en-tête. Bleu de marque, comme l'icône.
+        color: AppColors.primaryBlue,
         // Le message urgent doit se distinguer au premier regard, d'où une
         // vibration appuyée plutôt que le motif par défaut.
         enableVibration: true,

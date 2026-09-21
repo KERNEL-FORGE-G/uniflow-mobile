@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:uniflow_mobile/router/app_router.dart';
+import 'package:uniflow_mobile/services/notification_service.dart';
 import 'package:uniflow_mobile/theme/app_theme.dart';
 
 void main() {
@@ -112,6 +113,19 @@ void main() {
       final nuit = File('$res/values-night/styles.xml').readAsStringSync();
       expect(nuit, isNot(contains('<style name="LaunchTheme"')));
       expect(nuit, contains('<style name="NormalTheme"'));
+    });
+  });
+
+  group('Notifications', () {
+    test('l\'icône de barre d\'état est un drawable dédié, présent par densité', () {
+      // `@mipmap/ic_launcher` en couleurs donnait un carré gris : Android ne
+      // garde que l'alpha. Le drawable référencé doit exister, sinon le greffon
+      // lève à l'initialisation et plus aucune alerte n'est affichée.
+      expect(notificationIcon, startsWith('@drawable/'));
+      final nom = notificationIcon.substring('@drawable/'.length);
+      for (final densite in const ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']) {
+        expect(File('$res/drawable-$densite/$nom.png').existsSync(), isTrue, reason: '$nom absent en $densite');
+      }
     });
   });
 
