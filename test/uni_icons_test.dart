@@ -1,9 +1,11 @@
 // Icônes UniFlow : la table `subjectIcon` de `docs/icones-uniflow.md`, la
-// couleur d'une matière, et la tuile `IconTile`.
+// couleur d'une matière, la tuile `IconTile`, et l'absence d'icônes Material.
 //
 // `subjectIcon` est une fonction pure partagée par les trois plateformes : ces
 // tests fixent les cas de la spécification pour qu'un réordonnancement de la
 // table ne change pas silencieusement l'icône d'un cours.
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +14,58 @@ import 'package:uniflow_mobile/models/models.dart' show courseColorHex;
 import 'package:uniflow_mobile/theme/app_theme.dart';
 import 'package:uniflow_mobile/widgets/uni_icons.dart';
 
+/// Replis Material délibérés, par fichier (chemin relatif à `lib/`) et par
+/// glyphe (`Icons.xxx`). Vide aujourd'hui : chaque ajout doit être justifié
+/// dans un commentaire à côté de l'icône, sinon le test d'exhaustivité échoue.
+const Map<String, Set<String>> allowedMaterialIcons = {};
+
+/// `\bIcons\.` : `UniIcons.` et `PhosphorIconsDuotone.` ne sont pas précédés
+/// d'une frontière de mot, seul le `Icons.` de Material l'est.
+final RegExp _materialIcon = RegExp(r'\bIcons\.([A-Za-z_][A-Za-z0-9_]*)');
+
 void main() {
+  group('plus aucune icône Material', () {
+    test('lib/ ne référence que des glyphes Phosphor', () {
+      final lib = Directory('lib');
+      expect(lib.existsSync(), isTrue, reason: 'lancer `flutter test` depuis la racine du dépôt');
+
+      final leftovers = <String>[];
+      final files = lib.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart'));
+      for (final file in files) {
+        final relative = file.path.substring(lib.path.length + 1);
+        final allowed = allowedMaterialIcons[relative] ?? const <String>{};
+        final lines = file.readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          // Les commentaires peuvent citer un nom Material (« remplace
+          // Icons.school ») sans que ce soit une icône affichée.
+          final code = lines[i].split('//').first;
+          for (final match in _materialIcon.allMatches(code)) {
+            if (allowed.contains(match.group(1))) continue;
+            leftovers.add('$relative:${i + 1}: ${match.group(0)}');
+          }
+        }
+      }
+
+      expect(leftovers, isEmpty,
+          reason: 'Icônes Material restantes (à remplacer par un glyphe Phosphor, '
+              'ou à déclarer dans allowedMaterialIcons avec sa justification) :\n${leftovers.join('\n')}');
+    });
+
+    test('la liste blanche ne garde que des replis encore présents', () {
+      // Une entrée orpheline laisserait croire qu'un repli existe encore ; on
+      // la retire quand l'icône a été remplacée.
+      for (final entry in allowedMaterialIcons.entries) {
+        final file = File('lib/${entry.key}');
+        expect(file.existsSync(), isTrue, reason: '${entry.key} n\'existe plus');
+        final source = file.readAsStringSync();
+        for (final glyph in entry.value) {
+          expect(RegExp('\\bIcons\\.$glyph\\b').hasMatch(source), isTrue,
+              reason: '${entry.key} n\'utilise plus Icons.$glyph');
+        }
+      }
+    });
+  });
+
   group('subjectIcon', () {
     test('cas de la spécification', () {
       expect(subjectIcon('Mathématiques'), PhosphorIconsDuotone.mathOperations);
