@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <!-- Thème de la fenêtre pendant le démarrage du processus, avant le premier
+         rendu Flutter. Le fond est l'écran de lancement de marque
+         (drawable/launch_background) ; Android 12+ le complète par les attributs
+         de values-v31/styles.xml.
+
+         Il n'existe volontairement PAS de LaunchTheme dans values-night : le
+         qualificatif « night » l'emporte sur « v31 » dans la résolution des
+         ressources, et un LaunchTheme de nuit aurait masqué l'écran de
+         lancement système en mode sombre. L'écran de lancement est le même de
+         jour et de nuit, comme l'écran de garde Flutter qui le suit. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <!-- Show a splash screen on the activity. Automatically removed when
-             the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Libellés des raccourcis du lanceur (res/xml/shortcuts.xml). Le court
+         s'affiche sous l'icône épinglée (dix caractères visibles environ), le
+         long dans le menu d'appui long. L'application est en français, comme
+         le reste de l'interface. -->
+    <string name="raccourci_emploi_du_temps_court">Emploi du temps</string>
+    <string name="raccourci_emploi_du_temps_long">Ouvrir l\'emploi du temps</string>
+    <string name="raccourci_messages_court">Messages</string>
+    <string name="raccourci_messages_long">Ouvrir la messagerie</string>
+    <string name="raccourci_notifications_court">Notifications</string>
+    <string name="raccourci_notifications_long">Voir les notifications</string>
+</resources>

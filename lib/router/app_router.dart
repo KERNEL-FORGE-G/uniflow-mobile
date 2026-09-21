@@ -56,6 +56,45 @@ String signedOutDestination({required bool? onboardingSeen, required String loca
   return publicPaths.contains(location) ? location : '/login';
 }
 
+/// Adresse interne visée par un lien externe (`uniflow:///emploi-du-temps`,
+/// `uniflow://messages/abc?x=1`), ou `null` si `uri` est déjà une adresse
+/// interne (sans schéma).
+///
+/// Les raccourcis statiques du lanceur (`res/xml/shortcuts.xml`) lancent
+/// l'activité avec une action VIEW et une donnée `uniflow:///…` ; l'embedding
+/// Android transmet cette URI complète comme route initiale (démarrage à
+/// froid) ou la pousse au routeur (application déjà ouverte). go_router
+/// n'apparie que le chemin : la forme `uniflow://emploi-du-temps` (hôte, chemin
+/// vide) ne correspondrait à rien et finirait sur « Page introuvable ». On
+/// ramène donc les deux formes à `/emploi-du-temps`, requête comprise, et la
+/// redirection habituelle (session, rôle) s'applique ensuite.
+String? launchLocationFromLink(Uri uri) {
+  if (uri.scheme.isEmpty) return null;
+  final segments = [
+    // Dans `uniflow://messages`, « messages » est un hôte pour Uri mais une
+    // route pour nous ; dans un lien http, l'hôte est un serveur.
+    if (uri.scheme == 'uniflow' && uri.host.isNotEmpty) uri.host,
+    ...uri.pathSegments.where((segment) => segment.isNotEmpty),
+  ];
+  final path = '/${segments.join('/')}';
+  return uri.hasQuery ? '$path?${uri.query}' : path;
+}
+
+/// Chemins de toutes les routes déclarées, pour que les liens externes
+/// (raccourcis, notifications) puissent être vérifiés contre le routeur.
+Set<String> get routePaths {
+  final paths = <String>{};
+  void visit(List<RouteBase> routes) {
+    for (final route in routes) {
+      if (route is GoRoute) paths.add(route.path);
+      visit(route.routes);
+    }
+  }
+
+  visit(_appRoutes());
+  return paths;
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   // GoRouter ne suit pas nativement les providers Riverpod : ce notifier lui
   // sert de signal pour réévaluer le redirect quand la session change.
@@ -82,6 +121,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     // ne suffit pas — l'adresse reste tapable, et un écran d'administration
     // atteignable par URL n'est pas restreint du tout.
     redirect: (context, state) {
+      // Lien externe (raccourci du lanceur) : on le ramène à l'adresse interne
+      // équivalente, et cette redirection repasse ici sans schéma.
+      final external = launchLocationFromLink(state.uri);
+      if (external != null) return external;
+
       final signedIn = ref.read(authStatusProvider) == AuthStatus.signedIn;
       final location = state.matchedLocation;
       if (!signedIn) {
@@ -99,7 +143,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
       return null;
     },
-    routes: [
+    routes: _appRoutes(),
+    errorBuilder: (_, __) => const Scaffold(body: Center(child: Text('Page introuvable'))),
+  );
+});
+
+List<RouteBase> _appRoutes() => [
       // Présentation → connexion en fondu : un glissement latéral laisserait
       // croire qu'on peut revenir en arrière alors que la préférence est posée.
       GoRoute(
@@ -173,10 +222,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-    ],
-    errorBuilder: (_, __) => const Scaffold(body: Center(child: Text('Page introuvable'))),
-  );
-});
+    ];
 
 /// Durée du fondu entre la présentation et la connexion.
 const Duration kAuthFadeDuration = Duration(milliseconds: 320);

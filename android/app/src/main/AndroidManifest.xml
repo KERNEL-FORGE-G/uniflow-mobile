@@ -14,11 +14,17 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Le motif de vibration propre au canal « Messages urgents ». -->
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- Le libellé est celui qui s'affiche sous l'icône du lanceur : c'est la
+         marque, avec ses majuscules, pas l'identifiant du dépôt.
+         enableOnBackInvokedCallback active le retour prédictif d'Android 13+ ;
+         aucun écran ne bloque le retour système (pas de PopScope), Flutter
+         relaie donc le geste sans surprise. -->
     <application
-        android:label="uniflow"
+        android:label="UniFlow"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round">
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -40,6 +46,20 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Liens `uniflow:///<route>` : ceux des raccourcis du lanceur
+                 (res/xml/shortcuts.xml), et demain ceux d'une notification.
+                 L'embedding Flutter les transmet au routeur (deep linking
+                 activé par défaut), qui les ramène à l'adresse interne. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="uniflow"/>
+            </intent-filter>
+            <!-- Raccourcis statiques : Emploi du temps, Messages, Notifications. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

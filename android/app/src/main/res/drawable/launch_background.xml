@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
+<!-- Écran de lancement d'Android < 12 (et fond de fenêtre derrière l'écran de
+     lancement système d'Android 12+) : le bleu de marque et, au centre, le même
+     disque de 192dp que le système dessine sur Android 12+ à partir de l'icône
+     adaptative. Les deux versions d'Android montrent ainsi la même chose.
 
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+     Le fichier drawable-v21 du gabarit Flutter a été supprimé : minSdk vaut 24,
+     la variante « v21 » couvrait toujours tout le monde et le fichier de base
+     n'était jamais lu — deux fichiers à tenir à jour pour un seul écran. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/uniflow_bleu_marque" />
+    <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:src="@drawable/splash_ecusson" />
+    </item>
 </layer-list>

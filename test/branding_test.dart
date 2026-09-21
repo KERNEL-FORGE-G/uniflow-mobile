@@ -150,7 +150,7 @@ void main() {
         final x = (i ~/ 4) % mono.width, y = (i ~/ 4) ~/ mono.width;
         final dx = x - (mono.width - 1) / 2, dy = y - (mono.height - 1) / 2;
         expect(dx * dx + dy * dy, lessThanOrEqualTo(33.5 * 33.5),
-            reason: 'un pixel du glyphe sort de la zone sûre (${x},${y}) : le lanceur le rognerait');
+            reason: 'un pixel du glyphe sort de la zone sûre ($x,$y) : le lanceur le rognerait');
       }
       expect(opaques, greaterThan(200), reason: 'la couche monochrome est vide');
     });

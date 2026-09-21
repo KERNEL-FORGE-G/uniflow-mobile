@@ -87,13 +87,21 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
   }
 }
 
+/// Écran de garde, affiché entre l'écran de lancement Android et le routeur.
+///
+/// Son fond est le bleu de marque, comme `windowSplashScreenBackground` et
+/// `launch_background` côté Android (`res/values/colors.xml`) : l'écran de
+/// lancement s'efface au premier rendu Flutter, et un fond différent — il
+/// était turquoise — faisait un saut de couleur visible à chaque démarrage.
+/// Uni garde son liseré blanc et son écharpe orange : il reste lisible sur le
+/// bleu comme sur le turquoise.
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: AppColors.teal,
+      backgroundColor: AppColors.primaryBlue,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

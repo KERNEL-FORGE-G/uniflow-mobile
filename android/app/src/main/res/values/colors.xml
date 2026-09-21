@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bleu de marque UniFlow, relevé dans uniflow-we (AppColors.primaryBlue
+         côté Flutter). Fond de l'écran de lancement, système (Android 12+) et
+         hérité : l'écran de garde Flutter (_SplashScreen dans main.dart) reprend
+         exactement cette valeur pour qu'aucun saut de couleur ne sépare la fin
+         du lancement du premier rendu Flutter. -->
+    <color name="uniflow_bleu_marque">#1E3A8A</color>
+</resources>

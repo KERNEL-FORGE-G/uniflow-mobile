@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Écran de lancement système d'Android 12+ : fond bleu de marque et, au
+         centre, l'icône adaptative que le système compose et masque lui-même en
+         un disque de 192dp (tuile claire + écusson). On ne lui donne pas le PNG
+         pré-rendu drawable/splash_ecusson : un bitmap non adaptatif est étiré
+         sur les 288dp du conteneur puis rogné au disque de 192dp, il perdrait
+         ses bords. Ce disque est le même que celui de launch_background pour
+         Android < 12, et le fond est celui de l'écran de garde Flutter. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">@color/uniflow_bleu_marque</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+</resources>
