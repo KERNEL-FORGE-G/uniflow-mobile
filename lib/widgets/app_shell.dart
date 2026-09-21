@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/user_role.dart';
@@ -62,36 +63,42 @@ class AppShell extends ConsumerWidget {
           ),
         ],
       ),
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: AppColors.cardWhite,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-          border: Border(top: BorderSide(color: AppColors.inputBorder)),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x141E3A8A),
-              blurRadius: 20,
-              offset: Offset(0, -6),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 68,
-            child: Row(
-              children: List.generate(tabs.length, (i) {
-                final t = tabs[i];
-                return Expanded(
-                  child: _NavTab(
-                    icon: t.icon,
-                    activeIcon: t.activeIcon,
-                    label: t.label,
-                    selected: i == current,
-                    onTap: () => context.go(t.path),
-                  ),
-                );
-              }),
+      // Bord à bord : la barre blanche se prolonge sous la barre de navigation
+      // système (SafeArea) et annonce des icônes sombres pour celle-ci — c'est
+      // la région en bas de l'écran qui en décide.
+      bottomNavigationBar: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: AppSystemUi.surClair,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            color: AppColors.cardWhite,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+            border: Border(top: BorderSide(color: AppColors.inputBorder)),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x141E3A8A),
+                blurRadius: 20,
+                offset: Offset(0, -6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 68,
+              child: Row(
+                children: List.generate(tabs.length, (i) {
+                  final t = tabs[i];
+                  return Expanded(
+                    child: _NavTab(
+                      icon: t.icon,
+                      activeIcon: t.activeIcon,
+                      label: t.label,
+                      selected: i == current,
+                      onTap: () => context.go(t.path),
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
         ),

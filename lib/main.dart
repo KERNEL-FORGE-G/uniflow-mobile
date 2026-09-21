@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'router/app_router.dart';
@@ -13,6 +14,9 @@ import 'widgets/uni/uni_scenes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Bord à bord dès le premier rendu, comme Android 15 l'impose ; voir
+  // AppSystemUi pour le style des barres.
+  await AppSystemUi.appliquer();
   await dotenv.load(fileName: ".env");
   // Synchronisation périodique application fermée (Android). La contrainte
   // réseau est reposée par les Réglages quand « Wi-Fi seulement » change.
@@ -100,19 +104,22 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.primaryBlue,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Uni accueille pendant que la session locale se résout.
-            UniMascot(pose: UniPose.wave, size: 150),
-            SizedBox(height: 18),
-            Text('UniFlow', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
-            SizedBox(height: 14),
-            UniDots(color: Colors.white),
-          ],
+    return const AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppSystemUi.surBleu,
+      child: Scaffold(
+        backgroundColor: AppColors.primaryBlue,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Uni accueille pendant que la session locale se résout.
+              UniMascot(pose: UniPose.wave, size: 150),
+              SizedBox(height: 18),
+              Text('UniFlow', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+              SizedBox(height: 14),
+              UniDots(color: Colors.white),
+            ],
+          ),
         ),
       ),
     );

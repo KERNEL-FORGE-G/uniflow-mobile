@@ -1,5 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+/// Styles des barres système (statut et navigation), pour l'affichage bord à
+/// bord.
+///
+/// Android 15 impose le bord à bord dès que l'application vise l'API 35 : les
+/// barres deviennent transparentes et l'application peint dessous. Les écrans
+/// s'y prêtent déjà (`SafeArea` dans les en-têtes et la barre du bas), mais
+/// rien ne disait la couleur des icônes de la barre de statut : blanches par
+/// défaut, elles étaient invisibles sur le fond clair de la connexion. Chaque
+/// région annonce donc le style qui lui convient via `AnnotatedRegion` :
+/// icônes claires sur les en-têtes bleus, sombres sur les fonds clairs. La
+/// barre de navigation est toujours sur une surface claire (barre du bas
+/// blanche, formulaires) : icônes sombres partout.
+class AppSystemUi {
+  AppSystemUi._();
+
+  /// Sur un en-tête ou un fond bleu de marque.
+  static const SystemUiOverlayStyle surBleu = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemStatusBarContrastEnforced: false,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarContrastEnforced: false,
+  );
+
+  /// Sur un fond clair (connexion, présentation, surfaces).
+  static const SystemUiOverlayStyle surClair = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemStatusBarContrastEnforced: false,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarContrastEnforced: false,
+  );
+
+  /// À appeler une fois au démarrage : le mode bord à bord pour Android 10 à
+  /// 14, où il n'est pas imposé, afin que la mise en page soit la même que
+  /// sur Android 15 ; et le style initial, celui de l'écran de garde bleu.
+  static Future<void> appliquer() async {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(surBleu);
+  }
+}
 
 /// Palette de couleurs UniFlow.
 ///
@@ -264,6 +313,10 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
+        // Bord à bord : la barre de statut est transparente sur le bleu de
+        // l'en-tête, icônes claires. Sans cette ligne, AppBar la peindrait en
+        // bleu opaque sur Android < 15 et laisserait le défaut sur Android 15.
+        systemOverlayStyle: AppSystemUi.surBleu,
         titleTextStyle: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,

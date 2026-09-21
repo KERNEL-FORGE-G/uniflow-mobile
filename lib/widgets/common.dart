@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import 'uni/uni_mascot.dart';
 import 'uni/uni_scenes.dart';
@@ -26,66 +27,72 @@ class GradientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.headerGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x33152A66),
-            blurRadius: 18,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 3),
+    // L'en-tête s'étend sous la barre de statut (bord à bord) et annonce des
+    // icônes claires : c'est la région située en haut de l'écran qui décide
+    // du style de cette barre.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppSystemUi.surBleu,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.headerGradient,
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x33152A66),
+              blurRadius: 18,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            subtitle!,
+                            title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.78),
-                              fontSize: 12.5,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
+                          if (subtitle != null) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              subtitle!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.78),
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  // `mainAxisSize.min` : la zone d'actions ne prend que la place
-                  // nécessaire, le titre étant déjà en Expanded.
-                  if (trailing != null) ...[
-                    const SizedBox(width: 12),
-                    trailing!,
+                    // `mainAxisSize.min` : la zone d'actions ne prend que la place
+                    // nécessaire, le titre étant déjà en Expanded.
+                    if (trailing != null) ...[
+                      const SizedBox(width: 12),
+                      trailing!,
+                    ],
                   ],
-                ],
-              ),
-              if (bottom != null) ...[const SizedBox(height: 14), bottom!],
-            ],
+                ),
+                if (bottom != null) ...[const SizedBox(height: 14), bottom!],
+              ],
+            ),
           ),
         ),
       ),

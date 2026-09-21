@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
@@ -23,60 +24,66 @@ class AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      resizeToAvoidBottomInset: true,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppColors.meshGradient),
-        child: Stack(
-          children: [
-            // Formes décoratives hors du flux : elles ne participent pas au
-            // calcul de taille et ne peuvent donc pas provoquer de débordement.
-            Positioned(
-              top: -110,
-              right: -90,
-              child: _Blob(size: 260, color: AppColors.primaryBlue.withValues(alpha: 0.10)),
-            ),
-            Positioned(
-              bottom: -130,
-              left: -100,
-              child: _Blob(size: 280, color: AppColors.teal.withValues(alpha: 0.12)),
-            ),
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final horizontal = constraints.maxWidth < kAuthCompactWidth ? 20.0 : 32.0;
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: 24),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: kAuthCompactWidth),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (showBrand) ...[
-                                const BrandHeader(),
-                                const SizedBox(height: 28),
+    // Fond clair sous une barre de statut transparente : icônes sombres. Sans
+    // cette annotation, elles gardaient le blanc par défaut d'Android et
+    // disparaissaient au-dessus de la connexion.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppSystemUi.surClair,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        resizeToAvoidBottomInset: true,
+        body: DecoratedBox(
+          decoration: const BoxDecoration(gradient: AppColors.meshGradient),
+          child: Stack(
+            children: [
+              // Formes décoratives hors du flux : elles ne participent pas au
+              // calcul de taille et ne peuvent donc pas provoquer de débordement.
+              Positioned(
+                top: -110,
+                right: -90,
+                child: _Blob(size: 260, color: AppColors.primaryBlue.withValues(alpha: 0.10)),
+              ),
+              Positioned(
+                bottom: -130,
+                left: -100,
+                child: _Blob(size: 280, color: AppColors.teal.withValues(alpha: 0.12)),
+              ),
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final horizontal = constraints.maxWidth < kAuthCompactWidth ? 20.0 : 32.0;
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: 24),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: kAuthCompactWidth),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (showBrand) ...[
+                                  const BrandHeader(),
+                                  const SizedBox(height: 28),
+                                ],
+                                child,
+                                const SizedBox(height: 20),
+                                const Text(
+                                  'UniFlow · KERNEL FORGE',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                                ),
                               ],
-                              child,
-                              const SizedBox(height: 20),
-                              const Text(
-                                'UniFlow · KERNEL FORGE',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
