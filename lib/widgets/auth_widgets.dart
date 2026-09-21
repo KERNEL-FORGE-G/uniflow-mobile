@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
+import 'phosphor.dart';
 import 'uni/uni_mascot.dart';
+import 'uni_icons.dart';
 
 /// Au-dessus de cette largeur, la feuille cesse de s'étirer : un formulaire
 /// large de toute la fenêtre est inconfortable à lire. Le seuil sert aux
@@ -154,7 +156,7 @@ class _Hero extends StatelessWidget {
             Row(
               children: [
                 if (onBack != null)
-                  _RoundIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Retour', onTap: onBack!)
+                  _RoundIconButton(icon: UniIcons.back.bold, tooltip: 'Retour', onTap: onBack!)
                 else if (showBrand)
                   const BrandChip(),
               ],
@@ -333,7 +335,8 @@ class BrandChip extends StatelessWidget {
                 'assets/brand/uniflow_marque.png',
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.high,
-                errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, color: AppColors.primaryBlue, size: 18),
+                errorBuilder: (_, __, ___) =>
+                    const PhosphorIcon(PhosphorIconsFill.graduationCap, color: AppColors.primaryBlue, size: 18),
               ),
             ),
             const SizedBox(width: 8),
@@ -363,7 +366,7 @@ class _RoundIconButton extends StatelessWidget {
       child: IconButton(
         onPressed: onTap,
         tooltip: tooltip,
-        icon: Icon(icon, color: Colors.white, size: 20),
+        icon: PhosphorIcon(icon, color: Colors.white, size: 20),
       ),
     );
   }
@@ -495,7 +498,7 @@ class AccountTypeSelector extends StatelessWidget {
           Expanded(
             child: _Segment(
               selected: value == UniFlowAccountType.university,
-              icon: Icons.account_balance_outlined,
+              icon: UniIcons.university,
               title: 'Compte universitaire',
               onTap: onChanged == null ? null : () => onChanged!(UniFlowAccountType.university),
             ),
@@ -504,7 +507,7 @@ class AccountTypeSelector extends StatelessWidget {
           Expanded(
             child: _Segment(
               selected: value == UniFlowAccountType.personal,
-              icon: Icons.person_outline,
+              icon: UniIcons.profile,
               title: 'Compte indépendant',
               onTap: onChanged == null ? null : () => onChanged!(UniFlowAccountType.personal),
             ),
@@ -517,7 +520,10 @@ class AccountTypeSelector extends StatelessWidget {
 
 class _Segment extends StatelessWidget {
   final bool selected;
-  final IconData icon;
+
+  /// Une `UniIcon` plutôt qu'un glyphe : le segment choisit lui-même la
+  /// graisse, pleine quand il est sélectionné, `bold` sinon.
+  final UniIcon icon;
   final String title;
   final VoidCallback? onTap;
 
@@ -558,7 +564,7 @@ class _Segment extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 17),
+              PhosphorIcon(selected ? icon.fill : icon.bold, color: color, size: 17),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
@@ -635,7 +641,7 @@ class GradientButton extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (icon != null) ...[
-                            Icon(icon, color: Colors.white, size: 18),
+                            PhosphorIcon(icon!, color: Colors.white, size: 18),
                             const SizedBox(width: 8),
                           ],
                           Flexible(

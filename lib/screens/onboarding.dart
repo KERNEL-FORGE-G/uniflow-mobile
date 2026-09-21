@@ -356,7 +356,7 @@ class _Illustration extends StatelessWidget {
             fit: BoxFit.cover,
             filterQuality: FilterQuality.medium,
             errorBuilder: (_, __, ___) => const Center(
-              child: Icon(Icons.school_rounded, size: 56, color: AppColors.primaryBlue),
+              child: PhosphorIcon(PhosphorIconsDuotone.graduationCap, size: 56, color: AppColors.primaryBlue),
             ),
           ),
         ),

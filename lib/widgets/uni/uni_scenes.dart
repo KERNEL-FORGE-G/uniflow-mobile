@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../phosphor.dart';
 import 'uni_mascot.dart';
 
 /// Scènes prêtes à l'emploi autour d'Uni : chargement, erreur, vide, et la
@@ -145,7 +146,7 @@ class UniCrashScreen extends StatelessWidget {
                 ? null
                 : FilledButton.icon(
                     onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded),
+                    icon: const PhosphorIcon(PhosphorIconsBold.arrowClockwise),
                     label: const Text('Réessayer'),
                   ),
             secondaryAction: details == null

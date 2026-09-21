@@ -9,6 +9,7 @@ import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/feedback.dart';
+import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 
 /// Inscription native, miroir de la page `/register` du web.
@@ -155,7 +156,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Nom complet',
-              prefixIcon: Icon(Icons.badge_outlined, size: 20),
+              prefixIcon: PhosphorIcon(PhosphorIconsBold.identificationBadge, size: 20),
             ),
           ),
           const SizedBox(height: 14),
@@ -167,7 +168,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Email',
-              prefixIcon: Icon(Icons.mail_outline, size: 20),
+              prefixIcon: PhosphorIcon(PhosphorIconsBold.envelope, size: 20),
             ),
           ),
           const SizedBox(height: 14),
@@ -178,11 +179,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Mot de passe (8 caractères minimum)',
-              prefixIcon: const Icon(Icons.lock_outline, size: 20),
+              prefixIcon: const PhosphorIcon(PhosphorIconsBold.lock, size: 20),
               suffixIcon: IconButton(
                 onPressed: () => setState(() => _obscure = !_obscure),
                 tooltip: _obscure ? 'Afficher le mot de passe' : 'Masquer le mot de passe',
-                icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                icon: PhosphorIcon(_obscure ? PhosphorIconsBold.eye : PhosphorIconsBold.eyeSlash, size: 20),
               ),
             ),
           ),
@@ -197,7 +198,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             onSubmitted: (_) => university || _busy ? null : _submit(),
             decoration: const InputDecoration(
               labelText: 'Confirmer le mot de passe',
-              prefixIcon: Icon(Icons.lock_reset_outlined, size: 20),
+              prefixIcon: PhosphorIcon(PhosphorIconsBold.lockKey, size: 20),
             ),
           ),
           // La partie académique glisse en place quand on passe d'un type à
@@ -217,7 +218,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SizedBox(height: 12),
           TextButton.icon(
             onPressed: _busy ? null : _openWeb,
-            icon: const Icon(Icons.open_in_new, size: 16),
+            icon: const PhosphorIcon(PhosphorIconsBold.arrowSquareOut, size: 16),
             label: const Text('S\'inscrire depuis le site web', maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
         ],
@@ -238,7 +239,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         const SizedBox(height: 10),
         _ReferenceDropdown<University>(
           label: 'Université',
-          icon: Icons.account_balance_outlined,
+          icon: PhosphorIconsBold.buildings,
           value: _university,
           items: universities,
           itemLabel: (u) => u.shortName.isEmpty ? u.name : '${u.name} (${u.shortName})',
@@ -254,7 +255,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         const SizedBox(height: 12),
         _ReferenceDropdown<Faculty>(
           label: 'Faculté ou établissement',
-          icon: Icons.domain_outlined,
+          icon: PhosphorIconsBold.buildingOffice,
           value: _faculty,
           items: faculties,
           itemLabel: (f) => f.name,
@@ -271,7 +272,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         const SizedBox(height: 12),
         _ReferenceDropdown<AcademicProgram>(
           label: 'Filière',
-          icon: Icons.school_outlined,
+          icon: PhosphorIconsBold.graduationCap,
           value: _program,
           items: programs,
           itemLabel: (p) => '${p.name} (${p.code})',
@@ -300,7 +301,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onSubmitted: (_) => _busy ? null : _submit(),
           decoration: const InputDecoration(
             labelText: 'Matricule (facultatif)',
-            prefixIcon: Icon(Icons.numbers, size: 20),
+            prefixIcon: PhosphorIcon(PhosphorIconsBold.hash, size: 20),
           ),
         ),
       ],
@@ -335,7 +336,7 @@ class _ReferenceDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return items.when(
       loading: () => InputDecorator(
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, size: 20)),
+        decoration: InputDecoration(labelText: label, prefixIcon: PhosphorIcon(icon, size: 20)),
         child: const Align(
           alignment: Alignment.centerLeft,
           child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
@@ -344,7 +345,7 @@ class _ReferenceDropdown<T> extends StatelessWidget {
       error: (error, _) => InputDecorator(
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, size: 20),
+          prefixIcon: PhosphorIcon(icon, size: 20),
           errorText: 'Liste indisponible : $error',
           errorMaxLines: 3,
         ),
@@ -353,7 +354,7 @@ class _ReferenceDropdown<T> extends StatelessWidget {
       data: (list) {
         if (list.isEmpty) {
           return InputDecorator(
-            decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, size: 20)),
+            decoration: InputDecoration(labelText: label, prefixIcon: PhosphorIcon(icon, size: 20)),
             child: Text(emptyMessage, style: AppTextStyles.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
           );
         }
@@ -362,7 +363,7 @@ class _ReferenceDropdown<T> extends StatelessWidget {
         return DropdownButtonFormField<T>(
           initialValue: current,
           isExpanded: true,
-          decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, size: 20)),
+          decoration: InputDecoration(labelText: label, prefixIcon: PhosphorIcon(icon, size: 20)),
           items: [
             for (final item in list)
               DropdownMenuItem<T>(

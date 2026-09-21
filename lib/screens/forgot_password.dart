@@ -6,6 +6,7 @@ import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/feedback.dart';
+import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 
 /// Récupération de mot de passe : Appwrite envoie un e-mail dont le lien mène
@@ -100,7 +101,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               autocorrect: false,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _busy ? null : _submit(),
-              decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_outline, size: 20)),
+              decoration: const InputDecoration(
+                  labelText: 'Email', prefixIcon: PhosphorIcon(PhosphorIconsBold.envelope, size: 20)),
             ),
             const SizedBox(height: 20),
             GradientButton(label: 'Envoyer le lien', isLoading: _busy, onPressed: _busy ? null : _submit),

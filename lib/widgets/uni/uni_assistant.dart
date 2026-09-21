@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/appwrite_provider.dart';
 import '../../providers/providers.dart';
+import '../phosphor.dart';
 import 'uni_mascot.dart';
 
 /// Uni, l'assistant conversationnel d'UniFlow, côté mobile.
@@ -276,7 +277,7 @@ class _UniLauncherState extends ConsumerState<UniLauncher> with SingleTickerProv
                     'assets/assistant/uni_avatar.webp',
                     fit: BoxFit.cover,
                     filterQuality: FilterQuality.high,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_rounded, color: Color(0xFF1E3A8A)),
+                    errorBuilder: (_, __, ___) => const PhosphorIcon(PhosphorIconsFill.robot, color: Color(0xFF1E3A8A)),
                   ),
                 ),
               ),
@@ -550,12 +551,12 @@ class _Header extends StatelessWidget {
                 IconButton(
                   tooltip: 'Effacer la conversation',
                   onPressed: onClear,
-                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                  icon: const PhosphorIcon(PhosphorIconsBold.trash, color: Colors.white),
                 ),
               IconButton(
                 tooltip: 'Fermer',
                 onPressed: onClose,
-                icon: const Icon(Icons.close_rounded, color: Colors.white),
+                icon: const PhosphorIcon(PhosphorIconsBold.x, color: Colors.white),
               ),
             ],
           ),
@@ -610,7 +611,7 @@ class _Bubble extends StatelessWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 foregroundColor: const Color(0xFFFECACA),
               ),
-              icon: const Icon(Icons.refresh_rounded, size: 14),
+              icon: const PhosphorIcon(PhosphorIconsBold.arrowClockwise, size: 14),
               label:
                   const Text('Non envoyé · réessayer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
             ),
@@ -672,7 +673,7 @@ class _UniAvatar extends StatelessWidget {
         child: Image.asset(
           'assets/assistant/uni_avatar.webp',
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_rounded, size: 16, color: Color(0xFF1E3A8A)),
+          errorBuilder: (_, __, ___) => const PhosphorIcon(PhosphorIconsFill.robot, size: 16, color: Color(0xFF1E3A8A)),
         ),
       ),
     );
@@ -764,7 +765,7 @@ class _Composer extends StatelessWidget {
                     disabledBackgroundColor: const Color(0xFFDCE5FD),
                     foregroundColor: Colors.white,
                   ),
-                  icon: const Icon(Icons.send_rounded, size: 20),
+                  icon: const PhosphorIcon(PhosphorIconsFill.paperPlaneTilt, size: 20),
                 ),
               );
             },

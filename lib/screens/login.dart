@@ -8,6 +8,7 @@ import '../providers/providers.dart';
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
+import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 import '../widgets/feedback.dart';
 
@@ -150,7 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             decoration: InputDecoration(
               labelText: 'Email',
               hintText: university ? 'prenom.nom@universite.cm' : 'vous@exemple.com',
-              prefixIcon: const Icon(Icons.mail_outline, size: 20),
+              prefixIcon: const PhosphorIcon(PhosphorIconsBold.envelope, size: 20),
             ),
           ),
           const SizedBox(height: 16),
@@ -163,13 +164,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             decoration: InputDecoration(
               labelText: 'Mot de passe',
               hintText: '••••••••',
-              prefixIcon: const Icon(Icons.lock_outline, size: 20),
+              prefixIcon: const PhosphorIcon(PhosphorIconsBold.lock, size: 20),
               // Œil pour révéler le mot de passe : sur un clavier tactile, la
               // saisie masquée est la première source d'échec de connexion.
               suffixIcon: IconButton(
                 onPressed: () => setState(() => _obscure = !_obscure),
                 tooltip: _obscure ? 'Afficher le mot de passe' : 'Masquer le mot de passe',
-                icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                icon: PhosphorIcon(_obscure ? PhosphorIconsBold.eye : PhosphorIconsBold.eyeSlash, size: 20),
               ),
             ),
           ),
