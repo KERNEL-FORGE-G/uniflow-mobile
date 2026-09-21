@@ -9,6 +9,7 @@ import '../repositories/messaging_repository.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 class MessagesScreen extends ConsumerWidget {
   const MessagesScreen({super.key});
@@ -56,7 +57,7 @@ class MessagesScreen extends ConsumerWidget {
         onPressed: () => _startConversation(context, ref),
         backgroundColor: AppColors.primaryBlue,
         tooltip: 'Nouvelle conversation',
-        child: const Icon(Icons.chat, color: Colors.white),
+        child: const PhosphorIcon(PhosphorIconsFill.chatsCircle, color: Colors.white),
       ),
     );
   }
@@ -103,7 +104,7 @@ class _NotificationBell extends ConsumerWidget {
       children: [
         IconButton(
           onPressed: () => context.push('/notifications'),
-          icon: const Icon(Icons.notifications_none, color: Colors.white),
+          icon: const PhosphorIcon(PhosphorIconsBold.bellRinging, color: Colors.white),
           tooltip: 'Notifications',
         ),
         if (unread > 0)
@@ -218,7 +219,7 @@ class _EmptyInbox extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.forum_outlined, size: 48, color: AppColors.textSecondary),
+            const PhosphorIcon(PhosphorIconsDuotone.chatsCircle, size: 48, color: AppColors.textSecondary),
             const SizedBox(height: 14),
             const Text(
               'Aucune conversation',
@@ -233,7 +234,7 @@ class _EmptyInbox extends StatelessWidget {
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: onStart,
-              icon: const Icon(Icons.add_comment_outlined, size: 18),
+              icon: const PhosphorIcon(PhosphorIconsFill.plusCircle, size: 18),
               label: const Text('Nouvelle conversation'),
             ),
           ],
@@ -366,7 +367,7 @@ class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
               onChanged: _onChanged,
               decoration: InputDecoration(
                 hintText: '@pseudo',
-                prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass, color: AppColors.textSecondary),
                 filled: true,
                 fillColor: AppColors.bg,
                 border: OutlineInputBorder(

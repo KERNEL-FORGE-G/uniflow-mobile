@@ -13,6 +13,7 @@ import '../repositories/messaging_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 /// Fil de discussion avec un contact.
 ///
@@ -284,7 +285,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 16, color: AppColors.danger),
+                    icon: const PhosphorIcon(PhosphorIconsBold.x, size: 16, color: AppColors.danger),
                     onPressed: () => setState(() => _error = null),
                     tooltip: 'Masquer',
                   ),
@@ -345,7 +346,7 @@ class _EmptyThread extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.forum_outlined, size: 44, color: AppColors.textSecondary),
+            const PhosphorIcon(PhosphorIconsDuotone.chatsCircle, size: 44, color: AppColors.textSecondary),
             const SizedBox(height: 12),
             Text(
               name == null ? 'Aucun message pour l\'instant.' : 'Aucun message avec $name pour l\'instant.',
@@ -415,7 +416,7 @@ class _Bubble extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.priority_high, size: 13, color: urgentInk),
+                  PhosphorIcon(PhosphorIconsFill.siren, size: 13, color: urgentInk),
                   const SizedBox(width: 3),
                   Text(
                     'URGENT',
@@ -487,7 +488,7 @@ class _Attachment extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_iconFor(message.kind), size: 26, color: mine ? Colors.white : AppColors.primaryBlue),
+            PhosphorIcon(_iconFor(message.kind), size: 26, color: mine ? Colors.white : AppColors.primaryBlue),
             const SizedBox(width: 10),
             Flexible(
               child: Column(
@@ -516,21 +517,24 @@ class _Attachment extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.download_outlined, size: 18, color: mine ? Colors.white70 : AppColors.textSecondary),
+            PhosphorIcon(PhosphorIconsBold.downloadSimple,
+                size: 18, color: mine ? Colors.white70 : AppColors.textSecondary),
           ],
         ),
       ),
     );
   }
 
+  /// Mêmes glyphes que la bibliothèque (`fileVideo`, `file`) : un fichier a la
+  /// même tête qu'il arrive par un message ou par un support de cours.
   static IconData _iconFor(String kind) {
     switch (kind) {
       case 'audio':
-        return Icons.audiotrack_outlined;
+        return PhosphorIconsDuotone.fileAudio;
       case 'video':
-        return Icons.movie_outlined;
+        return PhosphorIconsDuotone.fileVideo;
       default:
-        return Icons.insert_drive_file_outlined;
+        return PhosphorIconsDuotone.file;
     }
   }
 }
@@ -582,7 +586,7 @@ class _ImageAttachment extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.broken_image_outlined, size: 24, color: AppColors.textSecondary),
+            const PhosphorIcon(PhosphorIconsDuotone.imageBroken, size: 24, color: AppColors.textSecondary),
             const SizedBox(height: 4),
             Text(
               message.fileName,
@@ -623,7 +627,7 @@ class _AttachmentPreview extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Row(
         children: [
-          const Icon(Icons.attach_file, size: 18, color: AppColors.primaryBlue),
+          const PhosphorIcon(PhosphorIconsBold.paperclip, size: 18, color: AppColors.primaryBlue),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -634,7 +638,7 @@ class _AttachmentPreview extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 18),
+            icon: const PhosphorIcon(PhosphorIconsBold.x, size: 18),
             tooltip: 'Retirer la pièce jointe',
             onPressed: onRemove,
             visualDensity: VisualDensity.compact,
@@ -676,13 +680,15 @@ class _Composer extends StatelessWidget {
           children: [
             IconButton(
               onPressed: sending ? null : onAttach,
-              icon: const Icon(Icons.attach_file, color: AppColors.primaryBlue),
+              icon: const PhosphorIcon(PhosphorIconsBold.paperclip, color: AppColors.primaryBlue),
               tooltip: 'Joindre un fichier',
             ),
             IconButton(
               onPressed: sending ? null : onToggleUrgent,
-              icon: Icon(
-                urgent ? Icons.priority_high : Icons.priority_high_outlined,
+              // Plein quand l'urgence est armée, contour sinon : la couleur
+              // seule ne suffisait pas à distinguer les deux états d'un œil.
+              icon: PhosphorIcon(
+                urgent ? PhosphorIconsFill.siren : PhosphorIconsBold.siren,
                 color: urgent ? AppColors.danger : AppColors.textSecondary,
               ),
               tooltip: urgent ? 'Message urgent activé' : 'Signaler comme urgent',
@@ -723,7 +729,7 @@ class _Composer extends StatelessWidget {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Icon(Icons.send, color: Colors.white, size: 20),
+                        : const PhosphorIcon(PhosphorIconsFill.paperPlaneTilt, color: Colors.white, size: 20),
                   ),
                 ),
               ),

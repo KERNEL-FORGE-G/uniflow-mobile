@@ -7,6 +7,7 @@ import '../repositories/messaging_repository.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 /// Centre de notifications : les messages urgents reçus, les plus récents en
 /// premier.
@@ -147,7 +148,8 @@ class _NotificationTile extends StatelessWidget {
             color: AppColors.danger.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.priority_high, color: AppColors.danger, size: 20),
+          // Même sirène que le marqueur « URGENT » du fil de discussion.
+          child: const PhosphorIcon(PhosphorIconsFill.siren, color: AppColors.danger, size: 20),
         ),
         title: Text(
           notification.title,
@@ -196,7 +198,7 @@ class _EmptyNotifications extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_none, size: 48, color: AppColors.textSecondary),
+            PhosphorIcon(PhosphorIconsDuotone.bellRinging, size: 48, color: AppColors.textSecondary),
             SizedBox(height: 14),
             Text(
               'Aucune notification',
