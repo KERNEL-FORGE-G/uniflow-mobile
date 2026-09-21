@@ -23,13 +23,11 @@ class UniTurn {
   final bool failed;
   final DateTime at;
 
-  UniTurn({required this.role, required this.content, this.failed = false, DateTime? at})
-      : at = at ?? DateTime.now();
+  UniTurn({required this.role, required this.content, this.failed = false, DateTime? at}) : at = at ?? DateTime.now();
 
   bool get isUser => role == 'user';
 
-  UniTurn copyWith({bool? failed}) =>
-      UniTurn(role: role, content: content, failed: failed ?? this.failed, at: at);
+  UniTurn copyWith({bool? failed}) => UniTurn(role: role, content: content, failed: failed ?? this.failed, at: at);
 }
 
 class UniAssistantState {
@@ -68,8 +66,7 @@ class UniAssistantState {
       );
 }
 
-const _defaultGreeting =
-    'Bonjour ! Je suis Uni, l’assistant UniFlow. Je connais ton emploi du temps, '
+const _defaultGreeting = 'Bonjour ! Je suis Uni, l’assistant UniFlow. Je connais ton emploi du temps, '
     'tes UE et les écrans de l’application : pose-moi ta question.';
 
 const _defaultSuggestions = [
@@ -147,7 +144,9 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
       state = state.copyWith(
         turns: [
           ...state.turns,
-          UniTurn(role: 'assistant', content: reply?.isNotEmpty == true ? reply! : 'Je n’ai pas de réponse, réessaie autrement.'),
+          UniTurn(
+              role: 'assistant',
+              content: reply?.isNotEmpty == true ? reply! : 'Je n’ai pas de réponse, réessaie autrement.'),
         ],
         pending: false,
         provider: data['provider'] as String?,
@@ -186,8 +185,7 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
   }
 }
 
-final uniAssistantProvider =
-    StateNotifierProvider<UniAssistantController, UniAssistantState>((ref) {
+final uniAssistantProvider = StateNotifierProvider<UniAssistantController, UniAssistantState>((ref) {
   // Changer de compte remet la conversation à zéro : elle appartient à
   // l'utilisateur, pas à l'appareil.
   ref.watch(currentUserProvider.select((u) => u?.id));
@@ -207,8 +205,7 @@ class UniLauncher extends ConsumerStatefulWidget {
   ConsumerState<UniLauncher> createState() => _UniLauncherState();
 }
 
-class _UniLauncherState extends ConsumerState<UniLauncher>
-    with SingleTickerProviderStateMixin {
+class _UniLauncherState extends ConsumerState<UniLauncher> with SingleTickerProviderStateMixin {
   late final AnimationController _nudge = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
@@ -292,7 +289,8 @@ class _UniLauncherState extends ConsumerState<UniLauncher>
                     ),
                     child: const Text(
                       'UNI',
-                      style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6),
+                      style:
+                          TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6),
                     ),
                   ),
                 ),
@@ -436,7 +434,8 @@ class _UniAssistantSheetState extends ConsumerState<UniAssistantSheet> {
                         Expanded(
                           child: Text(
                             state.error!,
-                            style: const TextStyle(fontSize: 12.5, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                            style:
+                                const TextStyle(fontSize: 12.5, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -454,7 +453,8 @@ class _UniAssistantSheetState extends ConsumerState<UniAssistantSheet> {
                 itemCount: state.suggestions.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, i) => ActionChip(
-                  label: Text(state.suggestions[i], style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  label:
+                      Text(state.suggestions[i], style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
                   backgroundColor: Colors.white,
                   side: const BorderSide(color: Color(0xFFDCE5FD)),
                   shape: const StadiumBorder(),
@@ -607,7 +607,8 @@ class _Bubble extends StatelessWidget {
                 foregroundColor: const Color(0xFFFECACA),
               ),
               icon: const Icon(Icons.refresh_rounded, size: 14),
-              label: const Text('Non envoyé · réessayer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+              label:
+                  const Text('Non envoyé · réessayer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
             ),
         ],
       ),
@@ -639,7 +640,8 @@ class _Bubble extends StatelessWidget {
                 height: 28,
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(color: Color(0xFFDCE5FD), shape: BoxShape.circle),
-                child: Text(initials, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A))),
+                child: Text(initials,
+                    style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A))),
               ),
             ],
           ],

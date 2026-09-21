@@ -259,10 +259,8 @@ final academicSyncProvider = FutureProvider<void>((ref) async {
   final courses = await ref.watch(scopedCoursesProvider.future);
   final enrollments = await ref.watch(scopedEnrollmentsProvider.future);
 
-  ref.read(studentsProvider.notifier).state = directory
-      .where((e) => e.role == 'STUDENT' || e.role == 'DELEGATE')
-      .map(Student.fromDirectory)
-      .toList();
+  ref.read(studentsProvider.notifier).state =
+      directory.where((e) => e.role == 'STUDENT' || e.role == 'DELEGATE').map(Student.fromDirectory).toList();
   ref.read(teachersProvider.notifier).state =
       directory.where((e) => e.role == 'TEACHER').map(Teacher.fromDirectory).toList();
   ref.read(uesProvider.notifier).state = courses.map(UE.fromCourse).toList();

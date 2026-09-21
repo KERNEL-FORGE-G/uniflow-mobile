@@ -84,8 +84,7 @@ class UniMascot extends StatefulWidget {
   State<UniMascot> createState() => _UniMascotState();
 }
 
-class _UniMascotState extends State<UniMascot>
-    with SingleTickerProviderStateMixin {
+class _UniMascotState extends State<UniMascot> with SingleTickerProviderStateMixin {
   late final AnimationController _loop;
 
   bool _animated = false;
@@ -232,8 +231,7 @@ class _UniMascotState extends State<UniMascot>
         clipBehavior: Clip.none,
         children: [
           image,
-          if (widget.effects && animated)
-            Positioned.fill(child: _PoseEffects(pose: widget.pose, loop: _loop)),
+          if (widget.effects && animated) Positioned.fill(child: _PoseEffects(pose: widget.pose, loop: _loop)),
         ],
       ),
     );
@@ -614,8 +612,8 @@ class UniDots extends StatefulWidget {
 }
 
 class _UniDotsState extends State<UniDots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+    ..repeat();
 
   @override
   void dispose() {

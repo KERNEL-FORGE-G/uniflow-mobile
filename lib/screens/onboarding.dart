@@ -328,7 +328,8 @@ class _Illustration extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           border: Border.all(color: AppColors.inputBorder),
           boxShadow: [
-            BoxShadow(color: AppColors.primaryBlue.withValues(alpha: 0.10), blurRadius: 30, offset: const Offset(0, 14)),
+            BoxShadow(
+                color: AppColors.primaryBlue.withValues(alpha: 0.10), blurRadius: 30, offset: const Offset(0, 14)),
           ],
         ),
         clipBehavior: Clip.antiAlias,
@@ -434,7 +435,7 @@ class PageDots extends StatelessWidget {
             key: ValueKey('dot-$i'),
             duration: reduce ? Duration.zero : const Duration(milliseconds: 260),
             curve: Curves.easeOut,
-                margin: const EdgeInsets.symmetric(horizontal: gap),
+            margin: const EdgeInsets.symmetric(horizontal: gap),
             width: active ? activeWidth : dotSize,
             height: dotSize,
             decoration: BoxDecoration(

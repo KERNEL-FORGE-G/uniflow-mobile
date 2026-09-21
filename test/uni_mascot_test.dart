@@ -114,7 +114,9 @@ void main() {
       await tester.pumpWidget(_wrap(const SizedBox(
         width: 300,
         height: 400,
-        child: Stack(children: [UniPeek(key: ValueKey('bis'), id: 'test', message: 'Coucou', delay: Duration(milliseconds: 10))]),
+        child: Stack(children: [
+          UniPeek(key: ValueKey('bis'), id: 'test', message: 'Coucou', delay: Duration(milliseconds: 10))
+        ]),
       )));
       await tester.pump(const Duration(milliseconds: 100));
       final again = tester.widget<AnimatedSlide>(find.byType(AnimatedSlide));

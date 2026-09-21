@@ -85,8 +85,11 @@ class UEDetailScreen extends ConsumerWidget {
                     _row(Icons.person_outline,
                         u.teacherName.isNotEmpty ? u.teacherName : (teacher?.fullName ?? 'Enseignant non renseigné')),
                     const SizedBox(height: 8),
-                    _row(Icons.school_outlined,
-                        [if (u.program.isNotEmpty) u.program, if (u.level.isNotEmpty) u.level].join(' · ').ifEmpty('Filière non renseignée')),
+                    _row(
+                        Icons.school_outlined,
+                        [if (u.program.isNotEmpty) u.program, if (u.level.isNotEmpty) u.level]
+                            .join(' · ')
+                            .ifEmpty('Filière non renseignée')),
                     if (u.classroom.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       _row(Icons.meeting_room_outlined, 'Salle ${u.classroom}'),
@@ -106,7 +109,9 @@ class UEDetailScreen extends ConsumerWidget {
                     const Text('Description', style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
                     Text(
-                      u.description.trim().isEmpty ? 'Aucune description dans le référentiel pour ce cours.' : u.description,
+                      u.description.trim().isEmpty
+                          ? 'Aucune description dans le référentiel pour ce cours.'
+                          : u.description,
                       style: const TextStyle(color: AppColors.textSecondary, height: 1.4),
                     ),
                   ],
@@ -122,7 +127,8 @@ class UEDetailScreen extends ConsumerWidget {
                     sessions.when(
                       loading: () => const Padding(
                         padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
+                        child: Center(
+                            child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
                       ),
                       error: (error, _) => const Text(
                         'Créneaux indisponibles pour le moment.',

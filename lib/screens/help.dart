@@ -47,7 +47,8 @@ class HelpScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
-                  onPressed: () => _ouvrir(context, '$contactMailUrl?subject=${Uri.encodeComponent('Support UniFlow mobile')}'),
+                  onPressed: () =>
+                      _ouvrir(context, '$contactMailUrl?subject=${Uri.encodeComponent('Support UniFlow mobile')}'),
                   icon: const Icon(Icons.mail_outline),
                   label: const Text('Par courriel · $contactEmail', maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
@@ -74,7 +75,8 @@ class HelpScreen extends StatelessWidget {
     final opened = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune application ne peut ouvrir ce lien. Contact : $contactPhoneDisplay · $contactEmail')),
+        const SnackBar(
+            content: Text('Aucune application ne peut ouvrir ce lien. Contact : $contactPhoneDisplay · $contactEmail')),
       );
     }
   }

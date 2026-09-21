@@ -105,7 +105,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           // erreur : l'état se lit avant même le message.
           Center(
             child: UniMascot(
-              pose: _error != null ? UniPose.sorry : _busy ? UniPose.thinking : UniPose.wave,
+              pose: _error != null
+                  ? UniPose.sorry
+                  : _busy
+                      ? UniPose.thinking
+                      : UniPose.wave,
               size: 96,
               effects: false,
             ),

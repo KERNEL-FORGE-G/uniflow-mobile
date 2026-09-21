@@ -77,7 +77,8 @@ class StudentDetailScreen extends ConsumerWidget {
                   children: [
                     const Text('Informations', style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 12),
-                    _row(Icons.badge_outlined, s.matricule.isEmpty ? 'Matricule non renseigné' : 'Matricule : ${s.matricule}'),
+                    _row(Icons.badge_outlined,
+                        s.matricule.isEmpty ? 'Matricule non renseigné' : 'Matricule : ${s.matricule}'),
                     const SizedBox(height: 8),
                     _row(Icons.school_outlined, '${s.filiere} · ${s.niveau}'),
                     if (s.university.isNotEmpty) ...[
@@ -119,9 +120,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         ),
                         title: Text(u?.title ?? 'Cours ${e.ueId}', maxLines: 2, overflow: TextOverflow.ellipsis),
                         subtitle: Text(u == null ? 'Hors du périmètre affiché' : '${u.code} · ${u.credits} crédits'),
-                        trailing: e.isActive
-                            ? const Icon(Icons.chevron_right)
-                            : StatusBadge(label: e.statusLabel),
+                        trailing: e.isActive ? const Icon(Icons.chevron_right) : StatusBadge(label: e.statusLabel),
                         onTap: u == null ? null : () => context.go('/ues/${u.id}'),
                       );
                     }),

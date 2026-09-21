@@ -51,10 +51,8 @@ void main() {
         'android.permission.VIBRATE': 'vibrationPattern',
         'android.permission.INTERNET': 'Client()',
       };
-      final permissions = RegExp(r'<uses-permission android:name="([^"]+)"')
-          .allMatches(manifeste)
-          .map((m) => m.group(1)!)
-          .toSet();
+      final permissions =
+          RegExp(r'<uses-permission android:name="([^"]+)"').allMatches(manifeste).map((m) => m.group(1)!).toSet();
       expect(permissions, usages.keys.toSet(), reason: 'permission ajoutée ou retirée sans mettre ce test à jour');
 
       final sources = Directory('$racine/lib')
@@ -64,7 +62,8 @@ void main() {
           .map((f) => f.readAsStringSync())
           .join('\n');
       for (final entree in usages.entries) {
-        expect(sources, contains(entree.value), reason: '${entree.key} n\'a plus d\'usage (${entree.value} introuvable)');
+        expect(sources, contains(entree.value),
+            reason: '${entree.key} n\'a plus d\'usage (${entree.value} introuvable)');
       }
     });
   });
@@ -148,8 +147,8 @@ void main() {
       expect(ignore, containsAll(['key.properties', '**/*.keystore', '**/*.jks']));
       final suivis = Process.runSync('git', ['ls-files'], workingDirectory: racine).stdout as String;
       final secrets = suivis.split('\n').where(
-        (f) => f.endsWith('key.properties') || f.endsWith('.jks') || f.endsWith('.keystore'),
-      );
+            (f) => f.endsWith('key.properties') || f.endsWith('.jks') || f.endsWith('.keystore'),
+          );
       expect(secrets, isEmpty, reason: 'un keystore ou ses mots de passe sont suivis par Git');
     });
 
@@ -165,10 +164,8 @@ void main() {
     test('le .env embarqué ne contient que des identifiants publics', () {
       // Flutter déclare .env comme asset : il est lisible en clair dans l'APK.
       // Une clé d'API Appwrite y a déjà figuré ; ce test empêche son retour.
-      final lignes = File('$racine/.env')
-          .readAsLinesSync()
-          .map((l) => l.trim())
-          .where((l) => l.isNotEmpty && !l.startsWith('#'));
+      final lignes =
+          File('$racine/.env').readAsLinesSync().map((l) => l.trim()).where((l) => l.isNotEmpty && !l.startsWith('#'));
       const publics = {
         'APPWRITE_ENDPOINT',
         'APPWRITE_PROJECT_ID',
@@ -181,7 +178,8 @@ void main() {
       for (final ligne in lignes) {
         final nom = ligne.split('=').first;
         final valeur = ligne.substring(nom.length + 1);
-        expect(publics, contains(nom), reason: '$nom : variable inconnue dans .env, à justifier ici si elle est publique');
+        expect(publics, contains(nom),
+            reason: '$nom : variable inconnue dans .env, à justifier ici si elle est publique');
         expect(nom, isNot(matches(RegExp(r'KEY|SECRET|TOKEN|PASSWORD'))));
         // Une clé d'API Appwrite fait plus de 200 caractères hexadécimaux.
         expect(valeur.length, lessThan(80), reason: '$nom a une valeur de la taille d\'un secret');

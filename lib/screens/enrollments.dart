@@ -143,7 +143,8 @@ class _EnrollmentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final course = ue;
-    final color = course == null ? AppColors.primaryBlue : Color(int.parse('FF${course.colorHex.substring(1)}', radix: 16));
+    final color =
+        course == null ? AppColors.primaryBlue : Color(int.parse('FF${course.colorHex.substring(1)}', radix: 16));
     final title = student?.fullName ?? course?.title ?? 'Cours ${enrollment.ueId}';
     final subtitle = student != null
         ? (course == null ? 'Cours ${enrollment.ueId}' : '${course.code} · ${course.title}')
@@ -161,7 +162,9 @@ class _EnrollmentTile extends StatelessWidget {
               CircleAvatar(
                 backgroundColor: color.withValues(alpha: 0.12),
                 child: Text(
-                  course == null || course.code.isEmpty ? '?' : course.code.substring(0, course.code.length.clamp(0, 3)),
+                  course == null || course.code.isEmpty
+                      ? '?'
+                      : course.code.substring(0, course.code.length.clamp(0, 3)),
                   style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -170,7 +173,10 @@ class _EnrollmentTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       maxLines: 2,

@@ -76,18 +76,34 @@ void main() {
     const teacher = Teacher(id: 't1', firstName: 'Jean', lastName: 'Nkoumou', status: 'ACTIVE', department: 'ICT4D');
 
     test('par identifiant quand le cours en porte un', () {
-      const ue = UE(id: 'c1', code: 'INF101', title: 'Algo', credits: 6, description: '', teacherId: 't1', colorHex: '#000000');
+      const ue = UE(
+          id: 'c1', code: 'INF101', title: 'Algo', credits: 6, description: '', teacherId: 't1', colorHex: '#000000');
       expect(teacher.teaches(ue), isTrue);
     });
 
     test('par nom malgré titre, casse et initiale — « Dr NKOUMOU » vs « Pr. Nkoumou J. »', () {
-      const ue = UE(id: 'c2', code: 'INF102', title: 'Réseaux', credits: 4, description: '', teacherName: 'Pr. Nkoumou J.', colorHex: '#000000');
+      const ue = UE(
+          id: 'c2',
+          code: 'INF102',
+          title: 'Réseaux',
+          credits: 4,
+          description: '',
+          teacherName: 'Pr. Nkoumou J.',
+          colorHex: '#000000');
       expect(teacher.teaches(ue), isTrue);
       expect(sameTeacherName('Dr NKOUMOU', 'Pr. Nkoumou J.'), isTrue);
     });
 
     test('ne confond pas deux enseignants aux noms distincts', () {
-      const ue = UE(id: 'c3', code: 'MAT101', title: 'Analyse', credits: 6, description: '', teacherId: 't9', teacherName: 'Dr Essomba', colorHex: '#000000');
+      const ue = UE(
+          id: 'c3',
+          code: 'MAT101',
+          title: 'Analyse',
+          credits: 6,
+          description: '',
+          teacherId: 't9',
+          teacherName: 'Dr Essomba',
+          colorHex: '#000000');
       expect(teacher.teaches(ue), isFalse);
     });
 

@@ -272,10 +272,7 @@ Set<String> nameTokens(String name) {
       .replaceAll(RegExp('[ôö]'), 'o')
       .replaceAll(RegExp('[ùûü]'), 'u')
       .replaceAll('ç', 'c');
-  return ascii
-      .split(RegExp(r'[^a-z]+'))
-      .where((t) => t.length > 1 && !_honorifics.contains(t))
-      .toSet();
+  return ascii.split(RegExp(r'[^a-z]+')).where((t) => t.length > 1 && !_honorifics.contains(t)).toSet();
 }
 
 /// Vrai si deux écritures désignent vraisemblablement le même enseignant :
