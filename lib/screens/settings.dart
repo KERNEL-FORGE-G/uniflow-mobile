@@ -6,6 +6,7 @@ import '../offline/offline_settings_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../app_info.dart';
 import '../services/profile_photo_service.dart';
 import '../utils/avatar.dart';
 import '../widgets/common.dart';
@@ -286,6 +287,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       title: const Text('L\'Équipe KERNEL FORGE'),
                       trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
                       onTap: () => GoRouter.of(context).push('/equipe'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      key: const ValueKey('settings-about'),
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.info_outline_rounded, color: AppColors.primaryBlue),
+                      title: const Text('À propos d\'UniFlow'),
+                      subtitle: const Text(appVersionLabel, style: TextStyle(fontSize: 12)),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                      onTap: () => GoRouter.of(context).push('/a-propos'),
                     ),
                     if (user != null) ...[
                       const Divider(height: 1),

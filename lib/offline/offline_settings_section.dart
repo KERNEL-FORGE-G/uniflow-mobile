@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni/archlord_mascot.dart';
 import 'local_database.dart';
 import 'offline_providers.dart';
 import 'offline_widgets.dart';
@@ -67,6 +68,18 @@ class _OfflineSettingsSectionState extends ConsumerState<OfflineSettingsSection>
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 10),
+        // Le fondateur explique le point que les utilisateurs comprennent le
+        // moins bien : l'application ne « perd » rien sans réseau. `still` :
+        // dans une page de réglages, une figure qui respire en boucle attire
+        // l'œil pour rien — et les tests de cet écran attendent que tout se
+        // stabilise (`pumpAndSettle`).
+        const ArchlordMascot(
+          pose: ArchlordPose.explain,
+          size: 72,
+          still: true,
+          bubble: Text('Tes données restent sur le téléphone, même un mois sans réseau.'),
         ),
         const SizedBox(height: 10),
         SizedBox(

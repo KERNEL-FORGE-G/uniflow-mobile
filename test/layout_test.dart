@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:uniflow_mobile/screens/about.dart';
 import 'package:uniflow_mobile/screens/assignments.dart';
 import 'package:uniflow_mobile/screens/dashboard.dart';
 import 'package:uniflow_mobile/screens/enrollments.dart';
@@ -23,6 +24,7 @@ import 'package:uniflow_mobile/screens/library.dart';
 import 'package:uniflow_mobile/screens/login.dart';
 import 'package:uniflow_mobile/screens/messages.dart';
 import 'package:uniflow_mobile/screens/notifications.dart';
+import 'package:uniflow_mobile/screens/onboarding.dart';
 import 'package:uniflow_mobile/screens/presence.dart';
 import 'package:uniflow_mobile/screens/settings.dart';
 import 'package:uniflow_mobile/screens/students_list.dart';
@@ -80,6 +82,10 @@ void main() {
     'Équipe': const TeamsScreen(),
     'Aide': const HelpScreen(),
     'Réglages': const SettingsScreen(),
+    'À propos': const AboutScreen(),
+    // Première page seulement ; les trois autres et le dialogue final sont
+    // balayés par `onboarding_test.dart`, qui sait faire défiler les pages.
+    'Présentation': const OnboardingScreen(onFinished: _rien),
   };
 
   for (final entry in screens.entries) {
@@ -111,3 +117,5 @@ void main() {
     }
   }
 }
+
+void _rien() {}

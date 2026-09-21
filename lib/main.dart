@@ -6,6 +6,7 @@ import 'theme/app_theme.dart';
 import 'providers/providers.dart';
 import 'offline/background_sync.dart';
 import 'offline/offline_providers.dart';
+import 'providers/onboarding_provider.dart';
 import 'services/notification_service.dart';
 import 'widgets/uni/uni_mascot.dart';
 import 'widgets/uni/uni_scenes.dart';
@@ -62,8 +63,12 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
   Widget build(BuildContext context) {
     // Tant que la session n'est pas résolue, on affiche un écran de garde :
     // router vers /login ici ferait clignoter la connexion pour un utilisateur
-    // déjà authentifié.
-    if (ref.watch(authStatusProvider) == AuthStatus.unknown) {
+    // déjà authentifié. Même garde, sans session, tant que la préférence
+    // « présentation déjà vue » n'est pas lue : sinon la connexion apparaissait
+    // une fraction de seconde avant de céder la place à la présentation.
+    final status = ref.watch(authStatusProvider);
+    final onboardingPending = status == AuthStatus.signedOut && ref.watch(onboardingSeenProvider) == null;
+    if (status == AuthStatus.unknown || onboardingPending) {
       return MaterialApp(
         title: 'UniFlow',
         debugShowCheckedModeBanner: false,
