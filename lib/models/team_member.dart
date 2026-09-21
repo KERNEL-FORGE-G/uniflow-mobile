@@ -2,6 +2,7 @@ import 'package:appwrite/models.dart' as models;
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/phosphor.dart';
 
 /// Un membre de l'équipe KERNEL FORGE, tel que stocké dans la collection
 /// `team_members`.
@@ -149,17 +150,20 @@ TeamAccentStyle teamAccentStyle(TeamAccent accent) {
 /// un attribut en base pour un détail décoratif, on la retrouve depuis la
 /// sous-équipe — même règle que `memberIcon()` côté web, pour que les deux
 /// montrent la même icône.
+///
+/// Graisse `fill` : la pastille fait 12 px, et un duotone y devient une tache ;
+/// le plein reste lisible à cette taille.
 IconData teamMemberIcon(TeamMember member) {
   final haystack = '${member.subTeam} ${member.role}'.toLowerCase();
   if (RegExp(r'sgbd|base de donn|bdd?|database').hasMatch(haystack)) {
-    return Icons.storage_outlined;
+    return PhosphorIconsFill.database;
   }
   if (RegExp(r'mobile|android|ios').hasMatch(haystack)) {
-    return Icons.smartphone_outlined;
+    return PhosphorIconsFill.deviceMobile;
   }
-  if (member.team == 'Leadership') return Icons.workspace_premium_outlined;
-  if (member.team == 'Backend') return Icons.dns_outlined;
-  return Icons.code_outlined;
+  if (member.team == 'Leadership') return PhosphorIconsFill.crown;
+  if (member.team == 'Backend') return PhosphorIconsFill.hardDrives;
+  return PhosphorIconsFill.code;
 }
 
 /// Les catégories de filtre de la page, dans l'ordre des pastilles du web.

@@ -805,7 +805,7 @@ class SilhouetteAvatar extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(color: background, borderRadius: radius),
           alignment: Alignment.center,
-          child: Icon(Icons.person_outline, size: size * 0.5, color: foreground),
+          child: PhosphorIcon(PhosphorIconsFill.user, size: size * 0.5, color: foreground),
         );
 
     final url = avatarUrl(avatarFileId);

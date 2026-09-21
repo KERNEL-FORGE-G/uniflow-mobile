@@ -6,6 +6,7 @@ import '../models/team_member.dart';
 import '../repositories/team_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 /// Page Équipe KERNEL FORGE, alignée sur la page publique `/teams` du web.
 ///
@@ -239,7 +240,7 @@ class _CarteMembre extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(teamMemberIcon(membre), size: 12, color: accent.foreground),
+                        PhosphorIcon(teamMemberIcon(membre), size: 12, color: accent.foreground),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -299,7 +300,7 @@ class _CarteMembre extends StatelessWidget {
               if (membre.github.isNotEmpty)
                 Flexible(
                   child: _BoutonLien(
-                    icone: Icons.code,
+                    icone: PhosphorIconsBold.githubLogo,
                     label: '@${membre.github}',
                     onTap: onGithub,
                   ),
@@ -307,7 +308,7 @@ class _CarteMembre extends StatelessWidget {
               const Spacer(),
               if (membre.email.isNotEmpty)
                 _BoutonIcone(
-                  icone: Icons.mail_outline,
+                  icone: PhosphorIconsBold.envelope,
                   tooltip: membre.email,
                   onTap: onMail,
                 ),
@@ -339,7 +340,7 @@ class _BoutonLien extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icone, size: 14, color: AppColors.textSecondary),
+              PhosphorIcon(icone, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
@@ -384,7 +385,7 @@ class _BoutonIcone extends StatelessWidget {
               borderRadius: BorderRadius.circular(9),
               border: Border.all(color: AppColors.inputBorder),
             ),
-            child: Icon(icone, size: 16, color: AppColors.textSecondary),
+            child: PhosphorIcon(icone, size: 16, color: AppColors.textSecondary),
           ),
         ),
       ),
@@ -455,7 +456,7 @@ class _Intro extends StatelessWidget {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.code, size: 13, color: AppColors.teal),
+                      PhosphorIcon(PhosphorIconsBold.code, size: 13, color: AppColors.teal),
                       SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -499,10 +500,10 @@ class _Statistiques extends StatelessWidget {
     // « 9 », « 5 », « 3 », « 1 », et ces chiffres seraient devenus faux dès le
     // premier ajout de membre depuis l'administration.
     final tuiles = <Widget>[
-      _tuile('Membres au total', membres.length, Icons.groups_outlined, AppColors.primaryBlue),
-      _tuile('Ingénieurs Frontend', _compter('Frontend'), Icons.laptop_outlined, AppColors.purple),
-      _tuile('Ingénieurs Backend & BD', _compter('Backend'), Icons.dns_outlined, AppColors.teal),
-      _tuile('Lead & Architecture', _compter('Leadership'), Icons.workspace_premium_outlined, AppColors.warning),
+      _tuile('Membres au total', membres.length, PhosphorIconsDuotone.usersFour, AppColors.primaryBlue),
+      _tuile('Ingénieurs Frontend', _compter('Frontend'), PhosphorIconsDuotone.laptop, AppColors.purple),
+      _tuile('Ingénieurs Backend & BD', _compter('Backend'), PhosphorIconsDuotone.hardDrives, AppColors.teal),
+      _tuile('Lead & Architecture', _compter('Leadership'), PhosphorIconsDuotone.crown, AppColors.warning),
     ];
 
     return LayoutBuilder(
@@ -536,7 +537,7 @@ class _Statistiques extends StatelessWidget {
               color: couleur.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(9),
             ),
-            child: Icon(icone, size: 16, color: couleur),
+            child: PhosphorIcon(icone, size: 16, color: couleur),
           ),
           const SizedBox(height: 8),
           Text(
@@ -597,7 +598,7 @@ class _BandeauTechnologies extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check_circle_outline, size: 13, color: AppColors.teal),
+                          const PhosphorIcon(PhosphorIconsFill.checkCircle, size: 13, color: AppColors.teal),
                           const SizedBox(width: 5),
                           // `Flexible` : à 320 px de large avec le texte agrandi
                           // (×1.3), « Hors ligne (Drift / SQLite) » et « Flutter mobile & bureau »
@@ -642,7 +643,7 @@ class _AppelGithub extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.auto_awesome, color: Color(0xFFFCD34D), size: 26),
+          const PhosphorIcon(PhosphorIconsFill.sparkle, color: Color(0xFFFCD34D), size: 26),
           const SizedBox(height: 8),
           const Text(
             'Rejoignez l\'organisation KERNEL FORGE',
@@ -667,7 +668,7 @@ class _AppelGithub extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.code, size: 16, color: AppColors.primaryBlue),
+                    PhosphorIcon(PhosphorIconsBold.githubLogo, size: 16, color: AppColors.primaryBlue),
                     SizedBox(width: 7),
                     // `Flexible` : sans marge de repli, ce libellé débordait de
                     // 127 px à 320 px de large avec le texte agrandi (×1.3).
@@ -687,7 +688,7 @@ class _AppelGithub extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 6),
-                    Icon(Icons.open_in_new, size: 13, color: AppColors.primaryBlue),
+                    PhosphorIcon(PhosphorIconsBold.arrowSquareOut, size: 13, color: AppColors.primaryBlue),
                   ],
                 ),
               ),
