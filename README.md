@@ -108,4 +108,5 @@ uniflow-mobile/
 ## Documentation
 
 - `docs/erreurs-de-build-resolues.md` — incompatibilités de plugins déjà rencontrées et leur correction.
+- `docs/publication-android.md` — clé de signature, construction de l'APK, release GitHub (`uniflow-apps`) et publication du lien sur le site.
 - À la racine de l'espace de travail : `ETAT-DU-PROJET.md` et `TRAVAUX-RESTANTS.md`.
