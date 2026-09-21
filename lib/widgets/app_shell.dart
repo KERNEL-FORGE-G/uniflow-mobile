@@ -5,6 +5,8 @@ import '../models/user_role.dart';
 import '../offline/offline_widgets.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
+import 'uni/uni_assistant.dart';
+import 'uni/uni_scenes.dart';
 
 /// Coquille de l'application connectée : elle porte la barre de navigation du
 /// bas, commune à tous les onglets.
@@ -38,7 +40,28 @@ class AppShell extends ConsumerWidget {
     return Scaffold(
       // Le bandeau hors ligne / en attente d'envoi coiffe chaque page ; il
       // se replie tout seul quand tout est synchronisé.
-      body: Column(children: [const OfflineBanner(), Expanded(child: child)]),
+      body: Stack(
+        children: [
+          Column(children: [const OfflineBanner(), Expanded(child: child)]),
+          // Uni : le bouton flottant de l'assistant, et sa première apparition
+          // par le bord droit pour se présenter (une fois par lancement).
+          Positioned(
+            right: 14,
+            bottom: 14,
+            child: UniLauncher(onOpen: () => showUniAssistant(context)),
+          ),
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 84),
+              child: UniPeek(
+                id: 'hello-shell',
+                message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’appli ? Touche-moi.',
+                onTap: () => showUniAssistant(context),
+              ),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: AppColors.cardWhite,

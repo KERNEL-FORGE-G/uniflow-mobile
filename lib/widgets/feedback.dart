@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'uni/uni_mascot.dart';
 
 /// Issue d'une action utilisateur, pour un retour visuel homogène.
 enum FeedbackKind { success, failure, info }
@@ -46,13 +47,25 @@ class FeedbackView extends StatelessWidget {
         FeedbackKind.info => Icons.info_outline_rounded,
       };
 
+  /// Pose d'Uni qui accompagne la pastille en plein écran : il saute de joie
+  /// sur un succès, s'excuse sur un échec. En mode compact, la pastille seule.
+  UniPose get _pose => switch (kind) {
+        FeedbackKind.success => UniPose.celebrate,
+        FeedbackKind.failure => UniPose.sorry,
+        FeedbackKind.info => UniPose.pointing,
+      };
+
   @override
   Widget build(BuildContext context) {
-    final size = compact ? 64.0 : 96.0;
+    final size = compact ? 64.0 : 72.0;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (!compact) ...[
+          Center(child: UniMascot(pose: _pose, size: 130)),
+          const SizedBox(height: 6),
+        ],
         Center(
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: 1),

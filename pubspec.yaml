@@ -62,3 +62,10 @@ flutter:
     # pesait 872 Ko dans l'APK et posait une tuile blanche sur les fonds
     # sombres.
     - assets/brand/
+    # Uni, la mascotte (12 poses WebP, ~60 Ko chacune), son avatar et le logo
+    # KERNEL FORGE : embarqués pour s'afficher hors ligne et sur les écrans
+    # d'erreur, là où rien ne peut plus être téléchargé.
+    - assets/mascot/
+    - assets/assistant/
+    - assets/logos/
+    - assets/onboarding/

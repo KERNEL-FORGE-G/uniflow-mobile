@@ -7,6 +7,8 @@ import 'providers/providers.dart';
 import 'offline/background_sync.dart';
 import 'offline/offline_providers.dart';
 import 'services/notification_service.dart';
+import 'widgets/uni/uni_mascot.dart';
+import 'widgets/uni/uni_scenes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +16,10 @@ void main() async {
   // Synchronisation périodique application fermée (Android). La contrainte
   // réseau est reposée par les Réglages quand « Wi-Fi seulement » change.
   await BackgroundSync.initialize();
+  // Une erreur de rendu non rattrapée affiche Uni qui s'excuse plutôt que le
+  // rectangle rouge de Flutter — l'utilisateur comprend qu'il peut revenir en
+  // arrière, et le détail reste lisible pour nous.
+  ErrorWidget.builder = (details) => UniCrashScreen(details: details.exceptionAsString());
   runApp(const ProviderScope(child: UniFlowApp()));
 }
 
@@ -87,9 +93,12 @@ class _SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 20),
-            Text('UniFlow', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+            // Uni accueille pendant que la session locale se résout.
+            UniMascot(pose: UniPose.wave, size: 150),
+            SizedBox(height: 18),
+            Text('UniFlow', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+            SizedBox(height: 14),
+            UniDots(color: Colors.white),
           ],
         ),
       ),

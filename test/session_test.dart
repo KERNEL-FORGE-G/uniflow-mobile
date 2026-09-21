@@ -299,7 +299,10 @@ void main() {
 
       await tester.enterText(find.byType(TextField), 'SUPPRIMER');
       await tester.tap(find.text('Supprimer définitivement mon compte'));
-      await tester.pumpAndSettle();
+      // L'écran de succès porte Uni qui saute de joie en boucle :
+      // `pumpAndSettle` ne se stabiliserait jamais, on avance d'un temps fixe.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 900));
 
       expect(r.gateway.calls.single.$1, '/account');
       expect(find.text('Compte supprimé'), findsOneWidget);

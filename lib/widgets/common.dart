@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni/uni_mascot.dart';
 import '../utils/avatar.dart';
 
 /// En-tête de page, en dégradé bleu nuit.
@@ -454,12 +455,16 @@ class EmptyState extends StatelessWidget {
   final String? message;
   final Widget? action;
 
+  /// Quand elle est donnée, Uni remplace l'icône (il cherche, s'excuse, dort…).
+  final UniPose? pose;
+
   const EmptyState({
     super.key,
     required this.icon,
     required this.title,
     this.message,
     this.action,
+    this.pose,
   });
 
   @override
@@ -478,15 +483,18 @@ class EmptyState extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary50,
-                      borderRadius: BorderRadius.circular(20),
+                  if (pose != null)
+                    UniMascot(pose: pose!, size: 124)
+                  else
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary50,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(icon, size: 30, color: AppColors.primaryBlue),
                     ),
-                    child: Icon(icon, size: 30, color: AppColors.primaryBlue),
-                  ),
                   const SizedBox(height: 16),
                   Text(title, textAlign: TextAlign.center, style: AppTextStyles.h3),
                   if (message != null) ...[
@@ -565,7 +573,10 @@ class ErrorBanner extends StatelessWidget {
 class LoadingView extends StatelessWidget {
   final String? label;
 
-  const LoadingView({super.key, this.label});
+  /// Uni réfléchit à la place du cercle : pour les chargements pleine page.
+  final bool mascot;
+
+  const LoadingView({super.key, this.label, this.mascot = false});
 
   @override
   Widget build(BuildContext context) {
@@ -573,11 +584,16 @@ class LoadingView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
-            width: 28,
-            height: 28,
-            child: CircularProgressIndicator(strokeWidth: 2.6),
-          ),
+          if (mascot) ...[
+            const UniMascot(pose: UniPose.thinking, size: 110),
+            const SizedBox(height: 10),
+            const UniDots(),
+          ] else
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 2.6),
+            ),
           if (label != null) ...[
             const SizedBox(height: 14),
             Text(label!, style: AppTextStyles.body),

@@ -7,6 +7,7 @@ import '../providers/providers.dart';
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
+import '../widgets/uni/uni_mascot.dart';
 import '../widgets/feedback.dart';
 
 /// Écran de connexion Appwrite.
@@ -100,6 +101,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return AuthScaffold(
       child: AuthCard(
         children: [
+          // Uni accueille, réfléchit pendant la connexion et s'excuse sur une
+          // erreur : l'état se lit avant même le message.
+          Center(
+            child: UniMascot(
+              pose: _error != null ? UniPose.sorry : _busy ? UniPose.thinking : UniPose.wave,
+              size: 96,
+              effects: false,
+            ),
+          ),
+          const SizedBox(height: 8),
           const Text(
             'Se connecter',
             textAlign: TextAlign.center,

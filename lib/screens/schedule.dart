@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/motion.dart';
 import '../widgets/scope_selector.dart';
+import '../widgets/uni/uni_mascot.dart';
 import 'personal_space.dart' show dayLabel;
 
 /// Emploi du temps officiel de la filière et du niveau du compte.
@@ -51,6 +52,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 // filière (capture du 2026-09-20 : un L1 ICT4D voyait MIB L3).
                 ? const EmptyState(
                     icon: Icons.badge_outlined,
+                    pose: UniPose.search,
                     title: 'Profil académique incomplet',
                     message:
                         'Votre filière ou votre niveau n\'est pas renseigné : aucun emploi du temps ne peut être affiché. '
@@ -59,6 +61,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 : needsSelection
                     ? const EmptyState(
                         icon: Icons.filter_alt_outlined,
+                        pose: UniPose.pointing,
                         title: 'Choisissez une filière',
                         message: 'L\'emploi du temps s\'affiche pour la filière et le niveau sélectionnés.',
                       )
@@ -75,6 +78,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           if (all.isEmpty) {
                             return EmptyState(
                               icon: Icons.calendar_month_outlined,
+                              pose: UniPose.search,
                               title: 'Aucun créneau',
                               message: scope.label.isEmpty
                                   ? 'Aucun emploi du temps n\'est publié pour le moment.'
@@ -97,6 +101,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                                       ? EmptyState(
                                           key: ValueKey('vide-$_day'),
                                           icon: Icons.free_breakfast_outlined,
+                                          pose: UniPose.sleeping,
                                           title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
                                         )
                                       : Builder(
