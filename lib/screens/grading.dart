@@ -39,10 +39,10 @@ class _GradingScreenState extends ConsumerState<GradingScreen> {
           Expanded(
             child: courses.when(
               loading: () => const ShimmerList(),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                    message: 'Cours indisponibles.\n$error', onRetry: () => ref.invalidate(scopedCoursesProvider)),
+              error: (error, _) => LoadErrorView(
+                title: 'Cours indisponibles',
+                error: error,
+                onRetry: () => ref.invalidate(scopedCoursesProvider),
               ),
               data: (list) {
                 // Le serveur refuse un enseignant sur un cours qui n'est pas le
@@ -107,11 +107,10 @@ class _RosterView extends ConsumerWidget {
     final roster = ref.watch(courseRosterProvider(course.id));
     return roster.when(
       loading: () => const ShimmerList(),
-      error: (error, _) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: ErrorBanner(
-            message: 'Liste des inscrits indisponible.\n$error',
-            onRetry: () => ref.invalidate(courseRosterProvider(course.id))),
+      error: (error, _) => LoadErrorView(
+        title: 'Liste des inscrits indisponible',
+        error: error,
+        onRetry: () => ref.invalidate(courseRosterProvider(course.id)),
       ),
       data: (data) {
         if (data.students.isEmpty) {

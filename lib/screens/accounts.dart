@@ -67,12 +67,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           Expanded(
             child: accounts.when(
               loading: () => const ShimmerList(),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'Les comptes n\'ont pas pu être chargés.\n$error',
-                  onRetry: () => ref.invalidate(managedAccountsProvider),
-                ),
+              error: (error, _) => LoadErrorView(
+                title: 'Les comptes n\'ont pas pu être chargés',
+                error: error,
+                onRetry: () => ref.invalidate(managedAccountsProvider),
               ),
               data: (list) {
                 final filtered = filterAccounts(list, query: _query, role: _roleFilter);

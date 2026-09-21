@@ -47,11 +47,10 @@ class TeacherAssignmentsScreen extends ConsumerWidget {
           Expanded(
             child: assignments.when(
               loading: () => const ShimmerList(),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                    message: 'Vos devoirs n\'ont pas pu être chargés.\n$error',
-                    onRetry: () => ref.invalidate(teacherAssignmentsProvider)),
+              error: (error, _) => LoadErrorView(
+                title: 'Vos devoirs n\'ont pas pu être chargés',
+                error: error,
+                onRetry: () => ref.invalidate(teacherAssignmentsProvider),
               ),
               data: (list) => list.isEmpty
                   ? const EmptyState(

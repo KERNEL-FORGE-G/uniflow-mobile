@@ -67,12 +67,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       )
                     : schedules.when(
                         loading: () => const ShimmerList(cardHeight: 70),
-                        error: (error, _) => Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: ErrorBanner(
-                            message: 'L\'emploi du temps n\'a pas pu être chargé.\n$error',
-                            onRetry: () => ref.invalidate(scopedSchedulesProvider),
-                          ),
+                        error: (error, _) => LoadErrorView(
+                          title: 'L\'emploi du temps n\'a pas pu être chargé',
+                          error: error,
+                          onRetry: () => ref.invalidate(scopedSchedulesProvider),
                         ),
                         data: (all) {
                           if (all.isEmpty) {

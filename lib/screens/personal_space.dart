@@ -39,12 +39,10 @@ class PersonalSubjectsScreen extends ConsumerWidget {
           Expanded(
             child: subjects.when(
               loading: () => const ShimmerList(),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'Vos matières n\'ont pas pu être chargées.\n$error',
-                  onRetry: () => ref.invalidate(personalSubjectsProvider),
-                ),
+              error: (error, _) => LoadErrorView(
+                title: 'Vos matières n\'ont pas pu être chargées',
+                error: error,
+                onRetry: () => ref.invalidate(personalSubjectsProvider),
               ),
               data: (list) => list.isEmpty
                   ? const EmptyState(
@@ -288,12 +286,10 @@ class PersonalTasksScreen extends ConsumerWidget {
           Expanded(
             child: tasks.when(
               loading: () => const ShimmerList(),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'Vos tâches n\'ont pas pu être chargées.\n$error',
-                  onRetry: () => ref.invalidate(personalTasksProvider),
-                ),
+              error: (error, _) => LoadErrorView(
+                title: 'Vos tâches n\'ont pas pu être chargées',
+                error: error,
+                onRetry: () => ref.invalidate(personalTasksProvider),
               ),
               data: (list) {
                 if (list.isEmpty) {
@@ -594,12 +590,10 @@ class PersonalAgendaScreen extends ConsumerWidget {
           Expanded(
             child: schedules.when(
               loading: () => const ShimmerList(cardHeight: 64),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'Votre agenda n\'a pas pu être chargé.\n$error',
-                  onRetry: () => ref.invalidate(personalSchedulesProvider),
-                ),
+              error: (error, _) => LoadErrorView(
+                title: 'Votre agenda n\'a pas pu être chargé',
+                error: error,
+                onRetry: () => ref.invalidate(personalSchedulesProvider),
               ),
               data: (list) {
                 if (list.isEmpty) {
@@ -890,12 +884,10 @@ class PersonalGradesView extends ConsumerWidget {
           Expanded(
             child: grades.when(
               loading: () => const ShimmerList(),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'Vos notes n\'ont pas pu être chargées.\n$error',
-                  onRetry: () => ref.invalidate(personalGradesProvider),
-                ),
+              error: (error, _) => LoadErrorView(
+                title: 'Vos notes n\'ont pas pu être chargées',
+                error: error,
+                onRetry: () => ref.invalidate(personalGradesProvider),
               ),
               data: (list) {
                 if (list.isEmpty) {

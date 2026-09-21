@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'uni/uni_mascot.dart';
+import 'uni/uni_scenes.dart';
 import '../utils/avatar.dart';
+import '../utils/error_text.dart';
 
 /// En-tête de page, en dégradé bleu nuit.
 ///
@@ -564,6 +566,63 @@ class ErrorBanner extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Échec de chargement d'un écran entier : Uni s'excuse, la phrase lisible,
+/// le code technique en petit et « Réessayer ».
+///
+/// Remplace les bandeaux rouges posés au milieu d'un écran vide : chaque
+/// écran avait le sien, avec ou sans bouton, avec ou sans détail. Le bandeau
+/// (`ErrorBanner`) reste pour une erreur inline au-dessus d'un contenu.
+class LoadErrorView extends StatelessWidget {
+  final String title;
+  final Object error;
+  final VoidCallback? onRetry;
+
+  const LoadErrorView({super.key, required this.title, required this.error, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = describeError(error);
+    return UniOops(
+      title: title,
+      message: text.detail,
+      pose: UniPose.sorry,
+      size: 124,
+      action: onRetry == null
+          ? null
+          : OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Réessayer'),
+            ),
+      secondaryAction: ErrorCodeChip(code: text.code),
+    );
+  }
+}
+
+/// Le code technique d'une erreur, en petit et en monospace : lisible sur une
+/// capture d'écran envoyée par un utilisateur.
+class ErrorCodeChip extends StatelessWidget {
+  final String code;
+
+  const ErrorCodeChip({super.key, required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: Text(
+        code,
+        style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppColors.textMuted),
       ),
     );
   }

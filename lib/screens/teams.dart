@@ -60,12 +60,10 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
           Expanded(
             child: equipeAsync.when(
               loading: () => const LoadingView(label: 'Chargement de l\'équipe…'),
-              error: (error, _) => SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'L\'équipe n\'a pas pu être chargée : $error',
-                  onRetry: () => ref.invalidate(teamMembersProvider),
-                ),
+              error: (error, _) => LoadErrorView(
+                title: 'L\'équipe n\'a pas pu être chargée',
+                error: error,
+                onRetry: () => ref.invalidate(teamMembersProvider),
               ),
               data: (membres) => _contenu(membres),
             ),

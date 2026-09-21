@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uniflow_mobile/models/academic_scope.dart';
 import 'package:uniflow_mobile/models/appwrite_models.dart';
+import 'package:uniflow_mobile/offline/sync_engine.dart';
 
 /// Le périmètre académique est ce qui empêche un L2 de voir les cours des L1
 /// et un physicien de voir ceux d'informatique : rien n'est codé en dur, tout
@@ -45,6 +46,35 @@ void main() {
     final scope = AcademicScope.forUser(compte('STUDENT'));
     expect(scope.courses([cours1, cours2, phys]), [cours2]);
     expect(scope.label, 'ICT4D · L2');
+  });
+
+  test('l\'emploi du temps d\'un étudiant ne contient que sa filière ET son niveau', () {
+    // Même chemin que `scopedSchedulesProvider` : le périmètre du compte
+    // fournit filière + niveau, `schedulesForScope` filtre les séances (y
+    // compris celles du cache, qui peut contenir d'anciens périmètres).
+    AcademicSchedule seance(String id, String program, String level) => AcademicSchedule(
+        id: id,
+        courseId: id,
+        courseCode: id,
+        dayOfWeek: 'LUNDI',
+        startTime: '08:00',
+        endTime: '10:00',
+        classroom: 'A1',
+        program: program,
+        level: level);
+    final toutes = [
+      seance('ict-l1', 'ICT4D', 'L1'),
+      seance('ict-l2', 'ICT4D', 'L2'),
+      seance('mib-l2', 'MIB', 'L2'),
+      seance('mib-l3', 'MIB', 'L3'),
+    ];
+    final scope = AcademicScope.forUser(compte('STUDENT'));
+    expect(scope.filterByProgram && scope.filterByLevel, isTrue);
+    final visibles = schedulesForScope(toutes, program: scope.program, level: scope.level);
+    expect(visibles.map((s) => s.id), ['ict-l2']);
+    // Un L1 ICT4D (capture du 2026-09-20) ne voit ni MIB L3 ni ICT4D L2.
+    final l1 = AcademicScope.forUser(compte('STUDENT', level: 'L1'));
+    expect(schedulesForScope(toutes, program: l1.program, level: l1.level).map((s) => s.id), ['ict-l1']);
   });
 
   test('la comparaison ignore la casse : « ict4d » et « l2 » passent', () {

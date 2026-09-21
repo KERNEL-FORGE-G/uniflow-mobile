@@ -154,8 +154,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 );
               },
               loading: () => const LoadingView(),
-              error: (err, stack) => Padding(
-                  padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$err')),
+              error: (err, stack) => LoadErrorView(
+                title: 'La bibliothèque n\'a pas pu être chargée',
+                error: err,
+                onRetry: () => ref.invalidate(libraryListProvider),
+              ),
             ),
           ),
         ],

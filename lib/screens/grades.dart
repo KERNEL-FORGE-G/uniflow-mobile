@@ -105,12 +105,10 @@ class GradesScreen extends ConsumerWidget {
                 );
               },
               loading: () => const LoadingView(label: 'Chargement de vos notes…'),
-              error: (err, stack) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: ErrorBanner(
-                  message: 'Vos notes n\'ont pas pu être chargées.\n$err',
-                  onRetry: () => ref.invalidate(gradesListProvider),
-                ),
+              error: (err, stack) => LoadErrorView(
+                title: 'Vos notes n\'ont pas pu être chargées',
+                error: err,
+                onRetry: () => ref.invalidate(gradesListProvider),
               ),
             ),
           ),

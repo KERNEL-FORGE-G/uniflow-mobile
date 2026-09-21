@@ -60,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _email.text.trim();
     final password = _password.text;
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _error = 'Renseignez votre email et votre mot de passe.');
+      setState(() => _error = 'Renseignez votre e-mail et votre mot de passe.');
       return;
     }
 

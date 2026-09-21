@@ -179,8 +179,11 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                 );
               },
               loading: () => const LoadingView(),
-              error: (e, _) =>
-                  Padding(padding: const EdgeInsets.all(16), child: ErrorBanner(message: 'Chargement impossible.\n$e')),
+              error: (e, _) => LoadErrorView(
+                title: 'Le forum n\'a pas pu être chargé',
+                error: e,
+                onRetry: () => ref.invalidate(forumPostsProvider),
+              ),
             ),
           ),
         ],
@@ -307,7 +310,7 @@ class _DialogueNouveauBilletState extends State<_DialogueNouveauBillet> {
             ),
             if (_erreur != null) ...[
               const SizedBox(height: 10),
-              Text(_erreur!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+              Text(_erreur!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
             ],
           ],
         ),

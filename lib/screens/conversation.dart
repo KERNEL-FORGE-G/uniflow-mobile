@@ -293,7 +293,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             ),
           Expanded(
             child: _loading && messages.isEmpty
-                ? const Center(child: CircularProgressIndicator())
+                ? const LoadingView(label: 'Chargement des messages…')
                 : messages.isEmpty
                     ? _EmptyThread(name: conversation?.name)
                     : RefreshIndicator(
@@ -384,8 +384,11 @@ class _Bubble extends StatelessWidget {
     final mine = message.mine;
     final foreground = mine ? Colors.white : AppColors.textPrimary;
     // Un message urgent se signale par un liseré, pas par une couleur de fond :
-    // la couleur porte déjà l'information « envoyé » / « reçu ».
-    final border = message.urgent ? Border.all(color: mine ? Colors.amber.shade200 : AppColors.danger, width: 2) : null;
+    // la couleur porte déjà l'information « envoyé » / « reçu ». Sur la bulle
+    // bleue, le rouge d'alerte ne se lit pas : l'ambre de la palette prend le
+    // relais.
+    final urgentInk = mine ? AppColors.warning : AppColors.danger;
+    final border = message.urgent ? Border.all(color: urgentInk, width: 2) : null;
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
@@ -412,7 +415,7 @@ class _Bubble extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.priority_high, size: 13, color: mine ? Colors.amber.shade200 : AppColors.danger),
+                  Icon(Icons.priority_high, size: 13, color: urgentInk),
                   const SizedBox(width: 3),
                   Text(
                     'URGENT',
@@ -420,7 +423,7 @@ class _Bubble extends StatelessWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.6,
-                      color: mine ? Colors.amber.shade200 : AppColors.danger,
+                      color: urgentInk,
                     ),
                   ),
                 ],

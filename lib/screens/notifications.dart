@@ -224,34 +224,7 @@ class _NotificationsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.danger),
-            const SizedBox(height: 14),
-            const Text(
-              'Notifications indisponibles',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Réessayer'),
-            ),
-          ],
-        ),
-      ),
-    );
+    return LoadErrorView(title: 'Notifications indisponibles', error: error, onRetry: onRetry);
   }
 }
 
