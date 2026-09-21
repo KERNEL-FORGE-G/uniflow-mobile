@@ -53,6 +53,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(Image), findsOneWidget);
     });
+
+    testWidgets('intensity 0 immobilise Uni sans couper l’entrée ni la bulle', (tester) async {
+      await tester.pumpWidget(_wrap(
+        const UniMascot(pose: UniPose.wave, size: 80, intensity: 0, bubble: Text('Chut.')),
+      ));
+      // Un ticker qui tournerait pour une amplitude nulle empêcherait ceci.
+      await tester.pumpAndSettle();
+      expect(find.text('Chut.'), findsOneWidget);
+      expect(find.bySemanticsLabel(UniPose.wave.alt), findsOneWidget);
+    });
   });
 
   group('UniScenes', () {

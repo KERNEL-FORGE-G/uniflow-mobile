@@ -59,6 +59,11 @@ class UniMascot extends StatefulWidget {
   /// Confettis, « z », points de suspension… selon la pose.
   final bool effects;
 
+  /// Amplitude du mouvement, de 0 (immobile) à 1 (pleine). Un dialogue à deux
+  /// personnages baisse celle de celui qui écoute : quand les deux bougeaient
+  /// autant, l'œil ne savait plus qui parlait.
+  final double intensity;
+
   final Widget? bubble;
   final UniBubbleSide bubbleSide;
   final VoidCallback? onTap;
@@ -69,10 +74,11 @@ class UniMascot extends StatefulWidget {
     this.size = 150,
     this.still = false,
     this.effects = true,
+    this.intensity = 1,
     this.bubble,
     this.bubbleSide = UniBubbleSide.right,
     this.onTap,
-  });
+  }) : assert(intensity >= 0 && intensity <= 1, 'intensity est entre 0 et 1');
 
   @override
   State<UniMascot> createState() => _UniMascotState();
@@ -109,7 +115,7 @@ class _UniMascotState extends State<UniMascot>
   /// mouvement que personne ne verrait.
   void _syncLoop({bool restart = false}) {
     final reduce = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final animated = !widget.still && !reduce;
+    final animated = !widget.still && !reduce && widget.intensity > 0;
     if (animated && (!_animated || restart)) {
       _loop.repeat(reverse: true);
     } else if (!animated && _animated) {
@@ -173,6 +179,11 @@ class _UniMascotState extends State<UniMascot>
       case UniPose.peekBottom:
         dy = -6 * e;
     }
+    final k = widget.intensity;
+    dx *= k;
+    dy *= k;
+    angle *= k;
+    scale = 1 + (scale - 1) * k;
     // Rotation et échelle autour du bas du personnage : il « tient debout ».
     final pivot = Offset(box.width / 2, box.height * 0.92);
     return Matrix4.identity()
