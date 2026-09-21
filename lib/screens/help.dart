@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../app_info.dart';
 import '../widgets/common.dart';
 import '../theme/app_theme.dart';
 
@@ -31,18 +34,22 @@ class HelpScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const SectionTitle(title: 'Besoin d\'assistance ?'),
+                // Le bouton annonçait « support@kernelforge.codes », une
+                // adresse qui n'existe pas : le support passe par le WhatsApp
+                // et le courriel officiels, les mêmes que sur le web.
                 PrimaryButton(
-                  label: 'Contacter le support KERNEL FORGE',
-                  icon: Icons.support_agent,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Le support est joignable à support@kernelforge.codes.',
-                        ),
-                      ),
-                    );
-                  },
+                  label: 'Écrire sur WhatsApp ($contactPhoneDisplay)',
+                  icon: Icons.chat_outlined,
+                  onPressed: () => _ouvrir(
+                    context,
+                    '$contactWhatsappUrl?text=${Uri.encodeComponent('Bonjour KERNEL FORGE, j’ai besoin d’aide sur l’application mobile UniFlow.')}',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => _ouvrir(context, '$contactMailUrl?subject=${Uri.encodeComponent('Support UniFlow mobile')}'),
+                  icon: const Icon(Icons.mail_outline),
+                  label: const Text('Par courriel · $contactEmail', maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),
@@ -61,5 +68,14 @@ class HelpScreen extends StatelessWidget {
       trailing: const Icon(Icons.chevron_right, size: 18),
       onTap: () {},
     );
+  }
+
+  Future<void> _ouvrir(BuildContext context, String url) async {
+    final opened = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucune application ne peut ouvrir ce lien. Contact : $contactPhoneDisplay · $contactEmail')),
+      );
+    }
   }
 }

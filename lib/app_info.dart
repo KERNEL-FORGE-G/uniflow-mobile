@@ -18,6 +18,13 @@ const String kernelForgeGithubUrl = 'https://github.com/KERNEL-FORGE-G';
 const String kernelForgeWhatsappGroupUrl = 'https://chat.whatsapp.com/IFkGMr4Ev2KCFAKw9EmEde';
 const String contactEmail = 'uniflow@kernelforge.codes';
 
+/// Numéro unique de contact, de support et de facturation (WhatsApp), le
+/// même que sur le web (`CONTACT_WHATSAPP_E164`).
+const String contactWhatsappE164 = '237657635644';
+const String contactPhoneDisplay = '+237 6 57 63 56 44';
+const String contactWhatsappUrl = 'https://wa.me/$contactWhatsappE164';
+const String contactMailUrl = 'mailto:$contactEmail';
+
 /// Ce qu'est KERNEL FORGE, tel que le propriétaire veut le voir présenté
 /// (2026-09-21) : une startup, pas « une communauté tech ».
 const String kernelForgeDescription =

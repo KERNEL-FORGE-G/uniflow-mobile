@@ -37,7 +37,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final sync = ref.watch(gatewaySyncProvider);
+    final sync = ref.watch(academicSyncProvider);
     final gradesAsync = ref.watch(gradesListProvider);
     final assignmentsAsync = ref.watch(assignmentBoardProvider);
 
@@ -106,7 +106,7 @@ class DashboardScreen extends ConsumerWidget {
                     onRetry: isSessionExpired(sync.error)
                         ? () =>
                             ref.read(sessionControllerProvider).signOut(deleteRemoteSession: false, keepLocalData: true)
-                        : () => ref.invalidate(gatewaySyncProvider),
+                        : () => ref.invalidate(academicSyncProvider),
                   ),
                   const SizedBox(height: 18),
                 ],

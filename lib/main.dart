@@ -44,7 +44,7 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
     Future.microtask(() => ref.read(sessionBootstrapProvider.future));
     // Maintient la synchronisation active : elle se relance d'elle-même quand
     // l'état d'authentification change.
-    ref.listenManual(gatewaySyncProvider, (_, __) {});
+    ref.listenManual(academicSyncProvider, (_, __) {});
     // Ouvre l'écoute temps réel des messages urgents. Elle ne fait rien tant
     // qu'aucun compte n'est connecté, et se relance à chaque changement de
     // session — une socket laissée ouverte sur le compte précédent enverrait

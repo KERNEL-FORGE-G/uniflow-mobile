@@ -94,7 +94,7 @@ class _Auth implements AuthRepository {
     studentsProvider.overrideWith((ref) => const [student]),
     teachersProvider.overrideWith((ref) => const [teacher]),
     uesProvider.overrideWith((ref) => const [ue]),
-    gatewaySyncProvider.overrideWith((ref) async {}),
+    academicSyncProvider.overrideWith((ref) async {}),
     scopedCoursesProvider.overrideWith((ref) => Stream.value(const [])),
     scopedSchedulesProvider.overrideWith((ref) => Stream.value(const [])),
     // Base locale et stockage chiffré en mémoire : la déconnexion volontaire

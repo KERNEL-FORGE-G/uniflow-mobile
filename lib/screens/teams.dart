@@ -24,17 +24,19 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
   /// Filtre actif, « Tous » par défaut comme sur le web.
   String _filtre = 'Tous';
 
-  /// Les neuf technologies du bandeau, identiques à celles du web.
+  /// Pile réellement en production. Le bandeau citait encore « NestJS API »
+  /// et « Express Backend » : l'API intermédiaire a disparu avec la migration,
+  /// UniFlow n'a plus qu'un seul backend, Appwrite Cloud.
   static const List<String> _technologies = [
-    'React 18',
-    'TypeScript',
+    'Appwrite Cloud',
+    'Appwrite Functions',
+    'Realtime Appwrite',
+    'React + TypeScript',
     'Tailwind CSS',
-    'PWA Offline-First',
-    'SQLite / IndexedDB',
-    'NestJS API',
-    'Express Backend',
-    'WebSockets',
-    'QR Code Engine',
+    'Flutter mobile & bureau',
+    'Hors ligne (Drift / SQLite)',
+    'LiveKit (visio locale)',
+    'Présence par QR code',
   ];
 
   Future<void> _ouvrir(String url) async {
@@ -55,7 +57,7 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
         children: [
           const GradientHeader(
             title: 'L\'Équipe KERNEL FORGE',
-            subtitle: 'Université de Yaoundé I',
+            subtitle: 'La startup derrière UniFlow',
           ),
           Expanded(
             child: equipeAsync.when(
@@ -598,7 +600,7 @@ class _BandeauTechnologies extends StatelessWidget {
                           const Icon(Icons.check_circle_outline, size: 13, color: AppColors.teal),
                           const SizedBox(width: 5),
                           // `Flexible` : à 320 px de large avec le texte agrandi
-                          // (×1.3), « SQLite / IndexedDB » et « PWA Offline-First »
+                          // (×1.3), « Hors ligne (Drift / SQLite) » et « Flutter mobile & bureau »
                           // dépassaient la largeur de la pastille de 4 à 48 px.
                           // Le libellé se replie en points de suspension au lieu
                           // de pousser la carte.

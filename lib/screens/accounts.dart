@@ -129,7 +129,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         message = result.draft!.email;
       }
       ref.invalidate(managedAccountsProvider);
-      ref.invalidate(gatewaySyncProvider);
+      ref.invalidate(academicSyncProvider);
       if (context.mounted) await showFeedbackSheet(context, kind: FeedbackKind.success, title: title, message: message);
     } catch (error) {
       if (context.mounted) {

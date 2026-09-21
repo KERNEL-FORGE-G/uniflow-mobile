@@ -1,6 +1,6 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/uniflow_api.dart';
 import '../offline/cached_providers.dart';
 import '../offline/offline_providers.dart';
 import '../offline/sync_engine.dart';
@@ -20,8 +20,10 @@ enum AuthStatus { unknown, signedOut, signedIn }
 
 final authStatusProvider = StateProvider<AuthStatus>((ref) => AuthStatus.unknown);
 
-final apiProvider = Provider<UniFlowApi>((ref) => UniFlowApi());
-
+/// Listes « écran » du périmètre courant, remplies par [academicSyncProvider]
+/// depuis Appwrite Cloud (annuaire, cours, inscriptions). Ce sont des
+/// `StateProvider` pour que les tests de mise en page puissent les fixer sans
+/// réseau ; l'application ne les écrit que depuis la synchronisation.
 final studentsProvider = StateProvider<List<Student>>((ref) => []);
 final teachersProvider = StateProvider<List<Teacher>>((ref) => []);
 final uesProvider = StateProvider<List<UE>>((ref) => []);
@@ -142,6 +144,51 @@ final scopedSchedulesProvider = StreamProvider<List<AcademicSchedule>>((ref) {
   );
 });
 
+/// Inscriptions aux cours (`academic_enrollments`) du périmètre, cache d'abord.
+///
+/// Un apprenant ne lit que les siennes (`studentId`) ; l'administration et
+/// les enseignants voient celles des cours du périmètre affiché, demandées
+/// par lots de 100 identifiants de cours — la collection n'a ni filière ni
+/// niveau, seul le cours les porte. Sans cours en périmètre, rien n'est
+/// demandé : l'écran montre alors le sélecteur de filière.
+final scopedEnrollmentsProvider = StreamProvider<List<Enrollment>>((ref) {
+  if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return Stream.value(const []);
+  final user = ref.watch(currentUserProvider);
+  final role = ref.watch(currentRoleProvider);
+  final repo = ref.read(academicRepositoryProvider);
+
+  if (role.isLearner) {
+    final me = user?.id ?? '';
+    if (me.isEmpty) return Stream.value(const []);
+    return cachedDocumentList<Enrollment>(
+      ref,
+      collection: 'academic_enrollments',
+      fetch: () => repo.listAll('academic_enrollments', [Query.equal('studentId', me)]),
+      fromDocument: Enrollment.fromDocument,
+      select: (all) => all.where((e) => e.studentId == me).toList(),
+    );
+  }
+
+  final courses = ref.watch(scopedCoursesProvider).value ?? const <AcademicCourse>[];
+  final courseIds = courses.map((c) => c.id).where((id) => id.isNotEmpty).toSet();
+  if (courseIds.isEmpty) return Stream.value(const []);
+  final ordered = courseIds.toList();
+  return cachedDocumentList<Enrollment>(
+    ref,
+    collection: 'academic_enrollments',
+    fetch: () async {
+      final out = <models.Document>[];
+      for (var i = 0; i < ordered.length; i += 100) {
+        final batch = ordered.sublist(i, (i + 100).clamp(0, ordered.length));
+        out.addAll(await repo.listAll('academic_enrollments', [Query.equal('courseId', batch)]));
+      }
+      return out;
+    },
+    fromDocument: Enrollment.fromDocument,
+    select: (all) => all.where((e) => courseIds.contains(e.ueId)).toList(),
+  );
+});
+
 /// Résout la session au démarrage — **sans jamais bloquer sur le réseau**.
 ///
 /// L'identité vient d'abord du stockage chiffré (profil, labels, périmètre) :
@@ -181,12 +228,13 @@ final sessionBootstrapProvider = FutureProvider<void>((ref) async {
   ref.read(authStatusProvider.notifier).state = user == null ? AuthStatus.signedOut : AuthStatus.signedIn;
 });
 
-/// Charge le répertoire académique et les cours.
+/// Charge depuis Appwrite Cloud l'annuaire académique, les cours et les
+/// inscriptions du périmètre, et en remplit les listes « écran ».
 ///
 /// Se relance automatiquement quand l'état d'authentification change. Les
 /// erreurs Appwrite remontent volontairement à l'UI au lieu d'être avalées :
 /// une liste vide et une requête refusée ne doivent pas être indiscernables.
-final gatewaySyncProvider = FutureProvider<void>((ref) async {
+final academicSyncProvider = FutureProvider<void>((ref) async {
   if (ref.watch(authStatusProvider) != AuthStatus.signedIn) return;
 
   final academicRepo = ref.read(academicRepositoryProvider);
@@ -206,54 +254,19 @@ final gatewaySyncProvider = FutureProvider<void>((ref) async {
     fromDocument: AcademicDirectoryEntry.fromDocument,
     replace: true,
   ).first);
+  // `.future` d'un flux : se résout sur la valeur courante et fait relancer
+  // cette synchronisation à chaque nouvelle émission (cache, puis serveur).
   final courses = await ref.watch(scopedCoursesProvider.future);
+  final enrollments = await ref.watch(scopedEnrollmentsProvider.future);
 
-  final students = directory
+  ref.read(studentsProvider.notifier).state = directory
       .where((e) => e.role == 'STUDENT' || e.role == 'DELEGATE')
-      .map((e) => Student(
-            id: e.userId,
-            matricule: e.matricule ?? '',
-            firstName: e.name.split(' ').first,
-            lastName: e.name.split(' ').skip(1).join(' '),
-            filiere: e.program,
-            niveau: e.level,
-            status: e.status ?? 'ACTIVE',
-            email: '',
-            phone: '',
-            ueIds: const [],
-          ))
+      .map(Student.fromDirectory)
       .toList();
-
-  final teachers = directory
-      .where((e) => e.role == 'TEACHER')
-      .map((e) => Teacher(
-            id: e.userId,
-            firstName: e.name.split(' ').first,
-            lastName: e.name.split(' ').skip(1).join(' '),
-            status: e.status ?? 'ACTIVE',
-            email: '',
-            department: e.program,
-            ueIds: const [],
-          ))
-      .toList();
-
-  final ues = courses
-      .map((c) => UE(
-            id: c.id,
-            code: c.code,
-            title: c.name,
-            credits: c.credits ?? 0,
-            cm: 0,
-            td: 0,
-            tp: 0,
-            description: c.description ?? '',
-            colorHex: '#2563EB',
-          ))
-      .toList();
-
-  ref.read(studentsProvider.notifier).state = students;
-  ref.read(teachersProvider.notifier).state = teachers;
-  ref.read(uesProvider.notifier).state = ues;
+  ref.read(teachersProvider.notifier).state =
+      directory.where((e) => e.role == 'TEACHER').map(Teacher.fromDirectory).toList();
+  ref.read(uesProvider.notifier).state = courses.map(UE.fromCourse).toList();
+  ref.read(enrollmentsProvider.notifier).state = enrollments;
 });
 
 final studentSearchProvider = StateProvider<String>((ref) => '');

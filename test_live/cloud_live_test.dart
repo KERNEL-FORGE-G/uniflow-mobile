@@ -20,12 +20,14 @@
 import 'dart:io';
 
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart' as models;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:uniflow_mobile/data/appwrite_service.dart';
+import 'package:uniflow_mobile/models/models.dart';
 import 'package:uniflow_mobile/models/user_role.dart';
 import 'package:uniflow_mobile/repositories/academic_repository.dart';
 import 'package:uniflow_mobile/repositories/auth_repository.dart';
@@ -134,7 +136,7 @@ void main() {
       final members = await team.getMembers();
       _log('$email team members=${members.length} '
           'photos=${members.where((m) => m.avatarFileId.isNotEmpty).length}');
-      expect(members.length, greaterThanOrEqualTo(9), reason: 'les 9 membres de l\'équipe');
+      expect(members.length, greaterThanOrEqualTo(8), reason: 'les 8 membres de l\'équipe (liste du 2026-09-21)');
 
       final courses = await academic.getCourses(
         program: role.isLearner ? user.program : null,
@@ -145,7 +147,20 @@ void main() {
       _log('$email courses=${courses.length} schedules=${schedules.length} library=${library.length}');
       final directory = await academic.getDirectory();
       _log('$email directory=${directory.length}');
+      // Inscriptions (écran « Inscriptions », fiches étudiant/enseignant/UE) :
+      // lues comme le fait `scopedEnrollmentsProvider`, par étudiant pour un
+      // apprenant, par lot de cours pour le personnel.
+      final enrollmentDocs = role.isLearner
+          ? await academic.listAll('academic_enrollments', [Query.equal('studentId', user.id)])
+          : courses.isEmpty
+              ? const <models.Document>[]
+              : await academic.listAll('academic_enrollments', [
+                  Query.equal('courseId', [for (final c in courses.take(100)) c.id]),
+                ]);
+      final enrollments = enrollmentDocs.map(Enrollment.fromDocument).toList();
+      _log('$email enrollments=${enrollments.length} actives=${enrollments.where((e) => e.isActive).length}');
       if (role.isLearner) {
+        expect(enrollments.every((e) => e.studentId == user.id), isTrue, reason: 'un apprenant ne lit que les siennes');
         final grades = await academic.getGrades(user.id);
         final assignments = await academic.getAssignments(user.id);
         _log('$email grades=${grades.length} assignments=${assignments.length}');

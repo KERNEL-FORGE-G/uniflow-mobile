@@ -29,7 +29,7 @@ class UEsListScreen extends ConsumerWidget {
           ),
         ),
         // Administration et plateforme choisissent filière et niveau ; les
-        // UE se rechargent par `scopedCoursesProvider` → `gatewaySyncProvider`.
+        // UE se rechargent par `scopedCoursesProvider` → `academicSyncProvider`.
         const ScopeSelector(levelOptional: true),
         Expanded(
           child: needsSelection
@@ -57,7 +57,9 @@ class UEsListScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                   color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
-                              child: Text(u.code.substring(0, 3),
+                              // Certains codes du référentiel font moins de
+                              // trois caractères : `substring(0, 3)` plantait.
+                              child: Text(u.code.substring(0, u.code.length.clamp(0, 3)),
                                   style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12)),
                             ),
                             const SizedBox(width: 12),
@@ -65,9 +67,19 @@ class UEsListScreen extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(u.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  Text(u.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.w600)),
                                   const SizedBox(height: 2),
-                                  Text('${u.code} · ${u.credits} crédits',
+                                  Text(
+                                      [
+                                        u.code,
+                                        if (u.credits > 0) '${u.credits} crédits',
+                                        if (u.teacherName.isNotEmpty) u.teacherName,
+                                      ].join(' · '),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                                 ],
                               ),

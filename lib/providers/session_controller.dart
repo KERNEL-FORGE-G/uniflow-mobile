@@ -93,7 +93,7 @@ class SessionController {
     // Les FutureProviders dérivés (cours, EDT, conversations…) dépendent de
     // `authStatusProvider` ou de `currentUserProvider` : les invalider ici
     // évite qu'un ancien résultat s'affiche un instant après reconnexion.
-    _ref.invalidate(gatewaySyncProvider);
+    _ref.invalidate(academicSyncProvider);
     _ref.invalidate(scopedCoursesProvider);
     _ref.invalidate(scopedSchedulesProvider);
     _ref.read(authStatusProvider.notifier).state = AuthStatus.signedOut;

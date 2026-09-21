@@ -108,5 +108,4 @@ uniflow-mobile/
 ## Documentation
 
 - `docs/erreurs-de-build-resolues.md` — incompatibilités de plugins déjà rencontrées et leur correction.
-- `docs/legacy-gateway.md` — ancienne connexion via une API intermédiaire ; **plus utilisée**, conservée pour mémoire.
 - À la racine de l'espace de travail : `ETAT-DU-PROJET.md` et `TRAVAUX-RESTANTS.md`.

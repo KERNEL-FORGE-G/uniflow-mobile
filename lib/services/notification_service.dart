@@ -23,9 +23,9 @@ const String notificationIcon = '@drawable/ic_stat_uniflow';
 /// Elles sont déclenchées par l'application elle-même, à l'arrivée d'un
 /// message urgent sur le canal temps réel d'Appwrite — et non par un service de
 /// push. Conséquence à connaître : l'alerte n'arrive que si l'application est
-/// ouverte ou en arrière-plan récent. Une alerte application fermée exige un
-/// projet Firebase et le fichier `google-services.json`, que seul le
-/// propriétaire du projet peut créer.
+/// ouverte ou en arrière-plan récent. Une alerte application fermée passerait
+/// par Appwrite Messaging (fournisseur push à configurer côté projet) ; le
+/// projet n'utilise aucun autre service tiers, Firebase compris.
 class LocalNotifications {
   LocalNotifications._();
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
@@ -52,7 +53,7 @@ class StudentsListScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      StatusBadge(label: s.status),
+                      StatusBadge(label: personStatusLabel(s.status)),
                     ],
                   ),
                 ),

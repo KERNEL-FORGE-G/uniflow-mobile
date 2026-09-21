@@ -42,20 +42,16 @@ const student = Student(
   lastName: 'Rachid',
   filiere: 'Informatique',
   niveau: 'Licence 3',
-  status: 'Actif',
-  email: 'aliyatou@uniflow.edu',
-  phone: '+237 600 000 000',
-  ueIds: ['ue1'],
+  status: 'ACTIVE',
+  university: 'Université de Yaoundé I',
 );
 
 const teacher = Teacher(
   id: 't1',
   firstName: 'Meli',
   lastName: 'William',
-  status: 'Permanent',
-  email: 'william@uniflow.edu',
+  status: 'ACTIVE',
   department: 'Génie logiciel',
-  ueIds: ['ue1'],
 );
 
 const ue = UE(
@@ -63,10 +59,13 @@ const ue = UE(
   code: 'INF301',
   title: 'Architecture logicielle avancée',
   credits: 6,
-  cm: 30,
-  td: 20,
-  tp: 10,
+  hours: 60,
   description: 'Conception et évaluation des architectures logicielles.',
+  teacherId: 't1',
+  teacherName: 'Dr Meli William',
+  program: 'Informatique',
+  level: 'L3',
+  classroom: 'Amphi 700',
   colorHex: '#1E3A8A',
 );
 
@@ -74,7 +73,7 @@ Enrollment enrollment() => Enrollment(
       id: 'e1',
       studentId: 's1',
       ueId: 'ue1',
-      status: 'En attente',
+      status: 'PENDING',
       date: DateTime(2026, 9, 1),
     );
 
@@ -274,7 +273,7 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       teachersProvider.overrideWith((ref) => const [teacher]),
       uesProvider.overrideWith((ref) => const [ue]),
       enrollmentsProvider.overrideWith((ref) => [enrollment()]),
-      gatewaySyncProvider.overrideWith((ref) async {}),
+      academicSyncProvider.overrideWith((ref) async {}),
       gradesListProvider.overrideWith((ref) => Stream.value(<AcademicGrade>[])),
       assignmentBoardProvider.overrideWith(
         (ref) async => const AssignmentBoard(assignments: [], submissions: {}),
@@ -305,6 +304,7 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
       personalGradesProvider.overrideWith((ref) async => notesPersonnellesDeTest()),
       scopedCoursesProvider.overrideWith((ref) => Stream.value(coursDeTest())),
       scopedSchedulesProvider.overrideWith((ref) => Stream.value(emploiDuTempsDeTest())),
+      scopedEnrollmentsProvider.overrideWith((ref) => Stream.value([enrollment()])),
       universitiesProvider.overrideWith((ref) async => const [universiteDeTest, autreUniversite]),
       facultiesProvider.overrideWith((ref, code) async => code == 'UT1' ? const [faculteDeTest] : const []),
       programsProvider
