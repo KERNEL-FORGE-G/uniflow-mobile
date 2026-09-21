@@ -22,12 +22,16 @@ class PhosphorIconsDuotone {
 
   static const IconData addressBook =
       IconData(0xe6f9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData arrowClockwise =
+      IconData(0xe037, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowCounterClockwise =
       IconData(0xe039, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowLeft =
       IconData(0xe059, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowRight =
       IconData(0xe06d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData arrowSquareOut =
+      IconData(0xe5df, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowsClockwise =
       IconData(0xe095, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData at =
@@ -50,6 +54,8 @@ class PhosphorIconsDuotone {
       IconData(0xe74f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData broadcast =
       IconData(0xe0f3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData buildingOffice =
+      IconData(0xe104, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData buildings =
       IconData(0xe105, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData calendarBlank =
@@ -78,10 +84,14 @@ class PhosphorIconsDuotone {
       IconData(0xe185, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData checkSquare =
       IconData(0xe187, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData circle =
+      IconData(0xe18b, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData clipboardText =
       IconData(0xe199, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData clock =
       IconData(0xe19b, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData clockCountdown =
+      IconData(0xed2d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData cloud =
       IconData(0xe1ab, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData cloudArrowUp =
@@ -98,6 +108,8 @@ class PhosphorIconsDuotone {
       IconData(0xe78f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData creditCard =
       IconData(0xe1d3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData crown =
+      IconData(0xe615, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData database =
       IconData(0xe1df, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData deviceMobile =
@@ -106,16 +118,28 @@ class PhosphorIconsDuotone {
       IconData(0xe925, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData door =
       IconData(0xe61d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData downloadSimple =
+      IconData(0xe20d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData envelope =
       IconData(0xe215, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData exam =
       IconData(0xe743, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData eye =
+      IconData(0xe221, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData eyeSlash =
+      IconData(0xe225, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData feather =
       IconData(0xe9c1, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData file =
+      IconData(0xe231, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileAudio =
+      IconData(0xea21, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData filePdf =
       IconData(0xe703, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData filePlus =
       IconData(0xe237, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileVideo =
+      IconData(0xea23, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData firstAid =
       IconData(0xe56f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData flashlight =
@@ -130,26 +154,46 @@ class PhosphorIconsDuotone {
       IconData(0xe273, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData gitFork =
       IconData(0xe27f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData githubLogo =
+      IconData(0xe577, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData globe =
       IconData(0xe289, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData globeHemisphereWest =
       IconData(0xe28d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData graduationCap =
       IconData(0xe62d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData hardDrives =
+      IconData(0xe2a1, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData hash =
+      IconData(0xe2a3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData hourglassMedium =
+      IconData(0xe2b9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData house =
       IconData(0xe2c3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData identificationBadge =
+      IconData(0xe6f7, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData identificationCard =
       IconData(0xe2c9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData image =
+      IconData(0xe2cb, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData imageBroken =
+      IconData(0xe7a9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData info =
       IconData(0xe2cf, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData kanban =
       IconData(0xeb55, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData laptop =
+      IconData(0xe587, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData lightbulb =
+      IconData(0xe2dd, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData lightning =
       IconData(0xe2df, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData lock =
       IconData(0xe2fb, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData lockKey =
       IconData(0xe2ff, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData lockOpen =
+      IconData(0xe307, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData magnifyingGlass =
       IconData(0xe30d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData mapPin =
@@ -162,6 +206,10 @@ class PhosphorIconsDuotone {
       IconData(0xe341, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData network =
       IconData(0xeddf, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData notePencil =
+      IconData(0xe34d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData notepad =
+      IconData(0xe63f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData palette =
       IconData(0xe6c9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData paperPlaneTilt =
@@ -180,6 +228,10 @@ class PhosphorIconsDuotone {
       IconData(0xe3e7, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData question =
       IconData(0xe3eb, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData radioButton =
+      IconData(0xeb09, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData robot =
+      IconData(0xe763, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData rocket =
       IconData(0xe3ff, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData rocketLaunch =
@@ -194,34 +246,56 @@ class PhosphorIconsDuotone {
       IconData(0xe40f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData signOut =
       IconData(0xe42b, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData siren =
+      IconData(0xe9b9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData sparkle =
       IconData(0xe6a3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData squaresFour =
       IconData(0xe465, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData star =
+      IconData(0xe46b, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData tag =
       IconData(0xe479, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData terminal =
       IconData(0xe47f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData thumbsUp =
+      IconData(0xe48f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData timer =
       IconData(0xe493, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData translate =
       IconData(0xe4a3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData trash =
       IconData(0xe4a7, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData tray =
+      IconData(0xe4ab, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData trophy =
+      IconData(0xe67f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData user =
+      IconData(0xe4c3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData userCheck =
+      IconData(0xeafb, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData userCircle =
       IconData(0xe4c5, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData userCircleMinus =
+      IconData(0xe4c9, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData userFocus =
       IconData(0xe6fd, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData userGear =
       IconData(0xe4cd, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData userPlus =
+      IconData(0xe4d1, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData usersFour =
       IconData(0xe68d, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData usersThree =
       IconData(0xe68f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData videoCamera =
       IconData(0xe4db, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData warning =
+      IconData(0xe4e1, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData warningCircle =
       IconData(0xe4e3, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData whatsappLogo =
+      IconData(0xe5d1, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData x =
       IconData(0xe4f7, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
 
@@ -229,12 +303,16 @@ class PhosphorIconsDuotone {
   static const Map<int, IconData> secondaryByCodePoint = {
     0xe6f9:
         IconData(0xe6f8, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // addressBook
+    0xe037: IconData(0xe036,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // arrowClockwise
     0xe039: IconData(0xe038,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // arrowCounterClockwise
     0xe059:
         IconData(0xe058, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // arrowLeft
     0xe06d:
         IconData(0xe06c, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // arrowRight
+    0xe5df: IconData(0xe5de,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // arrowSquareOut
     0xe095: IconData(0xe094,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // arrowsClockwise
     0xe0ad: IconData(0xe0ac, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // at
@@ -252,6 +330,8 @@ class PhosphorIconsDuotone {
     0xe74f: IconData(0xe74e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // brain
     0xe0f3:
         IconData(0xe0f2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // broadcast
+    0xe104: IconData(0xe0ff,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // buildingOffice
     0xe105:
         IconData(0xe102, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // buildings
     0xe10b: IconData(0xe10a,
@@ -278,9 +358,12 @@ class PhosphorIconsDuotone {
         IconData(0xe184, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // checkCircle
     0xe187:
         IconData(0xe186, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // checkSquare
+    0xe18b: IconData(0xe18a, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // circle
     0xe199: IconData(0xe198,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // clipboardText
     0xe19b: IconData(0xe19a, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // clock
+    0xed2d: IconData(0xed2c,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // clockCountdown
     0xe1ab: IconData(0xe1aa, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // cloud
     0xe1af: IconData(0xe1ae,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // cloudArrowUp
@@ -293,19 +376,30 @@ class PhosphorIconsDuotone {
     0xe78f: IconData(0xe78e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // coins
     0xe1d3:
         IconData(0xe1d2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // creditCard
+    0xe615: IconData(0xe614, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // crown
     0xe1df:
         IconData(0xe1de, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // database
     0xe1e1: IconData(0xe1e0,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // deviceMobile
     0xe925: IconData(0xe924, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // dna
     0xe61d: IconData(0xe61c, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // door
+    0xe20d: IconData(0xe20c,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // downloadSimple
     0xe215:
         IconData(0xe214, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // envelope
     0xe743: IconData(0xe742, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // exam
+    0xe221: IconData(0xe220, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // eye
+    0xe225:
+        IconData(0xe224, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // eyeSlash
     0xe9c1: IconData(0xe9c0, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // feather
+    0xe231: IconData(0xe230, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // file
+    0xea21:
+        IconData(0xea20, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // fileAudio
     0xe703: IconData(0xe702, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // filePdf
     0xe237:
         IconData(0xe236, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // filePlus
+    0xea23:
+        IconData(0xea22, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // fileVideo
     0xe56f:
         IconData(0xe56e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // firstAid
     0xe247:
@@ -316,20 +410,37 @@ class PhosphorIconsDuotone {
     0xe267: IconData(0xe266, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // funnel
     0xe273: IconData(0xe272, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // gearSix
     0xe27f: IconData(0xe27e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // gitFork
+    0xe577:
+        IconData(0xe576, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // githubLogo
     0xe289: IconData(0xe288, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // globe
     0xe28d: IconData(0xe28c,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // globeHemisphereWest
     0xe62d: IconData(0xe62c,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // graduationCap
+    0xe2a1:
+        IconData(0xe2a0, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // hardDrives
+    0xe2a3: IconData(0xe2a2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // hash
+    0xe2b9: IconData(0xe2b8,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // hourglassMedium
     0xe2c3: IconData(0xe2c2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // house
+    0xe6f7: IconData(0xe6f6,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // identificationBadge
     0xe2c9: IconData(0xe2c8,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // identificationCard
+    0xe2cb: IconData(0xe2ca, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // image
+    0xe7a9:
+        IconData(0xe7a8, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // imageBroken
     0xe2cf: IconData(0xe2ce, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // info
     0xeb55: IconData(0xeb54, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // kanban
+    0xe587: IconData(0xe586, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // laptop
+    0xe2dd:
+        IconData(0xe2dc, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // lightbulb
     0xe2df:
         IconData(0xe2de, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // lightning
     0xe2fb: IconData(0xe2fa, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // lock
     0xe2ff: IconData(0xe2fe, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // lockKey
+    0xe307:
+        IconData(0xe306, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // lockOpen
     0xe30d: IconData(0xe30c,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // magnifyingGlass
     0xe317: IconData(0xe316, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // mapPin
@@ -339,6 +450,9 @@ class PhosphorIconsDuotone {
     0xe341:
         IconData(0xe340, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // musicNotes
     0xeddf: IconData(0xedde, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // network
+    0xe34d:
+        IconData(0xe34c, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // notePencil
+    0xe63f: IconData(0xe63e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // notepad
     0xe6c9: IconData(0xe6c8, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // palette
     0xe399: IconData(0xe398,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // paperPlaneTilt
@@ -354,6 +468,9 @@ class PhosphorIconsDuotone {
     0xe3e7: IconData(0xe3e6, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // qrCode
     0xe3eb:
         IconData(0xe3e8, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // question
+    0xeb09:
+        IconData(0xeb08, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // radioButton
+    0xe763: IconData(0xe762, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // robot
     0xe3ff: IconData(0xe3fc, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // rocket
     0xe401: IconData(0xe3fe,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // rocketLaunch
@@ -363,30 +480,46 @@ class PhosphorIconsDuotone {
     0xe40f:
         IconData(0xe40c, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // shieldCheck
     0xe42b: IconData(0xe42a, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // signOut
+    0xe9b9: IconData(0xe9b8, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // siren
     0xe6a3: IconData(0xe6a2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // sparkle
     0xe465:
         IconData(0xe464, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // squaresFour
+    0xe46b: IconData(0xe46a, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // star
     0xe479: IconData(0xe478, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // tag
     0xe47f:
         IconData(0xe47e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // terminal
+    0xe48f:
+        IconData(0xe48e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // thumbsUp
     0xe493: IconData(0xe492, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // timer
     0xe4a3:
         IconData(0xe4a2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // translate
     0xe4a7: IconData(0xe4a6, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // trash
+    0xe4ab: IconData(0xe4aa, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // tray
+    0xe67f: IconData(0xe67e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // trophy
+    0xe4c3: IconData(0xe4c2, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // user
+    0xeafb:
+        IconData(0xeafa, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // userCheck
     0xe4c5:
         IconData(0xe4c4, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // userCircle
+    0xe4c9: IconData(0xe4c8,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // userCircleMinus
     0xe6fd:
         IconData(0xe6fc, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // userFocus
     0xe4cd:
         IconData(0xe4cc, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // userGear
+    0xe4d1:
+        IconData(0xe4d0, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // userPlus
     0xe68d:
         IconData(0xe68c, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // usersFour
     0xe68f:
         IconData(0xe68e, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // usersThree
     0xe4db:
         IconData(0xe4da, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // videoCamera
+    0xe4e1: IconData(0xe4e0, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // warning
     0xe4e3: IconData(0xe4e2,
         fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // warningCircle
+    0xe5d1: IconData(0xe5d0,
+        fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // whatsappLogo
     0xe4f7: IconData(0xe4f6, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true), // x
   };
 
@@ -402,12 +535,16 @@ class PhosphorIconsFill {
 
   static const IconData addressBook =
       IconData(0xe6f8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData arrowClockwise =
+      IconData(0xe036, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowCounterClockwise =
       IconData(0xe038, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowLeft =
       IconData(0xe058, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowRight =
       IconData(0xe06c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData arrowSquareOut =
+      IconData(0xe5de, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowsClockwise =
       IconData(0xe094, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData at =
@@ -430,6 +567,8 @@ class PhosphorIconsFill {
       IconData(0xe74e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData broadcast =
       IconData(0xe0f2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData buildingOffice =
+      IconData(0xe0ff, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData buildings =
       IconData(0xe102, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData calendarBlank =
@@ -458,10 +597,14 @@ class PhosphorIconsFill {
       IconData(0xe184, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData checkSquare =
       IconData(0xe186, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData circle =
+      IconData(0xe18a, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData clipboardText =
       IconData(0xe198, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData clock =
       IconData(0xe19a, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData clockCountdown =
+      IconData(0xed2c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData cloud =
       IconData(0xe1aa, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData cloudArrowUp =
@@ -478,6 +621,8 @@ class PhosphorIconsFill {
       IconData(0xe78e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData creditCard =
       IconData(0xe1d2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData crown =
+      IconData(0xe614, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData database =
       IconData(0xe1de, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData deviceMobile =
@@ -486,16 +631,28 @@ class PhosphorIconsFill {
       IconData(0xe924, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData door =
       IconData(0xe61c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData downloadSimple =
+      IconData(0xe20c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData envelope =
       IconData(0xe214, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData exam =
       IconData(0xe742, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData eye =
+      IconData(0xe220, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData eyeSlash =
+      IconData(0xe224, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData feather =
       IconData(0xe9c0, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData file =
+      IconData(0xe230, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileAudio =
+      IconData(0xea20, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData filePdf =
       IconData(0xe702, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData filePlus =
       IconData(0xe236, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileVideo =
+      IconData(0xea22, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData firstAid =
       IconData(0xe56e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData flashlight =
@@ -510,26 +667,46 @@ class PhosphorIconsFill {
       IconData(0xe272, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData gitFork =
       IconData(0xe27e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData githubLogo =
+      IconData(0xe576, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData globe =
       IconData(0xe288, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData globeHemisphereWest =
       IconData(0xe28c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData graduationCap =
       IconData(0xe62c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData hardDrives =
+      IconData(0xe2a0, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData hash =
+      IconData(0xe2a2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData hourglassMedium =
+      IconData(0xe2b8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData house =
       IconData(0xe2c2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData identificationBadge =
+      IconData(0xe6f6, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData identificationCard =
       IconData(0xe2c8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData image =
+      IconData(0xe2ca, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData imageBroken =
+      IconData(0xe7a8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData info =
       IconData(0xe2ce, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData kanban =
       IconData(0xeb54, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData laptop =
+      IconData(0xe586, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData lightbulb =
+      IconData(0xe2dc, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData lightning =
       IconData(0xe2de, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData lock =
       IconData(0xe2fa, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData lockKey =
       IconData(0xe2fe, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData lockOpen =
+      IconData(0xe306, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData magnifyingGlass =
       IconData(0xe30c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData mapPin =
@@ -542,6 +719,10 @@ class PhosphorIconsFill {
       IconData(0xe340, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData network =
       IconData(0xedde, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData notePencil =
+      IconData(0xe34c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData notepad =
+      IconData(0xe63e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData palette =
       IconData(0xe6c8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData paperPlaneTilt =
@@ -560,6 +741,10 @@ class PhosphorIconsFill {
       IconData(0xe3e6, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData question =
       IconData(0xe3e8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData radioButton =
+      IconData(0xeb08, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData robot =
+      IconData(0xe762, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData rocket =
       IconData(0xe3fc, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData rocketLaunch =
@@ -574,34 +759,56 @@ class PhosphorIconsFill {
       IconData(0xe40c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData signOut =
       IconData(0xe42a, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData siren =
+      IconData(0xe9b8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData sparkle =
       IconData(0xe6a2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData squaresFour =
       IconData(0xe464, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData star =
+      IconData(0xe46a, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData tag =
       IconData(0xe478, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData terminal =
       IconData(0xe47e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData thumbsUp =
+      IconData(0xe48e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData timer =
       IconData(0xe492, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData translate =
       IconData(0xe4a2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData trash =
       IconData(0xe4a6, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData tray =
+      IconData(0xe4aa, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData trophy =
+      IconData(0xe67e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData user =
+      IconData(0xe4c2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData userCheck =
+      IconData(0xeafa, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData userCircle =
       IconData(0xe4c4, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData userCircleMinus =
+      IconData(0xe4c8, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData userFocus =
       IconData(0xe6fc, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData userGear =
       IconData(0xe4cc, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData userPlus =
+      IconData(0xe4d0, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData usersFour =
       IconData(0xe68c, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData usersThree =
       IconData(0xe68e, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData videoCamera =
       IconData(0xe4da, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData warning =
+      IconData(0xe4e0, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData warningCircle =
       IconData(0xe4e2, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
+  static const IconData whatsappLogo =
+      IconData(0xe5d0, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
   static const IconData x =
       IconData(0xe4f6, fontFamily: 'PhosphorFill', fontPackage: _package, matchTextDirection: true);
 }
@@ -613,12 +820,16 @@ class PhosphorIconsBold {
 
   static const IconData addressBook =
       IconData(0xe6f8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData arrowClockwise =
+      IconData(0xe036, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowCounterClockwise =
       IconData(0xe038, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowLeft =
       IconData(0xe058, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowRight =
       IconData(0xe06c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData arrowSquareOut =
+      IconData(0xe5de, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData arrowsClockwise =
       IconData(0xe094, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData at =
@@ -641,6 +852,8 @@ class PhosphorIconsBold {
       IconData(0xe74e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData broadcast =
       IconData(0xe0f2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData buildingOffice =
+      IconData(0xe0ff, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData buildings =
       IconData(0xe102, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData calendarBlank =
@@ -669,10 +882,14 @@ class PhosphorIconsBold {
       IconData(0xe184, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData checkSquare =
       IconData(0xe186, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData circle =
+      IconData(0xe18a, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData clipboardText =
       IconData(0xe198, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData clock =
       IconData(0xe19a, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData clockCountdown =
+      IconData(0xed2c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData cloud =
       IconData(0xe1aa, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData cloudArrowUp =
@@ -689,6 +906,8 @@ class PhosphorIconsBold {
       IconData(0xe78e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData creditCard =
       IconData(0xe1d2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData crown =
+      IconData(0xe614, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData database =
       IconData(0xe1de, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData deviceMobile =
@@ -697,16 +916,28 @@ class PhosphorIconsBold {
       IconData(0xe924, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData door =
       IconData(0xe61c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData downloadSimple =
+      IconData(0xe20c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData envelope =
       IconData(0xe214, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData exam =
       IconData(0xe742, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData eye =
+      IconData(0xe220, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData eyeSlash =
+      IconData(0xe224, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData feather =
       IconData(0xe9c0, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData file =
+      IconData(0xe230, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileAudio =
+      IconData(0xea20, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData filePdf =
       IconData(0xe702, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData filePlus =
       IconData(0xe236, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileVideo =
+      IconData(0xea22, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData firstAid =
       IconData(0xe56e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData flashlight =
@@ -721,26 +952,46 @@ class PhosphorIconsBold {
       IconData(0xe272, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData gitFork =
       IconData(0xe27e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData githubLogo =
+      IconData(0xe576, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData globe =
       IconData(0xe288, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData globeHemisphereWest =
       IconData(0xe28c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData graduationCap =
       IconData(0xe62c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData hardDrives =
+      IconData(0xe2a0, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData hash =
+      IconData(0xe2a2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData hourglassMedium =
+      IconData(0xe2b8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData house =
       IconData(0xe2c2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData identificationBadge =
+      IconData(0xe6f6, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData identificationCard =
       IconData(0xe2c8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData image =
+      IconData(0xe2ca, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData imageBroken =
+      IconData(0xe7a8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData info =
       IconData(0xe2ce, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData kanban =
       IconData(0xeb54, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData laptop =
+      IconData(0xe586, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData lightbulb =
+      IconData(0xe2dc, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData lightning =
       IconData(0xe2de, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData lock =
       IconData(0xe2fa, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData lockKey =
       IconData(0xe2fe, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData lockOpen =
+      IconData(0xe306, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData magnifyingGlass =
       IconData(0xe30c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData mapPin =
@@ -753,6 +1004,10 @@ class PhosphorIconsBold {
       IconData(0xe340, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData network =
       IconData(0xedde, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData notePencil =
+      IconData(0xe34c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData notepad =
+      IconData(0xe63e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData palette =
       IconData(0xe6c8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData paperPlaneTilt =
@@ -771,6 +1026,10 @@ class PhosphorIconsBold {
       IconData(0xe3e6, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData question =
       IconData(0xe3e8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData radioButton =
+      IconData(0xeb08, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData robot =
+      IconData(0xe762, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData rocket =
       IconData(0xe3fc, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData rocketLaunch =
@@ -785,34 +1044,56 @@ class PhosphorIconsBold {
       IconData(0xe40c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData signOut =
       IconData(0xe42a, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData siren =
+      IconData(0xe9b8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData sparkle =
       IconData(0xe6a2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData squaresFour =
       IconData(0xe464, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData star =
+      IconData(0xe46a, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData tag =
       IconData(0xe478, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData terminal =
       IconData(0xe47e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData thumbsUp =
+      IconData(0xe48e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData timer =
       IconData(0xe492, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData translate =
       IconData(0xe4a2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData trash =
       IconData(0xe4a6, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData tray =
+      IconData(0xe4aa, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData trophy =
+      IconData(0xe67e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData user =
+      IconData(0xe4c2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData userCheck =
+      IconData(0xeafa, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData userCircle =
       IconData(0xe4c4, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData userCircleMinus =
+      IconData(0xe4c8, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData userFocus =
       IconData(0xe6fc, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData userGear =
       IconData(0xe4cc, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData userPlus =
+      IconData(0xe4d0, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData usersFour =
       IconData(0xe68c, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData usersThree =
       IconData(0xe68e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData videoCamera =
       IconData(0xe4da, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData warning =
+      IconData(0xe4e0, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData warningCircle =
       IconData(0xe4e2, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData whatsappLogo =
+      IconData(0xe5d0, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData x =
       IconData(0xe4f6, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
 }
