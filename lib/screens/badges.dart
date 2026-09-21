@@ -53,7 +53,7 @@ class _BadgesBody extends StatelessWidget {
     final all = unlocked == badges.length && badges.isNotEmpty;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, uniClearance),
       children: [
         FadeSlideIn(
           index: 0,

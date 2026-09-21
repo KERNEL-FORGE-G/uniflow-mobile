@@ -132,7 +132,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, uniClearance),
               children: [
                 if (sync.hasError && role.isUniversity) ...[
                   ErrorBanner(
@@ -545,7 +545,10 @@ class _PersonalHome extends ConsumerWidget {
     final schedules = ref.watch(personalSchedulesProvider);
     final todayKey = weekdayKey(DateTime.now());
 
-    final pending = tasks.valueOrNull?.where((t) => t.status != 'DONE').toList() ?? const [];
+    // Liste modifiable même avant l'arrivée des tâches : `const []` faisait
+    // planter le tri au premier rendu (« Cannot modify an unmodifiable list »),
+    // donc l'accueil de tout compte indépendant, le temps du chargement.
+    final pending = tasks.valueOrNull?.where((t) => t.status != 'DONE').toList() ?? <PersonalTask>[];
     pending.sort((a, b) {
       final da = DateTime.tryParse(a.dueDate ?? '');
       final db = DateTime.tryParse(b.dueDate ?? '');

@@ -121,7 +121,7 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                     return ref.refresh(forumPostsProvider.future);
                   },
                   child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppInsets.pageList,
                     itemCount: posts.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {

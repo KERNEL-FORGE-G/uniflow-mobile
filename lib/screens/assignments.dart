@@ -88,7 +88,7 @@ class AssignmentsScreen extends ConsumerWidget {
                 return RefreshIndicator(
                   onRefresh: () async => ref.invalidate(assignmentBoardProvider),
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                    padding: AppInsets.pageList,
                     children: [
                       if (board.overdue.isNotEmpty) ...[
                         _SectionHeader(

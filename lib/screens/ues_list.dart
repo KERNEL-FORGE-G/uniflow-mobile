@@ -41,7 +41,7 @@ class UEsListScreen extends ConsumerWidget {
                   message: 'Les unités d\'enseignement s\'affichent pour la filière sélectionnée.',
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppInsets.pageList,
                   itemCount: list.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, i) {

@@ -6,10 +6,49 @@ import 'phosphor.dart';
 import '../models/user_role.dart';
 import '../offline/offline_widgets.dart';
 import '../providers/providers.dart';
+import '../router/shell_pages.dart';
 import '../theme/app_theme.dart';
 import 'uni/uni_assistant.dart';
 import 'uni/uni_scenes.dart';
 import 'uni_icons.dart';
+
+/// Où le bouton d'Uni s'accroche dans la coquille.
+///
+/// Dérivé du [BottomEdge] déclaré par la page : le bouton ne doit jamais
+/// recouvrir une commande de la page, et c'est la page qui sait ce qu'elle
+/// pose en bas de l'écran.
+enum UniDock {
+  /// En bas à droite, sa place ordinaire.
+  right,
+
+  /// En bas à gauche : le bouton flottant de la page garde le coin droit, Uni
+  /// s'écarte à la même hauteur. Le percher au-dessus du bouton flottant a été
+  /// essayé : à 84 pt du bas, il atteignait le milieu d'un petit écran et
+  /// recouvrait le bouton des états vides centrés (« Nouvelle conversation »).
+  left,
+
+  /// Absent : la page occupe tout le bord inférieur avec un composeur.
+  hidden;
+
+  /// Écart du bouton avec le bord latéral.
+  static const double edgeInset = 14;
+
+  /// Écart du bouton avec le bord inférieur du corps de la coquille.
+  static const double bottomInset = 14;
+
+  /// Abscisse du bord gauche du bouton dans une coquille large de [width].
+  double leftIn(double width) => switch (this) {
+        UniDock.left => edgeInset,
+        UniDock.right || UniDock.hidden => width - edgeInset - UniLauncher.size,
+      };
+}
+
+/// L'ancrage d'Uni pour une page dont le bord inférieur est [edge].
+UniDock uniDockFor(BottomEdge edge) => switch (edge) {
+      BottomEdge.free => UniDock.right,
+      BottomEdge.fab => UniDock.left,
+      BottomEdge.composer => UniDock.hidden,
+    };
 
 /// Coquille de l'application connectée : elle porte la barre de navigation du
 /// bas, commune à tous les onglets.
@@ -39,31 +78,46 @@ class AppShell extends ConsumerWidget {
     final role = ref.watch(currentRoleProvider);
     final tabs = bottomBarFor(role);
     final current = _currentIndex(tabs);
+    final dock = uniDockFor(bottomEdgeAt(location, role));
+    final reduce = MediaQuery.disableAnimationsOf(context);
 
     return Scaffold(
       // Le bandeau hors ligne / en attente d'envoi coiffe chaque page ; il
       // se replie tout seul quand tout est synchronisé.
-      body: Stack(
-        children: [
-          Column(children: [const OfflineBanner(), Expanded(child: child)]),
-          // Uni : le bouton flottant de l'assistant, et sa première apparition
-          // par le bord droit pour se présenter (une fois par lancement).
-          Positioned(
-            right: 14,
-            bottom: 14,
-            child: UniLauncher(onOpen: () => showUniAssistant(context)),
-          ),
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 84),
-              child: UniPeek(
-                id: 'hello-shell',
-                message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’appli ? Touche-moi.',
-                onTap: () => showUniAssistant(context),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Stack(
+          children: [
+            Column(children: [const OfflineBanner(), Expanded(child: child)]),
+            // Uni : le bouton flottant de l'assistant. Sa place dépend de ce
+            // que la page pose en bas de l'écran (voir `shell_pages.dart`) : il
+            // glisse dans le coin gauche quand la page a son propre bouton
+            // flottant et s'efface devant un composeur, au lieu de recouvrir
+            // le bouton d'envoi ou « Nouvelle conversation » comme avant. La
+            // position est toujours donnée par `left` pour que le glissement
+            // d'un coin à l'autre s'anime au changement de page.
+            if (dock != UniDock.hidden)
+              AnimatedPositioned(
+                duration: reduce ? Duration.zero : const Duration(milliseconds: 320),
+                curve: Curves.easeInOutCubic,
+                left: dock.leftIn(constraints.maxWidth),
+                bottom: UniDock.bottomInset,
+                child: UniLauncher(onOpen: () => showUniAssistant(context)),
               ),
-            ),
-          ),
-        ],
+            // Sa première apparition par le bord droit pour se présenter (une
+            // fois par lancement), au-dessus de la hauteur du bouton.
+            if (dock != UniDock.hidden)
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: UniDock.bottomInset + UniLauncher.size + 12),
+                  child: UniPeek(
+                    id: 'hello-shell',
+                    message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’appli ? Touche-moi.',
+                    onTap: () => showUniAssistant(context),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
       // Bord à bord : la barre blanche se prolonge sous la barre de navigation
       // système (SafeArea) et annonce des icônes sombres pour celle-ci — c'est

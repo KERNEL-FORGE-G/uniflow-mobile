@@ -47,7 +47,7 @@ class PresenceScreen extends ConsumerWidget {
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: AppInsets.pageList,
               children: [
                 if (canScan) const FadeSlideIn(index: 0, child: _ScanCard()),
                 if (canScan && canIssue) const SizedBox(height: 14),

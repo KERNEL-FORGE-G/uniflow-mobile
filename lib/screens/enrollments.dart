@@ -91,7 +91,7 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
     final ues = ref.watch(uesProvider);
     final students = ref.watch(studentsProvider);
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: AppInsets.pageList,
       itemCount: list.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, i) {

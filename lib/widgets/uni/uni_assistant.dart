@@ -196,6 +196,10 @@ final uniAssistantProvider = StateNotifierProvider<UniAssistantController, UniAs
 /// périodiquement (comme le hibou de Duolingo) et porte un point quand une
 /// réponse attend d'être lue.
 class UniLauncher extends ConsumerStatefulWidget {
+  /// Diamètre de la pastille ; `AppShell` s'en sert pour placer ce qui doit
+  /// rester au-dessus du bouton.
+  static const double size = 58;
+
   final VoidCallback onOpen;
   final bool unread;
 
@@ -256,8 +260,8 @@ class _UniLauncherState extends ConsumerState<UniLauncher> with SingleTickerProv
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: UniLauncher.size,
+                height: UniLauncher.size,
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   color: Colors.white,

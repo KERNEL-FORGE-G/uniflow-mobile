@@ -2,6 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Marge basse des listes des pages connectées.
+///
+/// Deux choses flottent au bord inférieur d'une page : le bouton d'Uni (58 pt,
+/// à 14 pt du bord) et, sur certaines pages, un bouton flottant Material
+/// (56 pt, à 16 pt du bord). Sans cette marge, la dernière ligne d'une liste
+/// finit sous l'un des deux et sa commande de droite ou de gauche devient
+/// inatteignable — c'est ce que `uni_dock_test.dart` vérifie, liste déroulée
+/// au bout. 88 pt : la valeur que Material recommande pour un bouton flottant,
+/// et assez pour Uni.
+const double uniClearance = 88;
+
+/// Marges des pages connectées.
+class AppInsets {
+  AppInsets._();
+
+  /// Une liste de page : 16 pt sur les côtés et en haut, [uniClearance] en bas.
+  static const EdgeInsets pageList = EdgeInsets.fromLTRB(16, 16, 16, uniClearance);
+}
+
 /// Styles des barres système (statut et navigation), pour l'affichage bord à
 /// bord.
 ///

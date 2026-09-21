@@ -28,7 +28,7 @@ class StudentsListScreen extends ConsumerWidget {
         ),
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: AppInsets.pageList,
             itemCount: students.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {

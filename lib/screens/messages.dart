@@ -36,7 +36,7 @@ class MessagesScreen extends ConsumerWidget {
                 return RefreshIndicator(
                   onRefresh: () => ref.refresh(conversationsProvider.future),
                   child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppInsets.pageList,
                     itemCount: list.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) => _ConversationTile(conversation: list[index]),

@@ -6,37 +6,12 @@ import '../providers/onboarding_provider.dart';
 import '../providers/providers.dart';
 import '../models/user_role.dart';
 import '../widgets/app_shell.dart';
-import '../screens/about.dart';
-import '../screens/access_denied.dart';
 import '../screens/login.dart';
 import '../screens/onboarding.dart';
 import '../screens/register.dart';
 import '../screens/forgot_password.dart';
 import '../repositories/auth_repository.dart';
-import '../screens/dashboard.dart';
-import '../screens/students_list.dart';
-import '../screens/student_detail.dart';
-import '../screens/teachers_list.dart';
-import '../screens/teacher_detail.dart';
-import '../screens/ues_list.dart';
-import '../screens/ue_detail.dart';
-import '../screens/enrollments.dart';
-import '../screens/presence.dart';
-import '../screens/settings.dart';
-import '../screens/grades.dart';
-import '../screens/assignments.dart';
-import '../screens/badges.dart';
-import '../screens/teacher_assignments.dart';
-import '../screens/library.dart';
-import '../screens/forum.dart';
-import '../screens/messages.dart';
-import '../screens/notifications.dart';
-import '../screens/conversation.dart';
-import '../repositories/messaging_repository.dart';
-import '../screens/teams.dart';
-import '../screens/personal_space.dart';
-import '../screens/schedule.dart';
-import '../screens/accounts.dart';
+import 'shell_pages.dart';
 
 /// Adresses accessibles sans session. Une fois connecté, elles ramènent à
 /// l'accueil : revenir sur l'inscription avec une session ouverte ferait
@@ -188,61 +163,12 @@ List<RouteBase> _appRoutes() => [
         ),
       ),
       GoRoute(path: '/mot-de-passe-oublie', builder: (_, __) => const ForgotPasswordScreen()),
+      // Les pages connectées viennent de `shell_pages.dart` : la même table
+      // dit à `AppShell` où accrocher le bouton d'Uni sur chaque page.
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
         routes: [
-          GoRoute(path: '/accueil', builder: (_, __) => const DashboardScreen()),
-          GoRoute(path: '/badges', builder: (_, __) => const BadgesScreen()),
-          GoRoute(path: '/etudiants', builder: (_, __) => const StudentsListScreen()),
-          GoRoute(path: '/etudiants/:id', builder: (_, s) => StudentDetailScreen(id: s.pathParameters['id']!)),
-          GoRoute(path: '/enseignants', builder: (_, __) => const TeachersListScreen()),
-          GoRoute(path: '/enseignants/:id', builder: (_, s) => TeacherDetailScreen(id: s.pathParameters['id']!)),
-          GoRoute(path: '/ues', builder: (_, __) => const UEsListScreen()),
-          GoRoute(path: '/ues/:id', builder: (_, s) => UEDetailScreen(id: s.pathParameters['id']!)),
-          GoRoute(path: '/inscriptions', builder: (_, __) => const EnrollmentsScreen()),
-          GoRoute(path: '/presence', builder: (_, __) => const PresenceScreen()),
-          GoRoute(path: '/emploi-du-temps', builder: (_, __) => const ScheduleScreen()),
-          GoRoute(path: '/comptes', builder: (_, __) => const AccountsScreen()),
-          GoRoute(path: '/notes', builder: (_, __) => const GradesScreen()),
-          GoRoute(
-            path: '/devoirs',
-            // Même adresse, deux métiers : l'apprenant rend, l'enseignant publie.
-            builder: (_, __) => Consumer(
-              builder: (_, ref, __) =>
-                  ref.watch(currentRoleProvider).isStaff ? const TeacherAssignmentsScreen() : const AssignmentsScreen(),
-            ),
-          ),
-          GoRoute(path: '/bibliotheque', builder: (_, __) => const LibraryScreen()),
-          GoRoute(path: '/forum', builder: (_, __) => const ForumScreen()),
-          GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
-          GoRoute(path: '/messages', builder: (_, __) => const MessagesScreen()),
-          // La conversation est transmise par la liste via `extra`, ce qui
-          // permet de peindre le fil sans attendre le réseau. Un accès direct
-          // à l'URL (sans `extra`) reste valide : l'écran recharge alors par
-          // identifiant.
-          GoRoute(
-            path: '/messages/:id',
-            builder: (_, s) => ConversationScreen(
-              conversationId: s.pathParameters['id']!,
-              initial: s.extra is Conversation ? s.extra as Conversation : null,
-            ),
-          ),
-          // Espace personnel (comptes indépendants uniquement, voir navDestinations).
-          GoRoute(path: '/matieres', builder: (_, __) => const PersonalSubjectsScreen()),
-          GoRoute(path: '/taches', builder: (_, __) => const PersonalTasksScreen()),
-          GoRoute(path: '/agenda', builder: (_, __) => const PersonalAgendaScreen()),
-          GoRoute(path: '/equipe', builder: (_, __) => const TeamsScreen()),
-          GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
-          GoRoute(path: '/a-propos', builder: (_, __) => const AboutScreen()),
-          // Hors de la barre du bas : cette page ne s'atteint qu'en se faisant
-          // rediriger, et elle doit rester dans la coquille pour que
-          // l'utilisateur puisse repartir d'un onglet.
-          GoRoute(
-            path: '/acces-refuse',
-            builder: (_, s) => AccessDeniedScreen(
-              depuis: s.uri.queryParameters['depuis'],
-            ),
-          ),
+          for (final page in shellPages) GoRoute(path: page.path, builder: (_, s) => page.builder(PageArgs.of(s))),
         ],
       ),
     ];

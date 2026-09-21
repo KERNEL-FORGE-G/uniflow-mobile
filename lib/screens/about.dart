@@ -65,7 +65,7 @@ class AboutScreen extends ConsumerWidget {
         ),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: AppInsets.pageList,
             children: [
               const _VersionCard(),
               const SizedBox(height: 14),

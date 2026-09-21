@@ -85,7 +85,7 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
         // seule colonne, comme la page publique à cette largeur.
         final colonnes = largeur >= 640 ? 2 : 1;
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, uniClearance),
           children: [
             const _Intro(),
             const SizedBox(height: 16),

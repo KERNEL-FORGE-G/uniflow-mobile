@@ -193,7 +193,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const GradientHeader(title: 'Réglages', subtitle: 'Préférences de l\'application'),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: AppInsets.pageList,
             children: [
               SectionCard(
                 child: Column(

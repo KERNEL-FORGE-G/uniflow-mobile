@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uniflow_mobile/models/appwrite_models.dart';
 import 'package:uniflow_mobile/models/models.dart';
 import 'package:uniflow_mobile/models/team_member.dart';
+import 'package:uniflow_mobile/models/user_role.dart';
 import 'package:uniflow_mobile/offline/local_database.dart';
 import 'package:uniflow_mobile/offline/offline_providers.dart';
 import 'package:uniflow_mobile/offline/sync_engine.dart';
@@ -30,13 +31,22 @@ import 'package:uniflow_mobile/models/badges.dart';
 import 'package:uniflow_mobile/providers/badges_provider.dart';
 import 'package:uniflow_mobile/screens/teacher_assignments.dart';
 
-UniFlowUser user() => UniFlowUser(
+UniFlowUser user() => userWithRole(UniFlowRole.admin);
+
+/// Le même compte de test dans chacun des rôles : un compte indépendant porte
+/// `accountType = PERSONAL`, les autres sont rattachés à une université avec
+/// une filière et un niveau (le périmètre des écrans Cours et Emploi du temps).
+UniFlowUser userWithRole(UniFlowRole role) => UniFlowUser(
       id: 'u1',
       email: 'ravel@uniflow.edu',
       name: 'NGHOMSI RAVEL',
-      accountType: 'UNIVERSITY',
-      role: 'ADMIN',
+      accountType: role == UniFlowRole.personal ? 'PERSONAL' : 'UNIVERSITY',
+      role: role.wireValue,
       username: 'ravel',
+      university: role == UniFlowRole.personal ? null : 'UY1',
+      faculty: role == UniFlowRole.personal ? null : 'FS',
+      program: role.isLearner ? 'INF' : null,
+      level: role.isLearner ? 'L2' : null,
     );
 
 const student = Student(
@@ -289,8 +299,8 @@ Widget host(Widget child, {List<Override> overrides = const []}) {
 /// Les providers réseau neutralisés de [host], exposés à part pour les tests
 /// qui montent l'application entière derrière son routeur (démarrage à froid,
 /// présentation puis tableau de bord) plutôt qu'un écran isolé.
-List<Override> neutralOverrides() => [
-      currentUserProvider.overrideWith((ref) => user()),
+List<Override> neutralOverrides({UniFlowUser? connectedUser}) => [
+      currentUserProvider.overrideWith((ref) => connectedUser ?? user()),
       studentsProvider.overrideWith((ref) => const [student]),
       teachersProvider.overrideWith((ref) => const [teacher]),
       uesProvider.overrideWith((ref) => const [ue]),

@@ -48,7 +48,7 @@ class StudentDetailScreen extends ConsumerWidget {
         ),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: AppInsets.pageList,
             children: [
               SectionCard(
                 child: Row(
