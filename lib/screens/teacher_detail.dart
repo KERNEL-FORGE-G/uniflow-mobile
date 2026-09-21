@@ -6,6 +6,8 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
+import '../widgets/uni_icons.dart';
 
 /// Fiche d'un enseignant : annuaire académique + cours d'`academic_courses`
 /// qu'il dispense (par identifiant, sinon par nom — voir [Teacher.teaches]).
@@ -22,7 +24,7 @@ class TeacherDetailScreen extends ConsumerWidget {
     final t = findTeacher(ref, id);
     if (t == null) {
       return const EmptyState(
-        icon: Icons.person_off_outlined,
+        icon: PhosphorIconsDuotone.userCircleMinus,
         title: 'Enseignant introuvable',
         message: 'Cet identifiant ne correspond à aucun enseignant du périmètre affiché.',
       );
@@ -42,7 +44,7 @@ class TeacherDetailScreen extends ConsumerWidget {
           title: t.fullName,
           subtitle: subtitle,
           trailing: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, color: Colors.white),
             onPressed: () => context.go('/enseignants'),
           ),
         ),
@@ -91,13 +93,19 @@ class TeacherDetailScreen extends ConsumerWidget {
                       ),
                     ...ues.map((u) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.book_outlined, color: AppColors.primaryBlue),
+                          // L'icône et la couleur de la matière, comme sur la
+                          // liste des UE et sa fiche : un même cours garde la
+                          // même tête d'un écran à l'autre.
+                          leading: PhosphorIcon(
+                            subjectIcon(u.title, code: u.code),
+                            color: subjectColor(u.code, colorHex: u.colorHex),
+                          ),
                           title: Text(u.title, maxLines: 2, overflow: TextOverflow.ellipsis),
                           subtitle: Text(
                             '${u.code} · ${u.credits} crédits'
                             '${u.level.isEmpty ? '' : ' · ${u.level}'}',
                           ),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const PhosphorIcon(PhosphorIconsBold.caretRight),
                           onTap: () => context.go('/ues/${u.id}'),
                         )),
                   ],

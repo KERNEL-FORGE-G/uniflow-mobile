@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 /// Fiche d'un étudiant, à partir de l'annuaire académique et de ses
 /// inscriptions (`academic_enrollments`) — les deux lus sur Appwrite Cloud.
@@ -24,7 +25,7 @@ class StudentDetailScreen extends ConsumerWidget {
     final s = findStudent(ref, id);
     if (s == null) {
       return const EmptyState(
-        icon: Icons.person_off_outlined,
+        icon: PhosphorIconsDuotone.userCircleMinus,
         title: 'Étudiant introuvable',
         message: 'Cet identifiant ne correspond à aucun étudiant du périmètre affiché.',
       );
@@ -42,7 +43,7 @@ class StudentDetailScreen extends ConsumerWidget {
           title: s.fullName,
           subtitle: s.matricule.isEmpty ? '${s.filiere} · ${s.niveau}' : s.matricule,
           trailing: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, color: Colors.white),
             onPressed: () => context.go('/etudiants'),
           ),
         ),
@@ -77,16 +78,16 @@ class StudentDetailScreen extends ConsumerWidget {
                   children: [
                     const Text('Informations', style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 12),
-                    _row(Icons.badge_outlined,
+                    _row(PhosphorIconsBold.identificationBadge,
                         s.matricule.isEmpty ? 'Matricule non renseigné' : 'Matricule : ${s.matricule}'),
                     const SizedBox(height: 8),
-                    _row(Icons.school_outlined, '${s.filiere} · ${s.niveau}'),
+                    _row(PhosphorIconsBold.graduationCap, '${s.filiere} · ${s.niveau}'),
                     if (s.university.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      _row(Icons.account_balance_outlined, s.university),
+                      _row(PhosphorIconsBold.buildings, s.university),
                     ],
                     const SizedBox(height: 8),
-                    _row(Icons.how_to_reg_outlined,
+                    _row(PhosphorIconsBold.userCheck,
                         '$activeCount ${activeCount == 1 ? 'inscription active' : 'inscriptions actives'}'),
                   ],
                 ),
@@ -120,7 +121,9 @@ class StudentDetailScreen extends ConsumerWidget {
                         ),
                         title: Text(u?.title ?? 'Cours ${e.ueId}', maxLines: 2, overflow: TextOverflow.ellipsis),
                         subtitle: Text(u == null ? 'Hors du périmètre affiché' : '${u.code} · ${u.credits} crédits'),
-                        trailing: e.isActive ? const Icon(Icons.chevron_right) : StatusBadge(label: e.statusLabel),
+                        trailing: e.isActive
+                            ? const PhosphorIcon(PhosphorIconsBold.caretRight)
+                            : StatusBadge(label: e.statusLabel),
                         onTap: u == null ? null : () => context.go('/ues/${u.id}'),
                       );
                     }),
@@ -135,7 +138,7 @@ class StudentDetailScreen extends ConsumerWidget {
   }
 
   Widget _row(IconData i, String t) => Row(children: [
-        Icon(i, size: 18, color: AppColors.textSecondary),
+        PhosphorIcon(i, size: 18, color: AppColors.textSecondary),
         const SizedBox(width: 8),
         Expanded(child: Text(t)),
       ]);

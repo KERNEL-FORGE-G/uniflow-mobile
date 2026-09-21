@@ -7,6 +7,7 @@ import '../providers/session_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/feedback.dart';
+import '../widgets/phosphor.dart';
 
 /// Mot à recopier pour confirmer la suppression — le même que sur le web.
 const String deletionKeyword = 'SUPPRIMER';
@@ -116,7 +117,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                   decoration: BoxDecoration(
                       color: AppColors.danger.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                   alignment: Alignment.center,
-                  child: const Icon(Icons.warning_amber_rounded, color: AppColors.danger),
+                  child: const PhosphorIcon(PhosphorIconsFill.warning, color: AppColors.danger),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -146,10 +147,10 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                 onSubmitted: (_) => _verifyPassword(),
                 decoration: InputDecoration(
                   labelText: 'Mot de passe',
-                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                  prefixIcon: const PhosphorIcon(PhosphorIconsBold.lock, size: 20),
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => _obscure = !_obscure),
-                    icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                    icon: PhosphorIcon(_obscure ? PhosphorIconsBold.eye : PhosphorIconsBold.eyeSlash, size: 20),
                   ),
                 ),
               ),
@@ -166,7 +167,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                 onSubmitted: (_) => _delete(),
                 decoration: const InputDecoration(
                   labelText: deletionKeyword,
-                  prefixIcon: Icon(Icons.delete_forever_outlined, size: 20),
+                  prefixIcon: PhosphorIcon(PhosphorIconsBold.trash, size: 20),
                 ),
               ),
             ],
@@ -178,7 +179,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             if (_step == 0)
               PrimaryButton(
                   label: 'Continuer',
-                  icon: Icons.arrow_forward,
+                  icon: PhosphorIconsBold.arrowRight,
                   isLoading: _busy,
                   onPressed: _busy ? null : _verifyPassword)
             else
@@ -192,7 +193,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                 icon: _busy
                     ? const SizedBox(
                         width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.delete_forever_outlined),
+                    : const PhosphorIcon(PhosphorIconsFill.trash),
                 label: const Text('Supprimer définitivement mon compte'),
               ),
           ],
@@ -225,7 +226,7 @@ class _StepHeader extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           alignment: Alignment.center,
           child: done
-              ? const Icon(Icons.check, size: 16, color: Colors.white)
+              ? const PhosphorIcon(PhosphorIconsBold.check, size: 16, color: Colors.white)
               : Text('$index', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
         ),
         const SizedBox(width: 10),

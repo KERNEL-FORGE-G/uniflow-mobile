@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 
 /// Inscriptions aux cours, lues dans `academic_enrollments` (Appwrite Cloud).
 ///
@@ -79,7 +80,7 @@ class _EnrollmentsScreenState extends ConsumerState<EnrollmentsScreen> {
   Widget _list(List<Enrollment> list, bool mine) {
     if (list.isEmpty) {
       return EmptyState(
-        icon: tab == 0 ? Icons.how_to_reg_outlined : Icons.inbox_outlined,
+        icon: tab == 0 ? PhosphorIconsDuotone.userCheck : PhosphorIconsDuotone.tray,
         title: tab == 0 ? 'Aucune inscription active' : 'Rien d\'autre à signaler',
         message: tab == 0
             ? (mine

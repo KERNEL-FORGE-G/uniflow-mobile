@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/feedback.dart';
 import '../widgets/motion.dart';
+import '../widgets/phosphor.dart';
 
 /// Comptes de l'université, pour l'administration (`ADMIN`).
 ///
@@ -34,7 +35,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final me = ref.watch(currentUserProvider);
     return Scaffold(
       floatingActionButton: GradientFab(
-        icon: Icons.person_add_alt_1_rounded,
+        icon: PhosphorIconsFill.userPlus,
         label: 'Compte',
         onPressed: () => _edit(context),
       ),
@@ -76,7 +77,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 final filtered = filterAccounts(list, query: _query, role: _roleFilter);
                 if (filtered.isEmpty) {
                   return const EmptyState(
-                      icon: Icons.manage_accounts_outlined,
+                      icon: PhosphorIconsDuotone.userGear,
                       title: 'Aucun compte',
                       message: 'Aucun compte ne correspond à ce filtre.');
                 }
@@ -225,7 +226,7 @@ class _AccountCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textMuted),
+            const PhosphorIcon(PhosphorIconsBold.caretRight, color: AppColors.textMuted),
           ],
         ),
       ),
@@ -413,8 +414,8 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               DropdownButtonFormField<String>(
                 initialValue: selectedProgram?.code,
                 isExpanded: true,
-                decoration:
-                    const InputDecoration(labelText: 'Filière', prefixIcon: Icon(Icons.school_outlined, size: 20)),
+                decoration: const InputDecoration(
+                    labelText: 'Filière', prefixIcon: PhosphorIcon(PhosphorIconsBold.graduationCap, size: 20)),
                 items: [
                   for (final p in programs)
                     DropdownMenuItem(
@@ -431,7 +432,7 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
                 controller: TextEditingController(text: _program),
                 onChanged: (v) => _program = v,
                 decoration: const InputDecoration(
-                    labelText: 'Filière (code)', prefixIcon: Icon(Icons.school_outlined, size: 20)),
+                    labelText: 'Filière (code)', prefixIcon: PhosphorIcon(PhosphorIconsBold.graduationCap, size: 20)),
               ),
             if (_learner) ...[
               const SizedBox(height: 12),
@@ -480,7 +481,7 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               TextButton.icon(
                 onPressed: _delete,
                 style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                icon: const Icon(Icons.delete_outline, size: 18),
+                icon: const PhosphorIcon(PhosphorIconsBold.trash, size: 18),
                 label: const Text('Supprimer le compte'),
               ),
             ],

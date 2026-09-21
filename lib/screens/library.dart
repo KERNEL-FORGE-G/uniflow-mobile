@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../widgets/common.dart';
+import '../widgets/phosphor.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
@@ -94,7 +95,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               data: (entries) {
                 if (entries.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.library_books_outlined,
+                    icon: PhosphorIconsDuotone.books,
                     title: 'Aucune ressource disponible',
                     message: 'Les supports déposés par vos enseignants apparaîtront ici.',
                   );
@@ -108,16 +109,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     IconData fileIcon;
                     switch (entry.type.toLowerCase()) {
                       case 'pdf':
-                        fileIcon = Icons.picture_as_pdf_outlined;
+                        fileIcon = PhosphorIconsDuotone.filePdf;
                         break;
                       case 'video':
-                        fileIcon = Icons.video_file_outlined;
+                        fileIcon = PhosphorIconsDuotone.fileVideo;
                         break;
                       case 'image':
-                        fileIcon = Icons.image_outlined;
+                        fileIcon = PhosphorIconsDuotone.image;
                         break;
                       default:
-                        fileIcon = Icons.insert_drive_file_outlined;
+                        fileIcon = PhosphorIconsDuotone.file;
                     }
 
                     final enCours = _enCours == entry.id;
@@ -129,7 +130,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           height: 44,
                           decoration: BoxDecoration(
                               color: AppColors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                          child: Icon(fileIcon, color: AppColors.teal),
+                          child: PhosphorIcon(fileIcon, color: AppColors.teal),
                         ),
                         title: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle:
@@ -145,7 +146,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : const Icon(Icons.download_outlined),
+                              : const PhosphorIcon(PhosphorIconsBold.downloadSimple),
                           onPressed: enCours ? null : () => _telecharger(entry),
                         ),
                       ),
