@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/phosphor.dart';
 
 import '../theme/app_theme.dart';
 import 'offline_providers.dart';
@@ -43,7 +44,7 @@ class OfflineBanner extends ConsumerWidget {
       child = _Bar(
         key: const ValueKey('offline'),
         color: AppColors.warning,
-        icon: Icons.cloud_off_rounded,
+        icon: PhosphorIconsFill.cloudSlash,
         text: 'Mode hors ligne — ${describeLastSync(state.lastSyncAt)}'
             '${state.pendingCount > 0 ? ' · ${state.pendingCount} en attente d\'envoi' : ''}',
       );
@@ -53,7 +54,7 @@ class OfflineBanner extends ConsumerWidget {
       child = _Bar(
         key: const ValueKey('pending'),
         color: AppColors.info,
-        icon: Icons.schedule_send_rounded,
+        icon: PhosphorIconsFill.paperPlaneTilt,
         text: '${state.pendingCount} élément${state.pendingCount > 1 ? 's' : ''} en attente d\'envoi',
         action: TextButton(
           onPressed: () => ref.read(syncCoordinatorProvider).syncNow(force: true),
@@ -90,7 +91,7 @@ class _Bar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           child: Row(
             children: [
-              Icon(icon, color: Colors.white, size: 18),
+              PhosphorIcon(icon, color: Colors.white, size: 18),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -119,16 +120,16 @@ class SyncIndicator extends ConsumerWidget {
     final IconData icon;
     final Color color;
     if (state.isSyncing) {
-      icon = Icons.sync_rounded;
+      icon = PhosphorIconsBold.arrowsClockwise;
       color = Colors.white;
     } else if (state.isOffline) {
-      icon = Icons.cloud_off_rounded;
+      icon = PhosphorIconsFill.cloudSlash;
       color = AppColors.warning;
     } else if (state.pendingCount > 0) {
-      icon = Icons.schedule_send_rounded;
+      icon = PhosphorIconsFill.paperPlaneTilt;
       color = Colors.white;
     } else {
-      icon = Icons.cloud_done_rounded;
+      icon = PhosphorIconsFill.cloudCheck;
       color = Colors.white70;
     }
     return Tooltip(
@@ -144,7 +145,7 @@ class SyncIndicator extends ConsumerWidget {
               state.isSyncing
                   ? const SizedBox(
                       width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Icon(icon, color: color, size: 20),
+                  : PhosphorIcon(icon, color: color, size: 20),
               if (state.pendingCount > 0)
                 Positioned(
                   right: -6,

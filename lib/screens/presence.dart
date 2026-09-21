@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import '../widgets/phosphor.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -14,6 +15,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/feedback.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 
 /// Présence sécurisée par QR et proximité.
 ///
@@ -105,7 +107,7 @@ class _ScanCard extends ConsumerWidget {
         children: [
           const Row(
             children: [
-              Icon(Icons.qr_code_scanner_rounded, color: AppColors.primaryBlue),
+              IconTile(icon: PhosphorIconsDuotone.scan, color: AppColors.primaryBlue, size: IconTile.dense),
               SizedBox(width: 10),
               Expanded(child: Text('Émarger', style: AppTextStyles.h3)),
             ],
@@ -118,7 +120,7 @@ class _ScanCard extends ConsumerWidget {
           const SizedBox(height: 14),
           PrimaryButton(
             label: 'Scanner le QR de la séance',
-            icon: Icons.qr_code_scanner_rounded,
+            icon: PhosphorIconsBold.scan,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const _ScanPage(), fullscreenDialog: true),
             ),
@@ -200,7 +202,7 @@ class _ScanPageState extends ConsumerState<_ScanPage> {
           IconButton(
             tooltip: 'Lampe',
             onPressed: () => _controller.toggleTorch(),
-            icon: const Icon(Icons.flashlight_on_outlined),
+            icon: const PhosphorIcon(PhosphorIconsBold.flashlight),
           ),
         ],
       ),
@@ -324,7 +326,7 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
         children: [
           const Row(
             children: [
-              Icon(Icons.qr_code_2_rounded, color: AppColors.teal),
+              IconTile(icon: PhosphorIconsDuotone.qrCode, color: AppColors.teal, size: IconTile.dense),
               SizedBox(width: 10),
               Expanded(child: Text('Faire émarger', style: AppTextStyles.h3)),
             ],
@@ -357,8 +359,8 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
                   DropdownButtonFormField<String>(
                     initialValue: selected.id,
                     isExpanded: true,
-                    decoration:
-                        const InputDecoration(labelText: 'Cours', prefixIcon: Icon(Icons.menu_book_outlined, size: 20)),
+                    decoration: const InputDecoration(
+                        labelText: 'Cours', prefixIcon: PhosphorIcon(PhosphorIconsBold.bookOpenText, size: 20)),
                     items: [
                       for (final c in mine)
                         DropdownMenuItem(
@@ -370,7 +372,7 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Icon(Icons.radar, size: 18, color: AppColors.textSecondary),
+                      const PhosphorIcon(PhosphorIconsBold.mapPin, size: 18, color: AppColors.textSecondary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Slider(
@@ -393,7 +395,7 @@ class _IssueCardState extends ConsumerState<_IssueCard> {
                   const SizedBox(height: 12),
                   PrimaryButton(
                     label: 'Générer le QR de la séance',
-                    icon: Icons.qr_code_2_rounded,
+                    icon: PhosphorIconsBold.qrCode,
                     isLoading: _busy,
                     onPressed: _busy ? null : () => _issue(selected),
                   ),
@@ -509,7 +511,8 @@ class _QrPageState extends ConsumerState<_QrPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.timer_outlined, size: 18, color: expired ? AppColors.danger : AppColors.teal),
+                      PhosphorIcon(PhosphorIconsBold.timer,
+                          size: 18, color: expired ? AppColors.danger : AppColors.teal),
                       const SizedBox(width: 6),
                       Text(
                         expired ? 'QR expiré' : 'Valable encore $mm:$ss',
@@ -526,7 +529,7 @@ class _QrPageState extends ConsumerState<_QrPage> {
                   const SizedBox(height: 24),
                   PrimaryButton(
                     label: expired ? 'Fermer' : 'Terminer et révoquer le QR',
-                    icon: Icons.lock_outline,
+                    icon: PhosphorIconsBold.lock,
                     isLoading: _revoking,
                     onPressed: _revoking ? null : _close,
                   ),

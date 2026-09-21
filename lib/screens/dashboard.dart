@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/appwrite_models.dart';
 import '../models/assignment_models.dart';
@@ -17,6 +18,7 @@ import '../widgets/badges.dart';
 import '../widgets/common.dart';
 import '../widgets/motion.dart';
 import '../widgets/uni/uni_mascot.dart';
+import '../widgets/uni_icons.dart';
 // `gradesListProvider`, `assignmentBoardProvider` et
 // `teacherAssignmentsProvider` sont déclarés dans leurs écrans : l'accueil les
 // réutilise plutôt que de relancer ses propres requêtes.
@@ -25,9 +27,9 @@ import 'grades.dart';
 import 'schedule.dart' show groupByDay, normalizeDay, normalizeTime;
 import 'teacher_assignments.dart';
 
-/// Une action rapide : icône, libellé, couleur et route.
+/// Une action rapide : icône Phosphor `duotone`, libellé, couleur et route.
 class _QuickAction {
-  final IconData icon;
+  final PhosphorIconData icon;
   final String label;
   final Color color;
   final String route;
@@ -115,8 +117,8 @@ class DashboardScreen extends ConsumerWidget {
                           'assets/brand/uniflow_marque.png',
                           fit: BoxFit.contain,
                           filterQuality: FilterQuality.high,
-                          errorBuilder: (_, __, ___) => const Icon(
-                            Icons.school_rounded,
+                          errorBuilder: (_, __, ___) => const PhosphorIcon(
+                            PhosphorIconsFill.graduationCap,
                             color: AppColors.primaryBlue,
                             size: 26,
                           ),
@@ -198,17 +200,17 @@ class _LearnerHome extends ConsumerWidget {
   const _LearnerHome();
 
   static const List<_QuickAction> _studentActions = [
-    _QuickAction(Icons.calendar_month_outlined, 'Emploi du temps', AppColors.primaryBlue, '/emploi-du-temps'),
-    _QuickAction(Icons.library_books_outlined, 'Bibliothèque', AppColors.teal, '/bibliotheque'),
-    _QuickAction(Icons.qr_code_scanner, 'Scanner QR', AppColors.purple, '/presence'),
-    _QuickAction(Icons.forum_outlined, 'Forum', AppColors.info, '/forum'),
+    _QuickAction(PhosphorIconsDuotone.calendarBlank, 'Emploi du temps', AppColors.primaryBlue, '/emploi-du-temps'),
+    _QuickAction(PhosphorIconsDuotone.books, 'Bibliothèque', AppColors.teal, '/bibliotheque'),
+    _QuickAction(PhosphorIconsDuotone.qrCode, 'Scanner QR', AppColors.purple, '/presence'),
+    _QuickAction(PhosphorIconsDuotone.usersThree, 'Forum', AppColors.info, '/forum'),
   ];
 
   static const List<_QuickAction> _delegateActions = [
-    _QuickAction(Icons.calendar_month_outlined, 'Emploi du temps', AppColors.primaryBlue, '/emploi-du-temps'),
-    _QuickAction(Icons.qr_code_2, 'Émettre la présence', AppColors.purple, '/presence'),
-    _QuickAction(Icons.groups_outlined, 'Ma promotion', AppColors.teal, '/etudiants'),
-    _QuickAction(Icons.forum_outlined, 'Forum', AppColors.info, '/forum'),
+    _QuickAction(PhosphorIconsDuotone.calendarBlank, 'Emploi du temps', AppColors.primaryBlue, '/emploi-du-temps'),
+    _QuickAction(PhosphorIconsDuotone.qrCode, 'Émettre la présence', AppColors.purple, '/presence'),
+    _QuickAction(PhosphorIconsDuotone.graduationCap, 'Ma promotion', AppColors.teal, '/etudiants'),
+    _QuickAction(PhosphorIconsDuotone.usersThree, 'Forum', AppColors.info, '/forum'),
   ];
 
   @override
@@ -222,7 +224,7 @@ class _LearnerHome extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Vue d\'ensemble'),
+        SectionTitle(title: 'Vue d\'ensemble', icon: UniIcons.statistics()),
         Row(
           children: [
             Expanded(
@@ -237,13 +239,14 @@ class _LearnerHome extends ConsumerWidget {
                   loading: () => '...',
                   error: (_, __) => '!',
                 ),
-                icon: Icons.trending_up,
+                icon: UniIcons.grades(),
                 color: AppColors.primaryBlue,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
+                index: 1,
                 label: 'Devoirs en cours',
                 value: assignmentsAsync.when(
                   // « En cours » = ce qui reste à rendre, retards compris. Un
@@ -253,7 +256,7 @@ class _LearnerHome extends ConsumerWidget {
                   loading: () => '...',
                   error: (_, __) => '!',
                 ),
-                icon: Icons.assignment_outlined,
+                icon: UniIcons.assignments(),
                 color: AppColors.warning,
                 onTap: () => context.push('/devoirs'),
               ),
@@ -263,12 +266,14 @@ class _LearnerHome extends ConsumerWidget {
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Cours du jour',
+          icon: UniIcons.schedule(),
           trailing: _SeeAll(onTap: () => context.push('/emploi-du-temps')),
         ),
         _TodaySessions(schedulesAsync: schedulesAsync),
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Mes badges',
+          icon: UniIcons.badges(),
           trailing: _SeeAll(onTap: () => context.push('/badges')),
         ),
         badgesAsync.when(
@@ -277,18 +282,19 @@ class _LearnerHome extends ConsumerWidget {
           error: (_, __) => const SectionCard(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: EmptyState(
-              icon: Icons.military_tech_outlined,
+              icon: PhosphorIconsDuotone.medal,
               title: 'Badges indisponibles',
               message: 'Ils reviendront à la prochaine synchronisation.',
             ),
           ),
         ),
         const SizedBox(height: 24),
-        const SectionTitle(title: 'Actions rapides'),
+        const SectionTitle(title: 'Actions rapides', icon: PhosphorIconsDuotone.lightning),
         _ActionGrid(actions: role == UniFlowRole.delegate ? _delegateActions : _studentActions),
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Prochains devoirs',
+          icon: UniIcons.assignments(),
           trailing: _SeeAll(onTap: () => context.push('/devoirs')),
         ),
         _UpcomingAssignments(boardAsync: assignmentsAsync),
@@ -305,10 +311,10 @@ class _TeacherHome extends ConsumerWidget {
   const _TeacherHome();
 
   static const List<_QuickAction> _actions = [
-    _QuickAction(Icons.post_add_outlined, 'Publier un devoir', AppColors.primaryBlue, '/devoirs'),
-    _QuickAction(Icons.grading_outlined, 'Saisir des notes', AppColors.teal, '/notes'),
-    _QuickAction(Icons.qr_code_2, 'Présence QR', AppColors.purple, '/presence'),
-    _QuickAction(Icons.chat_bubble_outline, 'Messages', AppColors.info, '/messages'),
+    _QuickAction(PhosphorIconsDuotone.filePlus, 'Publier un devoir', AppColors.primaryBlue, '/devoirs'),
+    _QuickAction(PhosphorIconsDuotone.chartLineUp, 'Saisir des notes', AppColors.teal, '/notes'),
+    _QuickAction(PhosphorIconsDuotone.qrCode, 'Présence QR', AppColors.purple, '/presence'),
+    _QuickAction(PhosphorIconsDuotone.chatsCircle, 'Messages', AppColors.info, '/messages'),
   ];
 
   @override
@@ -326,7 +332,7 @@ class _TeacherHome extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Vue d\'ensemble'),
+        SectionTitle(title: 'Vue d\'ensemble', icon: UniIcons.statistics()),
         Row(
           children: [
             Expanded(
@@ -334,7 +340,7 @@ class _TeacherHome extends ConsumerWidget {
                 label: 'Mes cours',
                 value: loading ? '...' : '${mine.length}',
                 caption: mine.isEmpty && !loading ? 'Aucun cours à votre nom' : null,
-                icon: Icons.menu_book_outlined,
+                icon: UniIcons.courses(),
                 color: AppColors.primaryBlue,
                 onTap: () => context.push('/ues'),
               ),
@@ -342,10 +348,11 @@ class _TeacherHome extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
+                index: 1,
                 label: 'Étudiants',
                 value: loading ? '...' : '${students.length}',
                 caption: 'dans votre périmètre',
-                icon: Icons.groups_outlined,
+                icon: UniIcons.students(),
                 color: AppColors.teal,
                 onTap: () => context.push('/etudiants'),
               ),
@@ -353,13 +360,14 @@ class _TeacherHome extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
+                index: 2,
                 label: 'Devoirs publiés',
                 value: assignmentsAsync.when(
                   data: (list) => '${list.length}',
                   loading: () => '...',
                   error: (_, __) => '!',
                 ),
-                icon: Icons.assignment_turned_in_outlined,
+                icon: UniIcons.assignments(),
                 color: AppColors.warning,
                 onTap: () => context.push('/devoirs'),
               ),
@@ -369,15 +377,17 @@ class _TeacherHome extends ConsumerWidget {
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Séances du jour',
+          icon: UniIcons.schedule(),
           trailing: _SeeAll(onTap: () => context.push('/emploi-du-temps')),
         ),
         _TodaySessions(schedulesAsync: schedulesAsync, teacherView: true),
         const SizedBox(height: 24),
-        const SectionTitle(title: 'À faire'),
+        const SectionTitle(title: 'À faire', icon: PhosphorIconsDuotone.lightning),
         const _ActionGrid(actions: _actions),
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Derniers devoirs publiés',
+          icon: UniIcons.assignments(),
           trailing: _SeeAll(onTap: () => context.push('/devoirs')),
         ),
         assignmentsAsync.when(
@@ -386,7 +396,7 @@ class _TeacherHome extends ConsumerWidget {
               return const SectionCard(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: EmptyState(
-                  icon: Icons.post_add_outlined,
+                  icon: PhosphorIconsDuotone.filePlus,
                   title: 'Aucun devoir publié',
                   message: 'Publiez un quiz, un PDF ou un TD depuis « Devoirs ».',
                   pose: UniPose.pointing,
@@ -408,7 +418,7 @@ class _TeacherHome extends ConsumerWidget {
           error: (_, __) => const SectionCard(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: EmptyState(
-              icon: Icons.cloud_off_outlined,
+              icon: PhosphorIconsDuotone.cloudSlash,
               title: 'Devoirs indisponibles',
               message: 'La liste n\'a pas pu être chargée.',
             ),
@@ -427,10 +437,10 @@ class _AdminHome extends ConsumerWidget {
   const _AdminHome();
 
   static const List<_QuickAction> _actions = [
-    _QuickAction(Icons.manage_accounts_outlined, 'Comptes', AppColors.primaryBlue, '/comptes'),
-    _QuickAction(Icons.school_outlined, 'Étudiants', AppColors.teal, '/etudiants'),
-    _QuickAction(Icons.co_present_outlined, 'Enseignants', AppColors.purple, '/enseignants'),
-    _QuickAction(Icons.menu_book_outlined, 'Unités d\'enseignement', AppColors.warning, '/ues'),
+    _QuickAction(PhosphorIconsDuotone.userGear, 'Comptes', AppColors.primaryBlue, '/comptes'),
+    _QuickAction(PhosphorIconsDuotone.graduationCap, 'Étudiants', AppColors.teal, '/etudiants'),
+    _QuickAction(PhosphorIconsDuotone.chalkboard, 'Enseignants', AppColors.purple, '/enseignants'),
+    _QuickAction(PhosphorIconsDuotone.bookBookmark, 'Unités d\'enseignement', AppColors.warning, '/ues'),
   ];
 
   @override
@@ -448,14 +458,14 @@ class _AdminHome extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Vue d\'ensemble'),
+        SectionTitle(title: 'Vue d\'ensemble', icon: UniIcons.statistics()),
         Row(
           children: [
             Expanded(
               child: StatCard(
                 label: 'Étudiants',
                 value: loading ? '...' : '${students.length}',
-                icon: Icons.school_outlined,
+                icon: UniIcons.students(),
                 color: AppColors.primaryBlue,
                 onTap: () => context.push('/etudiants'),
               ),
@@ -463,9 +473,10 @@ class _AdminHome extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
+                index: 1,
                 label: 'Enseignants',
                 value: loading ? '...' : '${teachers.length}',
-                icon: Icons.co_present_outlined,
+                icon: UniIcons.teachers(),
                 color: AppColors.teal,
                 onTap: () => context.push('/enseignants'),
               ),
@@ -477,9 +488,10 @@ class _AdminHome extends ConsumerWidget {
           children: [
             Expanded(
               child: StatCard(
+                index: 2,
                 label: 'Cours',
                 value: loading ? '...' : '${courses.length}',
-                icon: Icons.menu_book_outlined,
+                icon: UniIcons.courseUnit(),
                 color: AppColors.purple,
                 onTap: () => context.push('/ues'),
               ),
@@ -487,9 +499,10 @@ class _AdminHome extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
+                index: 3,
                 label: 'Séances aujourd\'hui',
                 value: today == null ? '...' : '$today',
-                icon: Icons.event_available_outlined,
+                icon: UniIcons.agenda(),
                 color: AppColors.warning,
                 onTap: () => context.push('/emploi-du-temps'),
               ),
@@ -497,11 +510,12 @@ class _AdminHome extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 24),
-        const SectionTitle(title: 'Gestion'),
+        SectionTitle(title: 'Gestion', icon: UniIcons.university()),
         const _ActionGrid(actions: _actions),
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Séances du jour',
+          icon: UniIcons.schedule(),
           trailing: _SeeAll(onTap: () => context.push('/emploi-du-temps')),
         ),
         _TodaySessions(schedulesAsync: schedulesAsync, teacherView: true, max: 5),
@@ -518,10 +532,10 @@ class _PersonalHome extends ConsumerWidget {
   const _PersonalHome();
 
   static const List<_QuickAction> _actions = [
-    _QuickAction(Icons.book_outlined, 'Mes matières', AppColors.primaryBlue, '/matieres'),
-    _QuickAction(Icons.checklist_rounded, 'Mes tâches', AppColors.teal, '/taches'),
-    _QuickAction(Icons.calendar_month_outlined, 'Mon agenda', AppColors.purple, '/agenda'),
-    _QuickAction(Icons.grade_outlined, 'Mes notes', AppColors.warning, '/notes'),
+    _QuickAction(PhosphorIconsDuotone.bookBookmark, 'Mes matières', AppColors.primaryBlue, '/matieres'),
+    _QuickAction(PhosphorIconsDuotone.checkSquare, 'Mes tâches', AppColors.teal, '/taches'),
+    _QuickAction(PhosphorIconsDuotone.calendarCheck, 'Mon agenda', AppColors.purple, '/agenda'),
+    _QuickAction(PhosphorIconsDuotone.chartLineUp, 'Mes notes', AppColors.warning, '/notes'),
   ];
 
   @override
@@ -544,7 +558,7 @@ class _PersonalHome extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Vue d\'ensemble'),
+        SectionTitle(title: 'Vue d\'ensemble', icon: UniIcons.statistics()),
         Row(
           children: [
             Expanded(
@@ -555,7 +569,7 @@ class _PersonalHome extends ConsumerWidget {
                   loading: () => '...',
                   error: (_, __) => '!',
                 ),
-                icon: Icons.book_outlined,
+                icon: UniIcons.courseUnit(),
                 color: AppColors.primaryBlue,
                 onTap: () => context.push('/matieres'),
               ),
@@ -563,13 +577,14 @@ class _PersonalHome extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
+                index: 1,
                 label: 'Tâches à faire',
                 value: tasks.when(
                   data: (_) => '${pending.length}',
                   loading: () => '...',
                   error: (_, __) => '!',
                 ),
-                icon: Icons.checklist_rounded,
+                icon: UniIcons.tasks(),
                 color: AppColors.warning,
                 onTap: () => context.push('/taches'),
               ),
@@ -579,6 +594,7 @@ class _PersonalHome extends ConsumerWidget {
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Aujourd\'hui',
+          icon: UniIcons.agenda(),
           trailing: _SeeAll(onTap: () => context.push('/agenda')),
         ),
         schedules.when(
@@ -589,23 +605,27 @@ class _PersonalHome extends ConsumerWidget {
               return const SectionCard(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: EmptyState(
-                  icon: Icons.free_breakfast_outlined,
+                  icon: PhosphorIconsDuotone.coffee,
                   title: 'Rien de prévu aujourd\'hui',
                   message: 'Ajoutez vos créneaux depuis l\'agenda.',
                   pose: UniPose.sleeping,
                 ),
               );
             }
-            final names = {for (final s in subjects.valueOrNull ?? const <PersonalSubject>[]) s.id: s.name};
+            final byId = {for (final s in subjects.valueOrNull ?? const <PersonalSubject>[]) s.id: s};
+            final rows = today.take(4).toList();
             return Column(
               children: [
-                for (final s in today.take(4))
+                for (var i = 0; i < rows.length; i++)
                   _SessionRow(
-                    start: normalizeTime(s.startTime),
-                    end: normalizeTime(s.endTime),
-                    title: names[s.courseId] ?? s.type,
-                    subtitle: [s.type, s.classroom].where((v) => v.trim().isNotEmpty).join(' · '),
-                    color: AppColors.purple,
+                    index: i,
+                    start: normalizeTime(rows[i].startTime),
+                    end: normalizeTime(rows[i].endTime),
+                    title: byId[rows[i].courseId]?.name ?? rows[i].type,
+                    subtitle: [rows[i].type, rows[i].classroom].where((v) => v.trim().isNotEmpty).join(' · '),
+                    // Couleur choisie par l'étudiant pour sa matière ; violet
+                    // (l'accent de l'espace personnel) quand il n'en a pas mis.
+                    color: subjectColor(rows[i].courseId, colorHex: byId[rows[i].courseId]?.colorHex ?? '#7C3AED'),
                   ),
               ],
             );
@@ -613,15 +633,16 @@ class _PersonalHome extends ConsumerWidget {
           loading: () => const ShimmerList(count: 2, cardHeight: 56),
           error: (_, __) => const SectionCard(
             padding: EdgeInsets.symmetric(vertical: 10),
-            child: EmptyState(icon: Icons.cloud_off_outlined, title: 'Agenda indisponible'),
+            child: EmptyState(icon: PhosphorIconsDuotone.cloudSlash, title: 'Agenda indisponible'),
           ),
         ),
         const SizedBox(height: 24),
-        const SectionTitle(title: 'Actions rapides'),
+        const SectionTitle(title: 'Actions rapides', icon: PhosphorIconsDuotone.lightning),
         const _ActionGrid(actions: _actions),
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Prochaines tâches',
+          icon: UniIcons.tasks(),
           trailing: _SeeAll(onTap: () => context.push('/taches')),
         ),
         tasks.when(
@@ -630,7 +651,7 @@ class _PersonalHome extends ConsumerWidget {
               return const SectionCard(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: EmptyState(
-                  icon: Icons.task_alt,
+                  icon: PhosphorIconsDuotone.checkCircle,
                   title: 'Aucune tâche en attente',
                   message: 'Vous êtes à jour.',
                   pose: UniPose.celebrate,
@@ -651,7 +672,7 @@ class _PersonalHome extends ConsumerWidget {
           loading: () => const ShimmerList(count: 2, cardHeight: 56),
           error: (_, __) => const SectionCard(
             padding: EdgeInsets.symmetric(vertical: 10),
-            child: EmptyState(icon: Icons.cloud_off_outlined, title: 'Tâches indisponibles'),
+            child: EmptyState(icon: PhosphorIconsDuotone.cloudSlash, title: 'Tâches indisponibles'),
           ),
         ),
       ],
@@ -684,7 +705,7 @@ class _TodaySessions extends StatelessWidget {
           return SectionCard(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: EmptyState(
-              icon: Icons.free_breakfast_outlined,
+              icon: PhosphorIconsDuotone.coffee,
               title: 'Pas de cours aujourd\'hui',
               message: all.isEmpty
                   ? 'Aucune séance n\'est enregistrée pour votre périmètre.'
@@ -700,9 +721,11 @@ class _TodaySessions extends StatelessWidget {
               FadeSlideIn(
                 index: i,
                 child: _SessionRow(
+                  index: i,
                   start: normalizeTime(shown[i].startTime),
                   end: normalizeTime(shown[i].endTime),
                   title: shown[i].courseName.isNotEmpty ? shown[i].courseName : shown[i].courseCode,
+                  code: shown[i].courseCode,
                   subtitle: [
                     if (shown[i].type != null && shown[i].type!.trim().isNotEmpty) shown[i].type!.trim(),
                     if (shown[i].group.trim().isNotEmpty) shown[i].group.trim(),
@@ -712,7 +735,7 @@ class _TodaySessions extends StatelessWidget {
                     else if (!teacherView && shown[i].teacherName.trim().isNotEmpty)
                       shown[i].teacherName.trim(),
                   ].join(' · '),
-                  color: Color(int.parse('FF${courseColorHex(shown[i].courseCode).substring(1)}', radix: 16)),
+                  color: subjectColor(shown[i].courseCode),
                 ),
               ),
             if (today.length > shown.length)
@@ -730,7 +753,7 @@ class _TodaySessions extends StatelessWidget {
       error: (_, __) => const SectionCard(
         padding: EdgeInsets.symmetric(vertical: 10),
         child: EmptyState(
-          icon: Icons.cloud_off_outlined,
+          icon: PhosphorIconsDuotone.cloudSlash,
           title: 'Emploi du temps indisponible',
           message: 'Il reviendra à la prochaine synchronisation.',
         ),
@@ -739,20 +762,27 @@ class _TodaySessions extends StatelessWidget {
   }
 }
 
-/// Une séance : colonne des heures, barre de couleur du cours, titre et détail.
+/// Une séance : colonne des heures, tuile de la matière, titre et détail.
+///
+/// La tuile porte `subjectIcon(titre, code)` dans la couleur du cours : c'est
+/// la même icône que sur la carte du cours et dans l'emploi du temps.
 class _SessionRow extends StatelessWidget {
   final String start;
   final String end;
   final String title;
+  final String? code;
   final String subtitle;
   final Color color;
+  final int index;
 
   const _SessionRow({
     required this.start,
     required this.end,
     required this.title,
+    this.code,
     required this.subtitle,
     required this.color,
+    this.index = 0,
   });
 
   @override
@@ -774,10 +804,11 @@ class _SessionRow extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              width: 4,
-              height: 36,
-              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+            IconTile(
+              icon: subjectIcon(title, code: code),
+              color: color,
+              size: IconTile.dense,
+              index: index,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -819,7 +850,7 @@ class _UpcomingAssignments extends StatelessWidget {
           return const SectionCard(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: EmptyState(
-              icon: Icons.task_alt,
+              icon: PhosphorIconsDuotone.checkCircle,
               title: 'Aucun devoir à rendre',
               message: 'Vous êtes à jour.',
               pose: UniPose.celebrate,
@@ -841,7 +872,7 @@ class _UpcomingAssignments extends StatelessWidget {
       error: (_, __) => const SectionCard(
         padding: EdgeInsets.symmetric(vertical: 10),
         child: EmptyState(
-          icon: Icons.cloud_off_outlined,
+          icon: PhosphorIconsDuotone.cloudSlash,
           title: 'Devoirs indisponibles',
           message: 'La liste n\'a pas pu être chargée.',
         ),
@@ -925,12 +956,13 @@ class _ActionGrid extends StatelessWidget {
       // contenu (pastille + libellé sur deux lignes).
       childAspectRatio: 2.1,
       children: [
-        for (final a in actions)
+        for (var i = 0; i < actions.length; i++)
           _ActionCard(
-            icon: a.icon,
-            label: a.label,
-            color: a.color,
-            onTap: () => context.push(a.route),
+            icon: actions[i].icon,
+            label: actions[i].label,
+            color: actions[i].color,
+            index: i,
+            onTap: () => context.push(actions[i].route),
           ),
       ],
     );
@@ -956,37 +988,46 @@ class _SeeAll extends StatelessWidget {
   }
 }
 
-/// Carte d'action rapide : pastille d'icône teintée puis libellé.
-class _ActionCard extends StatelessWidget {
-  final IconData icon;
+/// Carte d'action rapide : tuile d'icône pleine puis libellé.
+class _ActionCard extends StatefulWidget {
+  final PhosphorIconData icon;
   final String label;
   final Color color;
+  final int index;
   final VoidCallback onTap;
 
   const _ActionCard({
     required this.icon,
     required this.label,
     required this.color,
+    required this.index,
     required this.onTap,
   });
 
   @override
+  State<_ActionCard> createState() => _ActionCardState();
+}
+
+class _ActionCardState extends State<_ActionCard> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: widget.onTap,
+      onHighlightChanged: (down) => setState(() => _pressed = down),
       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
       child: SectionCard(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        // 8 et non 10 : la tuile de 44 doit tenir dans une cellule de grille
+        // dont le ratio 2,1 laisse ~66 px de haut sur un écran de 320.
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 18),
+            IconTile(
+              icon: widget.icon,
+              color: widget.color,
+              index: widget.index,
+              pressed: _pressed,
             ),
             const SizedBox(width: 10),
             // `Expanded` + ellipse : ce `Text` n'était souple dans aucune
@@ -994,7 +1035,7 @@ class _ActionCard extends StatelessWidget {
             // sur les écrans étroits.
             Expanded(
               child: Text(
-                label,
+                widget.label,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

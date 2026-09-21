@@ -1,7 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/phosphor.dart';
 import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
@@ -48,7 +50,7 @@ class GradesScreen extends ConsumerWidget {
               data: (grades) {
                 if (grades.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.grade_outlined,
+                    icon: PhosphorIconsDuotone.chartLineUp,
                     title: 'Aucune note enregistrée',
                     message: 'Vos résultats apparaîtront ici dès leur publication.',
                   );
@@ -89,8 +91,25 @@ class GradesScreen extends ConsumerWidget {
                               children: [
                                 Text(grade.evaluationTitle,
                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                Text(grade.courseCode,
-                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                Row(
+                                  children: [
+                                    // Icône de la matière, dans sa couleur :
+                                    // le code seul (« INF301 ») ne dit rien.
+                                    PhosphorIcon(
+                                      subjectIcon(grade.evaluationTitle,
+                                          code: grade.courseCode, style: UniIconStyle.fill),
+                                      size: 14,
+                                      color: subjectColor(grade.courseCode),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Flexible(
+                                      child: Text(grade.courseCode,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),

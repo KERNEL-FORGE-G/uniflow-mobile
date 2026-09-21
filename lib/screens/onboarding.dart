@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/onboarding_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_widgets.dart';
+import '../widgets/phosphor.dart';
 import '../widgets/uni/archlord_mascot.dart';
 import '../widgets/uni/mascot_dialogue.dart';
 import '../widgets/uni/uni_mascot.dart';
@@ -397,7 +398,7 @@ class _Footer extends StatelessWidget {
               child: GradientButton(
                 key: const ValueKey('onboarding-next'),
                 label: label,
-                icon: Icons.arrow_forward_rounded,
+                icon: PhosphorIconsBold.arrowRight,
                 onPressed: onNext,
               ),
             ),

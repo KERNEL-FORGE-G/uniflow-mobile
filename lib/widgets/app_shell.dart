@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'phosphor.dart';
 import '../models/user_role.dart';
 import '../offline/offline_widgets.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import 'uni/uni_assistant.dart';
 import 'uni/uni_scenes.dart';
+import 'uni_icons.dart';
 
 /// Coquille de l'application connectée : elle porte la barre de navigation du
 /// bas, commune à tous les onglets.
@@ -91,7 +93,6 @@ class AppShell extends ConsumerWidget {
                   return Expanded(
                     child: _NavTab(
                       icon: t.icon,
-                      activeIcon: t.activeIcon,
                       label: t.label,
                       selected: i == current,
                       onTap: () => context.go(t.path),
@@ -112,16 +113,19 @@ class AppShell extends ConsumerWidget {
 /// L'icône et le libellé sont empilés dans une colonne dont les enfants sont
 /// tous souples : un libellé long (« Messages ») se tronque au lieu de faire
 /// déborder la colonne quand la fenêtre est étroite ou la police agrandie.
+///
+/// L'icône Phosphor passe de `bold` (repos) à `fill` (actif) ; le changement
+/// de graisse est fondu et légèrement grossi par un `AnimatedSwitcher`, ce qui
+/// donne le « clic » visuel demandé par le propriétaire sans animation
+/// infinie — `pumpAndSettle` se pose toujours.
 class _NavTab extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
+  final UniIcon icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   const _NavTab({
     required this.icon,
-    required this.activeIcon,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -130,6 +134,15 @@ class _NavTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = selected ? AppColors.primaryBlue : AppColors.textSecondary;
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    final glyph = PhosphorIcon(
+      icon(selected ? UniIconStyle.fill : UniIconStyle.bold),
+      // La clé porte l'état : sans elle, l'`AnimatedSwitcher` ne verrait qu'un
+      // même type de widget et ne jouerait aucune transition.
+      key: ValueKey(selected),
+      color: color,
+      size: 22,
+    );
 
     return InkWell(
       onTap: onTap,
@@ -146,11 +159,18 @@ class _NavTab extends StatelessWidget {
                 color: selected ? AppColors.primary50 : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: Icon(
-                selected ? activeIcon : icon,
-                color: color,
-                size: 21,
-              ),
+              child: reduce
+                  ? glyph
+                  : AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      switchInCurve: Curves.easeOutBack,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) => ScaleTransition(
+                        scale: Tween(begin: 0.8, end: 1.0).animate(animation),
+                        child: FadeTransition(opacity: animation, child: child),
+                      ),
+                      child: glyph,
+                    ),
             ),
             const SizedBox(height: 3),
             Flexible(

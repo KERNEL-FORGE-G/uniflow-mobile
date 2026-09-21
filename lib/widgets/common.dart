@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'phosphor.dart';
 import '../theme/app_theme.dart';
 import 'uni/uni_mascot.dart';
 import 'uni/uni_scenes.dart';
+import 'uni_icons.dart';
 import '../utils/avatar.dart';
 import '../utils/error_text.dart';
 
@@ -14,6 +16,9 @@ import '../utils/error_text.dart';
 class GradientHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
+
+  /// Posé avant le titre : la tuile de la matière sur la fiche d'une UE.
+  final Widget? leading;
   final Widget? trailing;
   final PreferredSizeWidget? bottom;
 
@@ -21,6 +26,7 @@ class GradientHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.leading,
     this.trailing,
     this.bottom,
   });
@@ -53,6 +59,7 @@ class GradientHeader extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    if (leading != null) ...[leading!, const SizedBox(width: 12)],
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +129,7 @@ class SearchField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+        prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass, size: 20, color: AppColors.textSecondary),
         filled: true,
         fillColor: Colors.white,
         isDense: true,
@@ -248,19 +255,24 @@ class SectionCard extends StatelessWidget {
   }
 }
 
-/// Titre de section, avec un trait d'accent à gauche.
+/// Titre de section, avec un trait d'accent à gauche et, si on la donne, une
+/// icône Phosphor `duotone` qui annonce le contenu.
 ///
 /// Remplace les `Text(..., fontWeight: FontWeight.bold)` disséminés dans les
 /// écrans, qui n'avaient ni la même taille ni la même couleur d'un écran à
 /// l'autre.
 class SectionTitle extends StatelessWidget {
   final String title;
+  final IconData? icon;
+  final Color iconColor;
   final Widget? trailing;
   final EdgeInsets padding;
 
   const SectionTitle({
     super.key,
     required this.title,
+    this.icon,
+    this.iconColor = AppColors.primaryBlue,
     this.trailing,
     this.padding = const EdgeInsets.only(bottom: 12),
   });
@@ -280,6 +292,10 @@ class SectionTitle extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 9),
+          if (icon != null) ...[
+            PhosphorIcon(icon!, size: 18, color: iconColor, duotoneSecondaryColor: iconColor),
+            const SizedBox(width: 7),
+          ],
           // Expanded plutôt qu'un Row nu : un titre long doit se tronquer au
           // lieu de pousser le `trailing` hors de la ligne.
           Expanded(
@@ -297,14 +313,17 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// Carte de statistique : icône dans une pastille teintée, valeur, libellé.
-class StatCard extends StatelessWidget {
+/// Carte de statistique : tuile d'icône pleine, valeur, libellé.
+class StatCard extends StatefulWidget {
   final String label;
   final String value;
   final IconData icon;
   final Color color;
   final String? caption;
   final VoidCallback? onTap;
+
+  /// Rang dans la rangée : décale l'apparition de la tuile (cascade).
+  final int index;
 
   const StatCard({
     super.key,
@@ -314,7 +333,17 @@ class StatCard extends StatelessWidget {
     required this.color,
     this.caption,
     this.onTap,
+    this.index = 0,
   });
+
+  @override
+  State<StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<StatCard> {
+  // La pression sur la carte entière rétracte la tuile : c'est la carte qui
+  // reçoit le toucher, pas la tuile.
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -324,14 +353,12 @@ class StatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 19),
+          IconTile(
+            icon: widget.icon,
+            color: widget.color,
+            size: IconTile.large,
+            index: widget.index,
+            pressed: _pressed,
           ),
           const SizedBox(height: 12),
           // `FittedBox` : « 15,5/20 » en gras déborde d'une carte étroite, et
@@ -341,7 +368,7 @@ class StatCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              value,
+              widget.value,
               maxLines: 1,
               style: const TextStyle(
                 fontSize: 20,
@@ -352,15 +379,15 @@ class StatCard extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           Text(
-            label,
+            widget.label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodySmall,
           ),
-          if (caption != null) ...[
+          if (widget.caption != null) ...[
             const SizedBox(height: 6),
             Text(
-              caption!,
+              widget.caption!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
@@ -370,9 +397,10 @@ class StatCard extends StatelessWidget {
       ),
     );
 
-    if (onTap == null) return card;
+    if (widget.onTap == null) return card;
     return InkWell(
-      onTap: onTap,
+      onTap: widget.onTap,
+      onHighlightChanged: (down) => setState(() => _pressed = down),
       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
       child: card,
     );
@@ -437,7 +465,7 @@ class PrimaryButton extends StatelessWidget {
                     ),
                   )
                 else if (icon != null)
-                  Icon(icon, size: 18, color: Colors.white),
+                  PhosphorIcon(icon!, size: 18, color: Colors.white),
                 if (isLoading || icon != null) const SizedBox(width: 9),
                 // Flexible : un libellé long se tronque au lieu de déborder.
                 Flexible(
@@ -495,14 +523,11 @@ class EmptyState extends StatelessWidget {
                   if (pose != null)
                     UniMascot(pose: pose!, size: 124)
                   else
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary50,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(icon, size: 30, color: AppColors.primaryBlue),
+                    IconTile(
+                      icon: icon,
+                      color: AppColors.primaryBlue,
+                      variant: IconTileVariant.soft,
+                      size: IconTile.large,
                     ),
                   const SizedBox(height: 16),
                   Text(title, textAlign: TextAlign.center, style: AppTextStyles.h3),
@@ -547,7 +572,7 @@ class ErrorBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
+          const PhosphorIcon(PhosphorIconsFill.warningCircle, size: 18, color: AppColors.danger),
           const SizedBox(width: 9),
           Flexible(
             child: Text(
@@ -603,7 +628,7 @@ class LoadErrorView extends StatelessWidget {
           ? null
           : OutlinedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
+              icon: const PhosphorIcon(PhosphorIconsBold.arrowsClockwise, size: 18),
               label: const Text('Réessayer'),
             ),
       secondaryAction: ErrorCodeChip(code: text.code),

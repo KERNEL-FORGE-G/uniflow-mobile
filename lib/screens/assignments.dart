@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/assignment_models.dart';
 import '../providers/providers.dart';
 import '../repositories/assignment_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
 import 'assignment_detail.dart';
 
 /// Devoirs et rendus de l'élève, chargés d'un seul tenant.
@@ -77,7 +79,7 @@ class AssignmentsScreen extends ConsumerWidget {
               data: (board) {
                 if (board.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.task_alt,
+                    icon: PhosphorIconsDuotone.checkCircle,
                     title: 'Aucun devoir en attente',
                     message: 'Vous êtes à jour sur tous vos rendus.',
                   );
@@ -245,14 +247,14 @@ class _AssignmentTile extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: urgency.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(_typeIcon(), color: urgency, size: 21),
+                  // La tuile porte le type (quiz, PDF, TD) dans la couleur
+                  // d'urgence : c'est l'urgence, pas la matière, qui doit
+                  // sauter aux yeux dans cette liste.
+                  IconTile(
+                    icon: _typeIcon(),
+                    color: urgency,
+                    variant: IconTileVariant.soft,
+                    semanticLabel: assignment.type.label,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -284,7 +286,7 @@ class _AssignmentTile extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 14, color: urgency),
+                  PhosphorIcon(PhosphorIconsBold.clock, size: 14, color: urgency),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -295,7 +297,7 @@ class _AssignmentTile extends StatelessWidget {
                     ),
                   ),
                   if (assignment.hasFile) ...[
-                    const Icon(Icons.attach_file, size: 14, color: AppColors.textSecondary),
+                    const PhosphorIcon(PhosphorIconsBold.paperclip, size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 3),
                     const Text(
                       'Énoncé',
@@ -340,10 +342,10 @@ class _AssignmentTile extends StatelessWidget {
     );
   }
 
-  IconData _typeIcon() => switch (assignment.type) {
-        AssignmentType.quiz => Icons.quiz_outlined,
-        AssignmentType.pdf => Icons.picture_as_pdf_outlined,
-        AssignmentType.td => Icons.edit_note_outlined,
+  PhosphorIconData _typeIcon() => switch (assignment.type) {
+        AssignmentType.quiz => PhosphorIconsDuotone.exam,
+        AssignmentType.pdf => PhosphorIconsDuotone.filePdf,
+        AssignmentType.td => PhosphorIconsDuotone.pencilSimpleLine,
       };
 
   Color _urgencyColor() {

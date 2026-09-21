@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uniflow_mobile/widgets/phosphor.dart';
 import 'package:uniflow_mobile/models/appwrite_models.dart';
 import 'package:uniflow_mobile/models/assignment_models.dart';
 import 'package:uniflow_mobile/models/badges.dart';
@@ -270,7 +271,7 @@ void main() {
       )));
       await tester.pump();
 
-      expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+      expect(find.byIcon(PhosphorIconsFill.lock), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.bySemanticsLabel('Badge Assidu, 40 %'), findsOneWidget);
       expect(find.bySemanticsLabel('Badge Major, gagné'), findsOneWidget);

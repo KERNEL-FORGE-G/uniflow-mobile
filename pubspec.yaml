@@ -31,6 +31,11 @@ dependencies:
   qr_flutter: ^4.1.0
   geolocator: ^14.0.3
   flutter_secure_storage: ^11.2.0
+  # Polices Phosphor uniquement (`fontPackage: 'phosphor_flutter'`). Ne pas
+  # importer son code Dart : il étend `IconData`, classe `final` depuis
+  # Flutter 3.47, et ne compile plus. Les glyphes sont recopiés dans
+  # `lib/widgets/phosphor.dart` par `tool/generate_phosphor_glyphs.dart`.
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:

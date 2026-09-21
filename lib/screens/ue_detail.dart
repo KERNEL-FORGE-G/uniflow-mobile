@@ -2,6 +2,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/appwrite_models.dart';
 import '../models/models.dart';
@@ -10,6 +11,7 @@ import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
 import 'personal_space.dart' show dayLabel;
 import 'schedule.dart' show groupByDay, normalizeTime;
 
@@ -43,12 +45,12 @@ class UEDetailScreen extends ConsumerWidget {
     final u = findUE(ref, id);
     if (u == null) {
       return const EmptyState(
-        icon: Icons.menu_book_outlined,
+        icon: PhosphorIconsDuotone.bookBookmark,
         title: 'UE introuvable',
         message: 'Ce cours ne fait pas partie de la filière et du niveau affichés.',
       );
     }
-    final c = Color(int.parse('FF${u.colorHex.substring(1)}', radix: 16));
+    final c = subjectColor(u.code, colorHex: u.colorHex);
     final sessions = ref.watch(courseSchedulesProvider(u.id));
     final teacher = ref.watch(teachersProvider).where((t) => t.teaches(u)).cast<Teacher?>().firstOrNull;
 
@@ -57,8 +59,10 @@ class UEDetailScreen extends ConsumerWidget {
         GradientHeader(
           title: u.title,
           subtitle: [u.code, if (u.credits > 0) '${u.credits} crédits', if (u.level.isNotEmpty) u.level].join(' · '),
+          leading: IconTile(icon: subjectIcon(u.title, code: u.code), color: c, semanticLabel: u.title),
           trailing: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, color: Colors.white),
+            tooltip: 'Retour aux cours',
             onPressed: () => context.go('/ues'),
           ),
         ),
@@ -82,21 +86,21 @@ class UEDetailScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _row(Icons.person_outline,
+                    _row(UniIcons.teacher(),
                         u.teacherName.isNotEmpty ? u.teacherName : (teacher?.fullName ?? 'Enseignant non renseigné')),
                     const SizedBox(height: 8),
                     _row(
-                        Icons.school_outlined,
+                        UniIcons.students(),
                         [if (u.program.isNotEmpty) u.program, if (u.level.isNotEmpty) u.level]
                             .join(' · ')
                             .ifEmpty('Filière non renseignée')),
                     if (u.classroom.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      _row(Icons.meeting_room_outlined, 'Salle ${u.classroom}'),
+                      _row(UniIcons.room(), 'Salle ${u.classroom}'),
                     ],
                     if (u.type.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      _row(Icons.category_outlined, u.type),
+                      _row(PhosphorIconsDuotone.tag, u.type),
                     ],
                   ],
                 ),
@@ -147,7 +151,7 @@ class UEDetailScreen extends ConsumerWidget {
                         alignment: Alignment.centerRight,
                         child: TextButton.icon(
                           onPressed: () => context.go('/enseignants/${teacher.id}'),
-                          icon: const Icon(Icons.person_search_outlined, size: 18),
+                          icon: const PhosphorIcon(PhosphorIconsBold.userFocus, size: 18),
                           label: Text('Fiche de ${teacher.fullName}'),
                         ),
                       ),
@@ -163,7 +167,7 @@ class UEDetailScreen extends ConsumerWidget {
   }
 
   Widget _row(IconData i, String t) => Row(children: [
-        Icon(i, size: 18, color: AppColors.textSecondary),
+        PhosphorIcon(i, size: 18, color: AppColors.textSecondary, duotoneSecondaryColor: AppColors.textSecondary),
         const SizedBox(width: 8),
         Expanded(child: Text(t)),
       ]);

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/phosphor.dart';
 
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/scope_selector.dart';
+import '../widgets/uni_icons.dart';
 
 class UEsListScreen extends ConsumerWidget {
   const UEsListScreen({super.key});
@@ -34,7 +36,7 @@ class UEsListScreen extends ConsumerWidget {
         Expanded(
           child: needsSelection
               ? const EmptyState(
-                  icon: Icons.filter_alt_outlined,
+                  icon: PhosphorIconsDuotone.funnel,
                   title: 'Choisissez une filière',
                   message: 'Les unités d\'enseignement s\'affichent pour la filière sélectionnée.',
                 )
@@ -44,23 +46,21 @@ class UEsListScreen extends ConsumerWidget {
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, i) {
                     final u = list[i];
-                    final c = Color(int.parse('FF${u.colorHex.substring(1)}', radix: 16));
+                    final c = subjectColor(u.code, colorHex: u.colorHex);
                     return InkWell(
                       onTap: () => context.go('/ues/${u.id}'),
                       borderRadius: BorderRadius.circular(14),
                       child: SectionCard(
                         child: Row(
                           children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                  color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-                              alignment: Alignment.center,
-                              // Certains codes du référentiel font moins de
-                              // trois caractères : `substring(0, 3)` plantait.
-                              child: Text(u.code.substring(0, u.code.length.clamp(0, 3)),
-                                  style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12)),
+                            // L'icône est dérivée de l'intitulé (`subjectIcon`) :
+                            // « Réseaux » a un graphe, « Anglais » un
+                            // traducteur, comme sur le web et le desktop.
+                            IconTile(
+                              icon: subjectIcon(u.title, code: u.code),
+                              color: c,
+                              index: i,
+                              semanticLabel: u.title,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -84,7 +84,7 @@ class UEsListScreen extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                            const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
                           ],
                         ),
                       ),

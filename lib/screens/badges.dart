@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/badges.dart';
 import '../providers/badges_provider.dart';
@@ -28,7 +29,7 @@ class BadgesScreen extends ConsumerWidget {
             child: badgesAsync.when(
               loading: () => const LoadingView(label: 'Calcul de vos badges…', mascot: true),
               error: (_, __) => const EmptyState(
-                icon: Icons.cloud_off_outlined,
+                icon: PhosphorIconsDuotone.cloudSlash,
                 title: 'Badges indisponibles',
                 message: 'Vos données n\'ont pas pu être lues.',
                 pose: UniPose.sorry,

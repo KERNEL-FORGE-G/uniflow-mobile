@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../offline/offline_settings_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../widgets/phosphor.dart';
 
 import '../app_info.dart';
 import '../services/profile_photo_service.dart';
 import '../utils/avatar.dart';
 import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../providers/session_controller.dart';
@@ -227,7 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           OutlinedButton.icon(
                             onPressed: _uploading ? null : _pickAndUpload,
-                            icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                            icon: const PhosphorIcon(PhosphorIconsBold.camera, size: 18),
                             label: Text(hasPhoto ? 'Changer la photo' : 'Ajouter une photo'),
                           ),
                           if (hasPhoto)
@@ -253,7 +255,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const Divider(height: 24),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.alternate_email, color: AppColors.primaryBlue),
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.at,
+                          color: AppColors.primaryBlue,
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
                       title: const Text('Pseudo de messagerie'),
                       subtitle: Text(
                         user == null || user.username == null || user.username!.isEmpty
@@ -267,7 +273,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                          : const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
                       onTap: user == null || _savingUsername ? null : _editUsername,
                     ),
                     if (_usernameError != null)
@@ -283,36 +289,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const Divider(height: 24),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.groups_outlined, color: AppColors.primaryBlue),
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.usersFour,
+                          color: AppColors.primaryBlue,
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
                       title: const Text('L\'Équipe KERNEL FORGE'),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                      trailing:
+                          const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
                       onTap: () => GoRouter.of(context).push('/equipe'),
                     ),
                     const Divider(height: 1),
                     ListTile(
                       key: const ValueKey('settings-about'),
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.info_outline_rounded, color: AppColors.primaryBlue),
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.info,
+                          color: AppColors.primaryBlue,
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
                       title: const Text('À propos d\'UniFlow'),
                       subtitle: const Text(appVersionLabel, style: TextStyle(fontSize: 12)),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                      trailing:
+                          const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
                       onTap: () => GoRouter.of(context).push('/a-propos'),
                     ),
                     if (user != null) ...[
                       const Divider(height: 1),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.logout, color: AppColors.danger),
+                        leading: const IconTile(
+                            icon: PhosphorIconsDuotone.signOut,
+                            color: AppColors.danger,
+                            variant: IconTileVariant.soft,
+                            size: IconTile.dense),
                         title: const Text('Se déconnecter', style: TextStyle(color: AppColors.danger)),
                         onTap: _logout,
                       ),
                       const Divider(height: 1),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.delete_forever_outlined, color: AppColors.textMuted),
+                        leading: const IconTile(
+                            icon: PhosphorIconsDuotone.trash,
+                            color: AppColors.textMuted,
+                            variant: IconTileVariant.soft,
+                            size: IconTile.dense),
                         title: const Text('Supprimer mon compte'),
                         subtitle: const Text('Définitif, en deux confirmations', style: TextStyle(fontSize: 12)),
-                        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                        trailing:
+                            const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const DeleteAccountScreen()),
                         ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/phosphor.dart';
 
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/uni/archlord_mascot.dart';
+import '../widgets/uni_icons.dart';
 import 'local_database.dart';
 import 'offline_providers.dart';
 import 'offline_widgets.dart';
@@ -52,7 +54,11 @@ class _OfflineSettingsSectionState extends ConsumerState<OfflineSettingsSection>
       children: [
         Row(
           children: [
-            const Icon(Icons.cloud_sync_outlined, color: AppColors.primaryBlue),
+            const IconTile(
+                icon: PhosphorIconsDuotone.cloudArrowUp,
+                color: AppColors.primaryBlue,
+                variant: IconTileVariant.soft,
+                size: IconTile.dense),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -90,7 +96,7 @@ class _OfflineSettingsSectionState extends ConsumerState<OfflineSettingsSection>
             icon: _syncing || state.isSyncing
                 ? const SizedBox(
                     width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.sync_rounded, size: 18),
+                : const PhosphorIcon(PhosphorIconsBold.arrowsClockwise, size: 18),
             label: const Text('Synchroniser maintenant'),
           ),
         ),
@@ -114,7 +120,11 @@ class _OfflineSettingsSectionState extends ConsumerState<OfflineSettingsSection>
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.folder_open_outlined, color: AppColors.primaryBlue),
+          leading: const IconTile(
+              icon: PhosphorIconsDuotone.folderOpen,
+              color: AppColors.primaryBlue,
+              variant: IconTileVariant.soft,
+              size: IconTile.dense),
           title: const Text('Fichiers gardés hors ligne'),
           subtitle: Text('Quota ${prefs.fileQuotaMb} Mo · les documents ouverts une fois restent lisibles',
               style: const TextStyle(fontSize: 12)),
@@ -162,8 +172,8 @@ class _OutboxReview extends ConsumerWidget {
                 key: ValueKey('outbox-${row.clientId}'),
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                leading: Icon(
-                  row.status == OutboxStatus.conflict ? Icons.call_split_rounded : Icons.block_rounded,
+                leading: PhosphorIcon(
+                  row.status == OutboxStatus.conflict ? PhosphorIconsFill.gitFork : PhosphorIconsFill.prohibit,
                   color: AppColors.warning,
                 ),
                 title: Text(row.label.isEmpty ? row.kind : row.label, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -174,7 +184,7 @@ class _OutboxReview extends ConsumerWidget {
                   children: [
                     IconButton(
                       tooltip: 'Réessayer',
-                      icon: const Icon(Icons.refresh_rounded, size: 20),
+                      icon: const PhosphorIcon(PhosphorIconsBold.arrowCounterClockwise, size: 20),
                       onPressed: () async {
                         await outbox.retryNow(row.clientId);
                         await ref.read(syncCoordinatorProvider).syncNow(force: true);
@@ -182,7 +192,7 @@ class _OutboxReview extends ConsumerWidget {
                     ),
                     IconButton(
                       tooltip: 'Abandonner',
-                      icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                      icon: const PhosphorIcon(PhosphorIconsBold.trash, size: 20),
                       onPressed: () async {
                         await outbox.discard(row.clientId);
                         await ref.read(syncEngineProvider).refreshPending(owner);

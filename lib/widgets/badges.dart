@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'phosphor.dart';
 
 import '../models/badges.dart';
 import '../theme/app_theme.dart';
@@ -39,8 +40,8 @@ class BadgeMedal extends StatelessWidget {
       height: size,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.military_tech_rounded,
+      errorBuilder: (_, __, ___) => PhosphorIcon(
+        PhosphorIconsFill.medal,
         size: size * 0.7,
         color: unlocked ? AppColors.warning : AppColors.textMuted,
       ),
@@ -96,7 +97,7 @@ class BadgeMedal extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.inputBorder),
                 ),
-                child: Icon(Icons.lock_rounded, size: size * 0.16, color: AppColors.textSecondary),
+                child: PhosphorIcon(PhosphorIconsFill.lock, size: size * 0.16, color: AppColors.textSecondary),
               ),
             ),
         ],

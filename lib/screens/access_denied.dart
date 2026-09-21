@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/user_role.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
 
 /// Page affichée quand un rôle tente d'atteindre une adresse qui ne le concerne
 /// pas.
@@ -37,14 +39,11 @@ class AccessDeniedScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary50,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.lock_outline, size: 34, color: AppColors.primaryBlue),
+                  const IconTile(
+                    icon: PhosphorIconsDuotone.lockKey,
+                    color: AppColors.primaryBlue,
+                    variant: IconTileVariant.soft,
+                    size: IconTile.large,
                   ),
                   const SizedBox(height: 18),
                   Text(
@@ -76,7 +75,7 @@ class AccessDeniedScreen extends ConsumerWidget {
                   const SizedBox(height: 22),
                   FilledButton.icon(
                     onPressed: () => context.go('/accueil'),
-                    icon: const Icon(Icons.home_outlined, size: 18),
+                    icon: const PhosphorIcon(PhosphorIconsBold.house, size: 18),
                     label: const Text('Revenir à l\'accueil'),
                   ),
                   const SizedBox(height: 10),
@@ -89,7 +88,8 @@ class AccessDeniedScreen extends ConsumerWidget {
                     children: [
                       for (final destination in overflowFor(role).take(6))
                         ActionChip(
-                          avatar: Icon(destination.icon, size: 16, color: AppColors.primaryBlue),
+                          avatar:
+                              PhosphorIcon(destination.icon(UniIconStyle.bold), size: 16, color: AppColors.primaryBlue),
                           label: Text(destination.label, style: const TextStyle(fontSize: 12)),
                           onPressed: () => context.go(destination.path),
                         ),

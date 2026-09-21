@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/appwrite_models.dart';
 import '../providers/providers.dart';
@@ -8,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/feedback.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 
 /// Espace personnel d'un compte indépendant (`PERSONAL`) : matières, tâches,
 /// agenda et notes que l'utilisateur gère seul. Aucun de ces écrans n'est
@@ -29,7 +31,7 @@ class PersonalSubjectsScreen extends ConsumerWidget {
     final subjects = ref.watch(personalSubjectsProvider);
     return Scaffold(
       floatingActionButton: GradientFab(
-        icon: Icons.add_rounded,
+        icon: PhosphorIconsBold.plus,
         label: 'Matière',
         onPressed: () => _editSubject(context, ref),
       ),
@@ -46,7 +48,7 @@ class PersonalSubjectsScreen extends ConsumerWidget {
               ),
               data: (list) => list.isEmpty
                   ? const EmptyState(
-                      icon: Icons.menu_book_outlined,
+                      icon: PhosphorIconsDuotone.bookBookmark,
                       title: 'Aucune matière',
                       message: 'Ajoutez vos premières matières : tâches, créneaux et notes s\'y rattacheront.',
                     )
@@ -57,6 +59,7 @@ class PersonalSubjectsScreen extends ConsumerWidget {
                         final subject = list[index];
                         return _SubjectCard(
                           subject: subject,
+                          index: index,
                           onTap: () => _editSubject(context, ref, subject: subject),
                           onDelete: () => _deleteSubject(context, ref, subject),
                         );
@@ -122,22 +125,27 @@ class _SubjectCard extends StatelessWidget {
   final PersonalSubject subject;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final int index;
 
-  const _SubjectCard({required this.subject, required this.onTap, required this.onDelete});
+  const _SubjectCard({required this.subject, required this.onTap, required this.onDelete, this.index = 0});
 
   @override
   Widget build(BuildContext context) {
-    final color = parseHexColor(subject.colorHex) ?? AppColors.teal;
+    final color = subjectColor(subject.code ?? subject.id, colorHex: subject.colorHex);
     return SectionCard(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
         child: Row(
           children: [
-            Container(
-              width: 6,
-              height: 48,
-              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)),
+            // Icône dérivée du nom (`subjectIcon`) dans la couleur choisie par
+            // l'étudiant : la matière libre a le même rendu qu'un cours
+            // académique, c'est ce que le propriétaire demandait.
+            IconTile(
+              icon: subjectIcon(subject.name, code: subject.code),
+              color: color,
+              index: index,
+              semanticLabel: subject.name,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -162,7 +170,7 @@ class _SubjectCard extends StatelessWidget {
             IconButton(
               tooltip: 'Supprimer',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20),
+              icon: const PhosphorIcon(PhosphorIconsBold.trash, color: AppColors.textMuted, size: 20),
             ),
           ],
         ),
@@ -276,7 +284,7 @@ class PersonalTasksScreen extends ConsumerWidget {
     final subjects = ref.watch(personalSubjectsProvider).value ?? const <PersonalSubject>[];
     return Scaffold(
       floatingActionButton: GradientFab(
-        icon: Icons.add_task_rounded,
+        icon: PhosphorIconsBold.plus,
         label: 'Tâche',
         onPressed: () => _createTask(context, ref, subjects),
       ),
@@ -294,7 +302,7 @@ class PersonalTasksScreen extends ConsumerWidget {
               data: (list) {
                 if (list.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.task_alt_outlined,
+                    icon: PhosphorIconsDuotone.checkSquare,
                     title: 'Aucune tâche',
                     message: 'Notez ce que vous avez à faire : la liste se trie par échéance.',
                   );
@@ -450,7 +458,7 @@ class _TaskCard extends StatelessWidget {
             IconButton(
               tooltip: 'Supprimer',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20),
+              icon: const PhosphorIcon(PhosphorIconsBold.trash, color: AppColors.textMuted, size: 20),
             ),
           ],
         ),
@@ -535,7 +543,7 @@ class _TaskFormState extends State<_TaskForm> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: _pickDate,
-                icon: const Icon(Icons.event_outlined, size: 18),
+                icon: const PhosphorIcon(PhosphorIconsBold.calendarBlank, size: 18),
                 label: Text(_due == null ? 'Échéance' : formatDueDate(_due!),
                     maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
@@ -580,7 +588,7 @@ class PersonalAgendaScreen extends ConsumerWidget {
     final subjects = ref.watch(personalSubjectsProvider).value ?? const <PersonalSubject>[];
     return Scaffold(
       floatingActionButton: GradientFab(
-        icon: Icons.add_rounded,
+        icon: PhosphorIconsBold.plus,
         label: 'Créneau',
         onPressed: () => _createSlot(context, ref, subjects),
       ),
@@ -598,7 +606,7 @@ class PersonalAgendaScreen extends ConsumerWidget {
               data: (list) {
                 if (list.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.calendar_month_outlined,
+                    icon: PhosphorIconsDuotone.calendarCheck,
                     title: 'Agenda vide',
                     message: 'Ajoutez vos créneaux de cours : ils se rangent par jour de la semaine.',
                   );
@@ -723,7 +731,7 @@ class _SlotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = parseHexColor(subject?.colorHex) ?? AppColors.teal;
+    final color = subjectColor(subject?.code ?? slot.courseId, colorHex: subject?.colorHex);
     return SectionCard(
       child: Row(
         children: [
@@ -736,7 +744,14 @@ class _SlotCard extends StatelessWidget {
               style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12.5, height: 1.4),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
+          IconTile(
+            icon: subjectIcon(subject?.name ?? '', code: subject?.code),
+            color: color,
+            size: IconTile.dense,
+            semanticLabel: subject?.name,
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -755,7 +770,7 @@ class _SlotCard extends StatelessWidget {
           IconButton(
             tooltip: 'Supprimer',
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20),
+            icon: const PhosphorIcon(PhosphorIconsBold.trash, color: AppColors.textMuted, size: 20),
           ),
         ],
       ),
@@ -840,7 +855,7 @@ class _SlotFormState extends State<_SlotForm> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _pick(true),
-                icon: const Icon(Icons.schedule, size: 18),
+                icon: const PhosphorIcon(PhosphorIconsBold.clock, size: 18),
                 label: Text('Début ${_fmt(_start)}', maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ),
@@ -848,7 +863,7 @@ class _SlotFormState extends State<_SlotForm> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _pick(false),
-                icon: const Icon(Icons.schedule, size: 18),
+                icon: const PhosphorIcon(PhosphorIconsBold.clock, size: 18),
                 label: Text('Fin ${_fmt(_end)}', maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ),
@@ -874,7 +889,7 @@ class PersonalGradesView extends ConsumerWidget {
     final subjects = ref.watch(personalSubjectsProvider).value ?? const <PersonalSubject>[];
     return Scaffold(
       floatingActionButton: GradientFab(
-        icon: Icons.add_rounded,
+        icon: PhosphorIconsBold.plus,
         label: 'Note',
         onPressed: () => _createGrade(context, ref, subjects),
       ),
@@ -892,7 +907,7 @@ class PersonalGradesView extends ConsumerWidget {
               data: (list) {
                 if (list.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.grade_outlined,
+                    icon: PhosphorIconsDuotone.chartLineUp,
                     title: 'Aucune note',
                     message: 'Saisissez vos résultats : la moyenne pondérée se calcule ici.',
                   );
@@ -906,7 +921,7 @@ class PersonalGradesView extends ConsumerWidget {
                       return StatCard(
                         label: 'Moyenne pondérée',
                         value: '${average.toStringAsFixed(2)} / 20',
-                        icon: Icons.insights_outlined,
+                        icon: PhosphorIconsDuotone.chartLineUp,
                         color: average >= 10 ? AppColors.success : AppColors.danger,
                       );
                     }
@@ -952,7 +967,7 @@ class PersonalGradesView extends ConsumerWidget {
                           IconButton(
                             tooltip: 'Supprimer',
                             onPressed: () => _deleteGrade(context, ref, grade),
-                            icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 20),
+                            icon: const PhosphorIcon(PhosphorIconsBold.trash, color: AppColors.textMuted, size: 20),
                           ),
                         ],
                       ),

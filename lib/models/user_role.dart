@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../widgets/uni_icons.dart';
 
 /// Rôle applicatif d'un compte UniFlow.
 ///
@@ -156,9 +156,9 @@ class NavDestination {
   final String path;
   final String label;
 
-  /// Icône au repos, puis une fois l'onglet actif.
-  final IconData icon;
-  final IconData activeIcon;
+  /// Icône Phosphor de la table sémantique (`docs/icones-uniflow.md`) : la
+  /// barre du bas la peint en `bold` au repos et en `fill` une fois active.
+  final UniIcon icon;
 
   /// Rôles autorisés. Vide signifierait « personne » : aucune entrée ne doit
   /// l'être, un test le vérifie.
@@ -177,7 +177,6 @@ class NavDestination {
     required this.path,
     required this.label,
     required this.icon,
-    required this.activeIcon,
     required this.roles,
     this.barRoles = const {},
   });
@@ -214,116 +213,101 @@ const List<NavDestination> navDestinations = [
   NavDestination(
     path: '/accueil',
     label: 'Accueil',
-    icon: Icons.home_outlined,
-    activeIcon: Icons.home,
+    icon: UniIcons.dashboard,
     roles: everyRole,
     barRoles: everyRole,
   ),
   NavDestination(
     path: '/ues',
     label: 'Mes cours',
-    icon: Icons.book_outlined,
-    activeIcon: Icons.book,
+    icon: UniIcons.courses,
     roles: _learnersAndTeacher,
     barRoles: _learnersAndTeacher,
   ),
   NavDestination(
     path: '/emploi-du-temps',
     label: 'Emploi du temps',
-    icon: Icons.calendar_month_outlined,
-    activeIcon: Icons.calendar_month,
+    icon: UniIcons.schedule,
     roles: {..._learnersAndTeacher, UniFlowRole.admin},
   ),
   NavDestination(
     path: '/etudiants',
     label: 'Étudiants',
-    icon: Icons.school_outlined,
-    activeIcon: Icons.school,
+    icon: UniIcons.students,
     roles: _staff,
     barRoles: _staff,
   ),
   NavDestination(
     path: '/enseignants',
     label: 'Enseignants',
-    icon: Icons.groups_2_outlined,
-    activeIcon: Icons.groups_2,
+    icon: UniIcons.teachers,
     roles: _staff,
     barRoles: {UniFlowRole.admin},
   ),
   NavDestination(
     path: '/comptes',
     label: 'Comptes',
-    icon: Icons.manage_accounts_outlined,
-    activeIcon: Icons.manage_accounts,
+    icon: UniIcons.accounts,
     roles: {UniFlowRole.admin},
     barRoles: {UniFlowRole.admin},
   ),
   NavDestination(
     path: '/inscriptions',
     label: 'Inscriptions',
-    icon: Icons.how_to_reg_outlined,
-    activeIcon: Icons.how_to_reg,
+    icon: UniIcons.directory,
     roles: {..._learners, UniFlowRole.admin},
   ),
   NavDestination(
     path: '/presence',
     label: 'Présence',
-    icon: Icons.qr_code_scanner_outlined,
-    activeIcon: Icons.qr_code_scanner,
+    icon: UniIcons.attendance,
     roles: _learnersAndTeacher,
     barRoles: _learners,
   ),
   NavDestination(
     path: '/notes',
     label: 'Notes',
-    icon: Icons.grading_outlined,
-    activeIcon: Icons.grading,
+    icon: UniIcons.grades,
     roles: {..._learnersAndTeacher, UniFlowRole.personal},
     barRoles: {..._learnersAndTeacher, UniFlowRole.personal},
   ),
   NavDestination(
     path: '/devoirs',
     label: 'Devoirs',
-    icon: Icons.assignment_outlined,
-    activeIcon: Icons.assignment,
+    icon: UniIcons.assignments,
     roles: _learnersAndTeacher,
   ),
   NavDestination(
     path: '/bibliotheque',
     label: 'Bibliothèque',
-    icon: Icons.local_library_outlined,
-    activeIcon: Icons.local_library,
+    icon: UniIcons.library,
     roles: universityRoles,
   ),
   NavDestination(
     path: '/matieres',
     label: 'Matières',
-    icon: Icons.menu_book_outlined,
-    activeIcon: Icons.menu_book,
+    icon: UniIcons.courseUnit,
     roles: {UniFlowRole.personal},
     barRoles: {UniFlowRole.personal},
   ),
   NavDestination(
     path: '/taches',
     label: 'Tâches',
-    icon: Icons.task_alt_outlined,
-    activeIcon: Icons.task_alt,
+    icon: UniIcons.tasks,
     roles: {UniFlowRole.personal},
     barRoles: {UniFlowRole.personal},
   ),
   NavDestination(
     path: '/agenda',
     label: 'Agenda',
-    icon: Icons.event_note_outlined,
-    activeIcon: Icons.event_note,
+    icon: UniIcons.agenda,
     roles: {UniFlowRole.personal},
     barRoles: {UniFlowRole.personal},
   ),
   NavDestination(
     path: '/forum',
     label: 'Forum',
-    icon: Icons.forum_outlined,
-    activeIcon: Icons.forum,
+    icon: UniIcons.forum,
     roles: everyRole,
   ),
   // Messagerie et notifications passent par le service `/messaging`, qui
@@ -334,30 +318,26 @@ const List<NavDestination> navDestinations = [
   NavDestination(
     path: '/messages',
     label: 'Messages',
-    icon: Icons.chat_bubble_outline,
-    activeIcon: Icons.chat_bubble,
+    icon: UniIcons.messages,
     roles: universityRoles,
     barRoles: universityRoles,
   ),
   NavDestination(
     path: '/notifications',
     label: 'Notifications',
-    icon: Icons.notifications_outlined,
-    activeIcon: Icons.notifications,
+    icon: UniIcons.notifications,
     roles: universityRoles,
   ),
   NavDestination(
     path: '/equipe',
     label: 'L\'Équipe KERNEL FORGE',
-    icon: Icons.workspace_premium_outlined,
-    activeIcon: Icons.workspace_premium,
+    icon: UniIcons.team,
     roles: everyRole,
   ),
   NavDestination(
     path: '/settings',
     label: 'Réglages',
-    icon: Icons.settings_outlined,
-    activeIcon: Icons.settings,
+    icon: UniIcons.settings,
     roles: everyRole,
     barRoles: everyRole,
   ),

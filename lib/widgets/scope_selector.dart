@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'phosphor.dart';
 
 import '../providers/providers.dart';
 import '../repositories/reference_repository.dart';
@@ -46,7 +47,9 @@ class ScopeSelector extends ConsumerWidget {
                   initialValue: current?.code,
                   isExpanded: true,
                   decoration: const InputDecoration(
-                      labelText: 'Filière', isDense: true, prefixIcon: Icon(Icons.school_outlined, size: 18)),
+                      labelText: 'Filière',
+                      isDense: true,
+                      prefixIcon: PhosphorIcon(PhosphorIconsBold.graduationCap, size: 18)),
                   items: [
                     for (final p in list)
                       DropdownMenuItem(

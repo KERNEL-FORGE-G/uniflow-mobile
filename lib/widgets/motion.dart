@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'phosphor.dart';
 
 import '../theme/app_theme.dart';
 
@@ -195,7 +196,7 @@ class GradientFab extends StatelessWidget {
         onPressed: onPressed,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        icon: Icon(icon, color: Colors.white),
+        icon: PhosphorIcon(icon, color: Colors.white),
         label: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
     );

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/phosphor.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_info.dart';
 import '../providers/onboarding_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
 import '../widgets/uni/archlord_mascot.dart';
 import '../widgets/uni/mascot_dialogue.dart';
 import '../widgets/uni/uni_mascot.dart';
@@ -59,7 +61,7 @@ class AboutScreen extends ConsumerWidget {
           subtitle: 'UniFlow · KERNEL FORGE',
           trailing: IconButton(
             tooltip: 'Retour',
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, color: Colors.white),
             onPressed: () => context.canPop() ? context.pop() : context.go('/settings'),
           ),
         ),
@@ -76,35 +78,35 @@ class AboutScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     _LinkTile(
-                      icon: Icons.language_rounded,
+                      icon: PhosphorIconsDuotone.globe,
                       title: 'Site UniFlow',
                       subtitle: uniflowWebsiteUrl,
                       onTap: () => _open(context, uniflowWebsiteUrl),
                     ),
                     const Divider(height: 1),
                     _LinkTile(
-                      icon: Icons.code_rounded,
+                      icon: PhosphorIconsDuotone.code,
                       title: 'Code source sur GitHub',
                       subtitle: 'KERNEL-FORGE-G',
                       onTap: () => _open(context, kernelForgeGithubUrl),
                     ),
                     const Divider(height: 1),
                     _LinkTile(
-                      icon: Icons.chat_outlined,
+                      icon: PhosphorIconsDuotone.chatsCircle,
                       title: 'Groupe WhatsApp KERNEL FORGE',
                       subtitle: 'Rejoindre la communauté',
                       onTap: () => _open(context, kernelForgeWhatsappGroupUrl),
                     ),
                     const Divider(height: 1),
                     _LinkTile(
-                      icon: Icons.mail_outline_rounded,
+                      icon: PhosphorIconsDuotone.envelope,
                       title: 'Nous écrire',
                       subtitle: contactEmail,
                       onTap: () => _open(context, 'mailto:$contactEmail'),
                     ),
                     const Divider(height: 1),
                     _LinkTile(
-                      icon: Icons.groups_outlined,
+                      icon: PhosphorIconsDuotone.usersFour,
                       title: 'L’équipe KERNEL FORGE',
                       subtitle: 'Qui fabrique UniFlow',
                       onTap: () => context.push('/equipe'),
@@ -112,7 +114,7 @@ class AboutScreen extends ConsumerWidget {
                     const Divider(height: 1),
                     _LinkTile(
                       key: const ValueKey('about-replay-onboarding'),
-                      icon: Icons.replay_rounded,
+                      icon: PhosphorIconsDuotone.arrowCounterClockwise,
                       title: 'Revoir la présentation',
                       subtitle: 'Les quatre écrans du premier lancement',
                       onTap: () => _replayOnboarding(context, ref),
@@ -156,7 +158,8 @@ class _VersionCard extends StatelessWidget {
               'assets/brand/uniflow_marque.png',
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high,
-              errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, color: AppColors.primaryBlue),
+              errorBuilder: (_, __, ___) =>
+                  const PhosphorIcon(PhosphorIconsFill.graduationCap, color: AppColors.primaryBlue),
             ),
           ),
           const SizedBox(width: 14),
@@ -207,7 +210,8 @@ class _KernelForgeCard extends StatelessWidget {
                 child: Image.asset(
                   'assets/logos/kernel_forge.webp',
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.rocket_launch_outlined, color: AppColors.primaryBlue),
+                  errorBuilder: (_, __, ___) =>
+                      const PhosphorIcon(PhosphorIconsFill.rocketLaunch, color: AppColors.primaryBlue),
                 ),
               ),
               const SizedBox(width: 12),
@@ -254,10 +258,10 @@ class _LinkTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppColors.primaryBlue),
+      leading: IconTile(icon: icon, color: AppColors.primaryBlue, variant: IconTileVariant.soft, size: IconTile.dense),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      trailing: const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
       onTap: onTap,
     );
   }

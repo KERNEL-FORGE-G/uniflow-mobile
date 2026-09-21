@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/phosphor.dart';
 
 import '../models/appwrite_models.dart';
 import '../providers/providers.dart';
@@ -8,6 +9,7 @@ import '../widgets/common.dart';
 import '../widgets/motion.dart';
 import '../widgets/scope_selector.dart';
 import '../widgets/uni/uni_mascot.dart';
+import '../widgets/uni_icons.dart';
 import 'personal_space.dart' show dayLabel;
 
 /// Emploi du temps officiel de la filière et du niveau du compte.
@@ -51,7 +53,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 // n'affiche rien plutôt que l'emploi du temps d'une autre
                 // filière (capture du 2026-09-20 : un L1 ICT4D voyait MIB L3).
                 ? const EmptyState(
-                    icon: Icons.badge_outlined,
+                    icon: PhosphorIconsDuotone.identificationCard,
                     pose: UniPose.search,
                     title: 'Profil académique incomplet',
                     message:
@@ -60,7 +62,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   )
                 : needsSelection
                     ? const EmptyState(
-                        icon: Icons.filter_alt_outlined,
+                        icon: PhosphorIconsDuotone.funnel,
                         pose: UniPose.pointing,
                         title: 'Choisissez une filière',
                         message: 'L\'emploi du temps s\'affiche pour la filière et le niveau sélectionnés.',
@@ -75,7 +77,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                         data: (all) {
                           if (all.isEmpty) {
                             return EmptyState(
-                              icon: Icons.calendar_month_outlined,
+                              icon: PhosphorIconsDuotone.calendarBlank,
                               pose: UniPose.search,
                               title: 'Aucun créneau',
                               message: scope.label.isEmpty
@@ -98,7 +100,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                                   child: slots.isEmpty
                                       ? EmptyState(
                                           key: ValueKey('vide-$_day'),
-                                          icon: Icons.free_breakfast_outlined,
+                                          icon: PhosphorIconsDuotone.coffee,
                                           pose: UniPose.sleeping,
                                           title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
                                         )
@@ -348,6 +350,7 @@ class _TimeBlock extends StatelessWidget {
                   if (i > 0) const Divider(height: 14, color: AppColors.inputBorder),
                   _SessionLine(
                     slot: block.sessions[i],
+                    index: i,
                     course: courses
                         .where((c) =>
                             c.id == block.sessions[i].courseId ||
@@ -367,8 +370,9 @@ class _TimeBlock extends StatelessWidget {
 class _SessionLine extends StatelessWidget {
   final AcademicSchedule slot;
   final AcademicCourse? course;
+  final int index;
 
-  const _SessionLine({required this.slot, required this.course});
+  const _SessionLine({required this.slot, required this.course, this.index = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -379,44 +383,62 @@ class _SessionLine extends StatelessWidget {
     final kind = group == null || !type.endsWith(group) ? type : type.substring(0, type.length - group.length).trim();
     final title = slot.courseName.isNotEmpty ? slot.courseName : (course?.name ?? slot.courseCode);
     final teacher = slot.teacherName.isNotEmpty ? slot.teacherName : (course?.teacherName ?? '');
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                title,
+        // Même icône et même couleur que la carte du cours et l'accueil : la
+        // matière se reconnaît d'un écran à l'autre sans lire le code.
+        IconTile(
+          icon: subjectIcon(title, code: slot.courseCode),
+          color: subjectColor(slot.courseCode),
+          size: IconTile.dense,
+          variant: IconTileVariant.soft,
+          index: index,
+          semanticLabel: title,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.h3,
+                    ),
+                  ),
+                  if (group != null) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFFCCFBF1), borderRadius: BorderRadius.circular(8)),
+                      child: Text(
+                        'Gr. $group',
+                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.teal),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 3),
+              Text(
+                [
+                  if (slot.courseCode.isNotEmpty) slot.courseCode,
+                  if (kind.isNotEmpty) kind,
+                  if (slot.classroom.isNotEmpty) slot.classroom,
+                  if (teacher.isNotEmpty) teacher,
+                ].join(' · '),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.h3,
-              ),
-            ),
-            if (group != null) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFFCCFBF1), borderRadius: BorderRadius.circular(8)),
-                child: Text(
-                  'Gr. $group',
-                  style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.teal),
-                ),
+                style: AppTextStyles.bodySmall,
               ),
             ],
-          ],
-        ),
-        const SizedBox(height: 3),
-        Text(
-          [
-            if (slot.courseCode.isNotEmpty) slot.courseCode,
-            if (kind.isNotEmpty) kind,
-            if (slot.classroom.isNotEmpty) slot.classroom,
-            if (teacher.isNotEmpty) teacher,
-          ].join(' · '),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bodySmall,
+          ),
         ),
       ],
     );

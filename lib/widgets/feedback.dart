@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'phosphor.dart';
 
 import '../theme/app_theme.dart';
 import 'uni/uni_mascot.dart';
@@ -41,10 +42,10 @@ class FeedbackView extends StatelessWidget {
         FeedbackKind.info => AppColors.primaryBlue,
       };
 
-  IconData get _icon => switch (kind) {
-        FeedbackKind.success => Icons.check_rounded,
-        FeedbackKind.failure => Icons.close_rounded,
-        FeedbackKind.info => Icons.info_outline_rounded,
+  PhosphorIconData get _icon => switch (kind) {
+        FeedbackKind.success => PhosphorIconsBold.check,
+        FeedbackKind.failure => PhosphorIconsBold.x,
+        FeedbackKind.info => PhosphorIconsBold.info,
       };
 
   /// Pose d'Uni qui accompagne la pastille en plein écran : il saute de joie
@@ -88,7 +89,7 @@ class FeedbackView extends StatelessWidget {
                   opacity: value.clamp(0, 1),
                   child: Transform.scale(scale: 0.6 + value * 0.4, child: child),
                 ),
-                child: Icon(_icon, color: _color, size: size * 0.5),
+                child: PhosphorIcon(_icon, color: _color, size: size * 0.5),
               ),
             ),
           ),
@@ -177,9 +178,9 @@ class FeedbackBanner extends StatelessWidget {
       FeedbackKind.info => AppColors.primaryBlue,
     };
     final icon = switch (kind) {
-      FeedbackKind.success => Icons.check_circle_outline,
-      FeedbackKind.failure => Icons.error_outline,
-      FeedbackKind.info => Icons.info_outline,
+      FeedbackKind.success => PhosphorIconsFill.checkCircle,
+      FeedbackKind.failure => PhosphorIconsFill.warningCircle,
+      FeedbackKind.info => PhosphorIconsFill.info,
     };
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
@@ -192,7 +193,7 @@ class FeedbackBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: color),
+          PhosphorIcon(icon, size: 18, color: color),
           const SizedBox(width: 8),
           // `Flexible` : le message peut être long (erreur Appwrite brute), il
           // doit se replier sur plusieurs lignes et non élargir l'encadré.
