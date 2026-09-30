@@ -189,8 +189,132 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 16),
           GradientButton(label: 'Se connecter', isLoading: _busy, onPressed: _busy ? null : _submit),
+          const SizedBox(height: 16),
+          Row(children: [
+            const Expanded(child: Divider()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('ou', style: AppTextStyles.bodySmall),
+            ),
+            const Expanded(child: Divider()),
+          ]),
+          const SizedBox(height: 12),
+          _GoogleSignInButton(busy: _busy, onPressed: _signInWithGoogle),
         ],
       ),
     );
   }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final auth = ref.read(authRepositoryProvider);
+      await auth.loginWithGoogle();
+      // Le deep link redirige le navigateur vers l'app ; Appwrite crée la
+      // session côté serveur. On relit l'utilisateur après le retour.
+      final user = await auth.getCurrentUser();
+      if (user == null) {
+        throw AuthException('Connexion Google réussie, mais aucun profil UniFlow trouvé.');
+      }
+      // Choix de filière pour les comptes universitaires sans programme.
+      if (user.accountType == UniFlowAccountType.university &&
+          (user.program == null || user.program!.isEmpty)) {
+        if (mounted) {
+          // Redirige vers l'écran de sélection de filière.
+          context.push('/register/academic-setup');
+          return;
+        }
+      }
+      ref.read(currentUserProvider.notifier).state = user;
+      ref.read(authStatusProvider.notifier).state = AuthStatus.signedIn;
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = _readable(e);
+      });
+      return;
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+}
+
+class _GoogleSignInButton extends StatelessWidget {
+  final bool busy;
+  final VoidCallback? onPressed;
+
+  const _GoogleSignInButton({required this.busy, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: busy ? null : onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(48),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        side: const BorderSide(color: AppColors.inputBorder),
+        backgroundColor: AppColors.surface,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Logo Google SVG inline (24×24, couleurs officielles)
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CustomPaint(painter: _GoogleLogoPainter()),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'Continuer avec Google',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Peint le logo Google (4 couleurs, 4 arcs) en Flutter.
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = r * 0.35;
+
+    // Partie bleue (haut-droite)
+    paint.color = const Color(0xFF4285F4);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
+        -0.3, 1.6, false, paint);
+    // Partie rouge (haut-gauche)
+    paint.color = const Color(0xFFEA4335);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
+        -1.9, 1.0, false, paint);
+    // Partie jaune (bas-gauche)
+    paint.color = const Color(0xFFFBBC05);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
+        2.1, 0.9, false, paint);
+    // Partie verte (bas-droite)
+    paint.color = const Color(0xFF34A853);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
+        3.0, 0.45, false, paint);
+    // Barre horizontale du « G »
+    paint.style = PaintingStyle.fill;
+    paint.color = const Color(0xFF4285F4);
+    canvas.drawRect(
+      Rect.fromLTWH(center.dx, center.dy - r * 0.12, r * 0.65, r * 0.24),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

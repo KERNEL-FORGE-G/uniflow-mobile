@@ -212,6 +212,27 @@ class AuthRepository {
     await _account.deleteSession(sessionId: 'current');
   }
 
+  /// Authentification via Google (OAuth2 Appwrite).
+  ///
+  /// Ouvre le navigateur système sur la page de consentement Google.
+  /// Appwrite gère le callback OAuth et crée la session ; l'application
+  /// reçoit le retour via le deep link `uniflow://auth/oauth2/success`.
+  /// Après cet appel, [getCurrentUser] retrouve la session active.
+  ///
+  /// Sur Android, ajouter dans `AndroidManifest.xml` un intent-filter pour
+  /// le scheme `uniflow` sur l'activité principale, et déclarer la plateforme
+  /// Android dans la console Appwrite (Overview → Platforms).
+  Future<void> loginWithGoogle() async {
+    try {
+      await _account.deleteSession(sessionId: 'current');
+    } catch (_) {}
+    await _account.createOAuth2Session(
+      provider: 'google',
+      success: 'uniflow://auth/oauth2/success',
+      failure: 'uniflow://auth/oauth2/failure',
+    );
+  }
+
   /// Crée le compte, ouvre la session, écrit la préférence de type et le
   /// document `users`, puis — pour un compte universitaire — demande le
   /// raccordement académique. C'est, étape pour étape, la séquence du web.
