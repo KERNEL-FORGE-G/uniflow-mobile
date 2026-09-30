@@ -264,5 +264,7 @@ class _InscriptionFactice implements AuthRepository {
   @override
   Future<void> sendPasswordRecovery(String email) async {}
   @override
+  Future<void> loginWithGoogle() async {}
+  @override
   Future<UniFlowUser> updateUsername(String userId, String username) async => resultat;
 }

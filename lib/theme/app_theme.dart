@@ -6,11 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 ///
 /// Deux choses flottent au bord inférieur d'une page : le bouton d'Uni (58 pt,
 /// à 14 pt du bord) et, sur certaines pages, un bouton flottant Material
-/// (56 pt, à 16 pt du bord). Sans cette marge, la dernière ligne d'une liste
-/// finit sous l'un des deux et sa commande de droite ou de gauche devient
-/// inatteignable — c'est ce que `uni_dock_test.dart` vérifie, liste déroulée
-/// au bout. 88 pt : la valeur que Material recommande pour un bouton flottant,
-/// et assez pour Uni.
+/// (56 pt, à 16 pt du bord). 88 pt : valeur Material recommandée.
 const double uniClearance = 88;
 
 /// Marges des pages connectées.
@@ -21,22 +17,11 @@ class AppInsets {
   static const EdgeInsets pageList = EdgeInsets.fromLTRB(16, 16, 16, uniClearance);
 }
 
-/// Styles des barres système (statut et navigation), pour l'affichage bord à
-/// bord.
-///
-/// Android 15 impose le bord à bord dès que l'application vise l'API 35 : les
-/// barres deviennent transparentes et l'application peint dessous. Les écrans
-/// s'y prêtent déjà (`SafeArea` dans les en-têtes et la barre du bas), mais
-/// rien ne disait la couleur des icônes de la barre de statut : blanches par
-/// défaut, elles étaient invisibles sur le fond clair de la connexion. Chaque
-/// région annonce donc le style qui lui convient via `AnnotatedRegion` :
-/// icônes claires sur les en-têtes bleus, sombres sur les fonds clairs. La
-/// barre de navigation est toujours sur une surface claire (barre du bas
-/// blanche, formulaires) : icônes sombres partout.
+/// Styles des barres système pour l'affichage bord à bord.
 class AppSystemUi {
   AppSystemUi._();
 
-  /// Sur un en-tête ou un fond bleu de marque.
+  /// Sur un en-tête dark — icônes blanches.
   static const SystemUiOverlayStyle surBleu = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -44,184 +29,147 @@ class AppSystemUi {
     systemStatusBarContrastEnforced: false,
     systemNavigationBarColor: Colors.transparent,
     systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarIconBrightness: Brightness.light,
     systemNavigationBarContrastEnforced: false,
   );
 
-  /// Sur un fond clair (connexion, présentation, surfaces).
+  /// Sur un fond dark — icônes blanches aussi.
   static const SystemUiOverlayStyle surClair = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
     systemStatusBarContrastEnforced: false,
     systemNavigationBarColor: Colors.transparent,
     systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarIconBrightness: Brightness.light,
     systemNavigationBarContrastEnforced: false,
   );
 
-  /// À appeler une fois au démarrage : le mode bord à bord pour Android 10 à
-  /// 14, où il n'est pas imposé, afin que la mise en page soit la même que
-  /// sur Android 15 ; et le style initial, celui de l'écran de garde bleu.
   static Future<void> appliquer() async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(surBleu);
   }
 }
 
-/// Palette de couleurs UniFlow.
+/// Palette UniFlow — Dark Premium Design System.
 ///
-/// Les valeurs sont **alignées sur le design system de la version web**
-/// (`uniflow-we/src/index.css`), exactement comme le fait déjà le desktop
-/// (`uniflow-desktop/lib/theme/app_theme.dart`) : mêmes primaires, mêmes
-/// neutres, mêmes couleurs d'état. C'est ce qui garantit qu'un écran du mobile
-/// ressemble au même écran sur le web.
-///
-/// Auparavant le mobile avait dérivé vers un teal `#0B8F86` utilisé comme
-/// couleur *primaire*, alors que le web réserve le bleu `#1E3A8A` au primaire
-/// et n'emploie le teal que comme accent. D'où deux applications visiblement
-/// différentes.
+/// Fond deep navy `#0A0E1A`, accents bleu électrique + violet + teal,
+/// glassmorphism pour les cartes. Aligné web + desktop.
 class AppColors {
   AppColors._();
 
-  // --- Couleurs de marque ------------------------------------------------
-  /// Bleu principal (`--color-primary` du web). C'est la couleur de marque :
-  /// en-têtes, boutons pleins, éléments actifs.
-  static const Color primaryBlue = Color(0xFF1E3A8A);
+  // --- Fond ---------------------------------------------------------------
+  /// Fond principal de l'app — deep navy.
+  static const Color background  = Color(0xFF0A0E1A);
 
-  /// Variante claire, pour les survols et les états pressés
-  /// (`--color-primary-light`).
-  static const Color primaryLight = Color(0xFF2D4FA8);
+  /// Fond secondaire — légèrement plus clair pour les sections.
+  static const Color surface     = Color(0xFF0F1629);
 
-  /// Bleu foncé, pour les dégradés et les formes décoratives
-  /// (`--color-primary-dark`).
-  static const Color deepBlue = Color(0xFF152A66);
+  /// Surface élevée (cartes, modals).
+  static const Color surfaceElevated = Color(0xFF141B2D);
 
-  /// Teintes très claires du bleu, pour les fonds de badges
-  /// (`--color-primary-50` / `--color-primary-100`).
-  static const Color primary50 = Color(0xFFEFF3FF);
-  static const Color primary100 = Color(0xFFDCE5FD);
+  /// Fond des inputs.
+  static const Color inputFill   = Color(0xFF1A2138);
 
-  /// Teal, accent secondaire de la marque (`--color-teal`).
-  static const Color teal = Color(0xFF0D9488);
+  // --- Marque (identiques web/desktop) ------------------------------------
+  static const Color primaryBlue  = Color(0xFF1E3A8A);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color deepBlue     = Color(0xFF152A66);
+  static const Color primary50    = Color(0xFF1D2D52);
+  static const Color primary100   = Color(0xFF243460);
 
-  /// Teal clair, pour les survols (`--color-teal-light`).
-  static const Color tealLight = Color(0xFF14B8A8);
+  static const Color teal         = Color(0xFF0D9488);
+  static const Color tealLight    = Color(0xFF0EA5E9);
+  static const Color tealDark     = Color(0xFF0A7167);
+  static const Color teal50       = Color(0xFF0C2A2A);
+  static const Color teal100      = Color(0xFF0D3535);
 
-  /// Teal foncé (`--color-teal-dark`).
-  static const Color tealDark = Color(0xFF0A7167);
+  static const Color purple       = Color(0xFF7C3AED);
+  static const Color purpleLight  = Color(0xFF8B5CF6);
+  static const Color purpleDark   = Color(0xFF5B21B6);
 
-  /// Teintes très claires du teal, pour les fonds de badges.
-  static const Color teal50 = Color(0xFFF0FDFA);
-  static const Color teal100 = Color(0xFFCCFBF1);
+  /// Ambre — badges, accentuation.
+  static const Color amber        = Color(0xFFF59E0B);
+  static const Color amberLight   = Color(0xFFFBBF24);
 
-  /// Violet, troisième accent utilisé par les dégradés « vibrants » du web.
-  static const Color purple = Color(0xFF7C3AED);
+  // --- Glassmorphism -------------------------------------------------------
+  /// Surface verre — fond des cartes glass.
+  static const Color glassWhite   = Color(0x0DFFFFFF);   // 5 %
+  static const Color glassBorder  = Color(0x1AFFFFFF);   // 10 %
+  static const Color glassHover   = Color(0x1AFFFFFF);   // 10 %
 
-  // --- Fond et surfaces --------------------------------------------------
-  /// Fond général de l'app (`--color-bg`).
-  static const Color background = Color(0xFFF3F4F6);
+  // --- Textes (sur fond dark) ----------------------------------------------
+  static const Color textPrimary   = Color(0xFFF1F5F9);
+  static const Color textSecondary = Color(0xFF94A3B8);
+  static const Color textMuted     = Color(0xFF64748B);
 
-  /// Fond des cartes et panneaux (`--color-surface`).
-  static const Color cardWhite = Color(0xFFFFFFFF);
+  // --- Bordures ------------------------------------------------------------
+  static const Color inputBorder   = Color(0xFF1E2D45);
+  static const Color divider       = Color(0xFF1A2540);
 
-  /// Gris très clair, pour les fonds de tableaux et de lignes alternées.
-  static const Color surfaceMuted = Color(0xFFF9FAFB);
+  // --- États ---------------------------------------------------------------
+  static const Color danger   = Color(0xFFEF4444);
+  static const Color success  = Color(0xFF10B981);
+  static const Color warning  = Color(0xFFF59E0B);
+  static const Color info     = Color(0xFF3B82F6);
 
-  // --- Textes ------------------------------------------------------------
-  /// Titres et texte important (`--color-text`).
-  static const Color textPrimary = Color(0xFF111827);
-
-  /// Sous-titres et texte secondaire (`--color-muted`).
-  static const Color textSecondary = Color(0xFF6B7280);
-
-  /// Placeholders et texte très discret (gray-400 du web).
-  static const Color textMuted = Color(0xFF9CA3AF);
-
-  // --- Champs de formulaire ----------------------------------------------
-  /// Fond des champs de saisie (gray-50 du web).
-  static const Color inputFill = Color(0xFFF9FAFB);
-
-  /// Bordure par défaut des champs et des cartes (`--color-border`).
-  static const Color inputBorder = Color(0xFFE5E7EB);
-
-  // --- États / feedback --------------------------------------------------
-  static const Color danger = Color(0xFFEF4444);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color info = Color(0xFF3B82F6);
-
-  // --- Dégradés ----------------------------------------------------------
-  /// Dégradé du logo (bleu → teal), repris du `gradient-text` du web.
+  // --- Dégradés -----------------------------------------------------------
   static const LinearGradient logoGradient = LinearGradient(
-    colors: [primaryBlue, teal],
+    colors: [primaryLight, purpleLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Dégradé des en-têtes de page : c'est lui qui donne au mobile la même
-  /// signature visuelle que les en-têtes du web et de la sidebar du desktop.
+  /// Dégradé premium pour les en-têtes — violet profond → bleu nuit.
   static const LinearGradient headerGradient = LinearGradient(
-    colors: [primaryBlue, deepBlue, Color(0xFF0D1F4F)],
+    colors: [Color(0xFF1E1B4B), Color(0xFF0A0E1A), Color(0xFF0C1929)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Bandeau des écrans hors session (maquette du 2026-09-21) : bleu marine
-  /// en haut, teal en bas, là où la feuille blanche vient se poser.
+  /// Hero pour les écrans d'auth — bleu électrique → violet.
   static const LinearGradient authHeroGradient = LinearGradient(
-    colors: [primaryBlue, Color(0xFF15558F), teal],
-    stops: [0, 0.55, 1],
+    colors: [Color(0xFF1E3A8A), Color(0xFF3730A3), Color(0xFF7C3AED)],
+    stops: [0.0, 0.5, 1.0],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Mot mis en couleur dans l'accroche du bandeau ; l'ambre des badges,
-  /// lisible sur le bleu comme sur le teal.
-  static const Color authAccent = Color(0xFFFBBF24);
-
-  /// Dégradé « mesh » des fonds de page d'authentification
-  /// (`bg-gradient-mesh` du web).
-  static const LinearGradient meshGradient = LinearGradient(
-    colors: [primary50, teal50, Color(0xFFEDE9FE)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  /// Dégradé teal, pour les accents secondaires.
+  /// Accent teal utilisé sur certaines cartes.
   static const LinearGradient tealGradient = LinearGradient(
-    colors: [teal, tealDark],
+    colors: [teal, tealLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // --- Alias historiques -------------------------------------------------
-  // Le mobile utilisait `bg`, `card` et `textMuted` avant l'alignement sur le
-  // web ; ces noms restent définis pour ne pas casser les écrans qui les
-  // référencent encore. Ils pointent vers les mêmes valeurs que leurs
-  // équivalents ci-dessus.
+  /// Dégradé violet premium — badges, accents hero.
+  static const LinearGradient purpleGradient = LinearGradient(
+    colors: [purpleDark, purpleLight],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
-  /// Ancien nom de [background].
-  static const Color bg = background;
+  /// Dégradé mesh background — fond subtil des pages auth.
+  static const LinearGradient meshGradient = LinearGradient(
+    colors: [Color(0xFF0F1629), Color(0xFF1A1040), Color(0xFF0A0E1A)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
-  /// Ancien nom de [cardWhite].
-  static const Color card = cardWhite;
+  /// Couleur accent utilisée sur le bandeau auth.
+  static const Color authAccent = amberLight;
+
+  // --- Alias historiques (rétro-compat) -----------------------------------
+  static const Color bg        = background;
+  static const Color cardWhite = surfaceElevated;
+  static const Color card      = surfaceElevated;
+  static const Color surfaceMuted = surface;
 }
 
-/// Styles de texte réutilisables.
-///
-/// À utiliser partout au lieu de définir des `TextStyle` en dur dans les
-/// écrans, pour garder une typographie cohérente avec le web.
-///
-/// Ces styles ne fixent **pas** `fontFamily` : la police Inter est posée
-/// globalement par [AppTheme.light] via `google_fonts`, et un `Text` fusionne
-/// le style reçu avec le style ambiant. La famille est donc héritée, sans
-/// avoir à la répéter — et sans dépendre d'un téléchargement de police au
-/// premier rendu, puisque `google_fonts` est déjà utilisé par l'application.
+/// Styles de texte — UniFlow Dark.
 class AppTextStyles {
   AppTextStyles._();
 
-  /// Grand titre (ex: « Bienvenue sur UniFlow »).
   static const TextStyle h1 = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w700,
@@ -229,7 +177,6 @@ class AppTextStyles {
     height: 1.2,
   );
 
-  /// Titre de section (ex: en-tête de carte, titre de page).
   static const TextStyle h2 = TextStyle(
     fontSize: 19,
     fontWeight: FontWeight.w700,
@@ -237,23 +184,20 @@ class AppTextStyles {
     height: 1.25,
   );
 
-  /// Titre de carte, un cran sous [h2].
   static const TextStyle h3 = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  /// Texte courant / sous-titres.
   static const TextStyle body = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
-    height: 1.4,
+    height: 1.5,
   );
 
-  /// Texte courant en version discrète.
   static const TextStyle bodySmall = TextStyle(
     fontSize: 12.5,
     fontWeight: FontWeight.w400,
@@ -261,108 +205,85 @@ class AppTextStyles {
     height: 1.45,
   );
 
-  /// Label au-dessus des champs de formulaire.
   static const TextStyle label = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
 
-  /// Texte des boutons pleins (fond coloré, texte blanc).
   static const TextStyle button = TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w600,
     color: Colors.white,
   );
 
-  /// Liens cliquables (ex: « Mot de passe oublié ? »).
   static const TextStyle link = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w600,
-    color: AppColors.primaryBlue,
+    color: AppColors.primaryLight,
   );
 
-  /// Très petits libellés en majuscules (en-têtes de colonnes, sections).
   static const TextStyle overline = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w700,
     color: AppColors.textMuted,
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
   );
 }
 
-/// Thème global de l'application, injecté dans le `MaterialApp`.
-///
-/// Reprend la couverture du thème desktop : les widgets Material standard
-/// (champs, boutons, dialogues, cases à cocher…) héritent du style du web sans
-/// que chaque écran ait à le répéter.
+/// Thème global — Dark Premium.
 class AppTheme {
   AppTheme._();
 
-  /// Rayon des conteneurs principaux (`rounded-xl` du web = 12 px).
-  static const double radiusCard = 12;
-
-  /// Rayon des éléments interactifs (`rounded-lg` du web = 8 px).
-  static const double radiusControl = 8;
-
-  /// Rayon des grandes surfaces (feuilles, cartes de connexion).
-  static const double radiusSheet = 20;
-
-  /// Rayon des coins hauts de la feuille des écrans hors session.
-  static const double radiusAuthSheet = 30;
+  static const double radiusCard    = 16;
+  static const double radiusControl = 12;
+  static const double radiusSheet   = 24;
+  static const double radiusAuthSheet = 32;
 
   static ThemeData get light {
-    // `GoogleFonts.interTextTheme` a besoin d'un `TextTheme` de départ, qui ne
-    // peut pas être celui du `ThemeData` en cours de construction : on part donc
-    // du texte par défaut de Material, puis on l'enrichit.
     final baseTextTheme = ThemeData(useMaterial3: true).textTheme;
-
     final base = ThemeData(
       useMaterial3: true,
+      brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryBlue,
-        primary: AppColors.primaryBlue,
-        secondary: AppColors.teal,
-        surface: AppColors.cardWhite,
+        brightness: Brightness.dark,
+        seedColor: AppColors.primaryLight,
+        primary: AppColors.primaryLight,
+        secondary: AppColors.purpleLight,
+        tertiary: AppColors.tealLight,
+        surface: AppColors.surfaceElevated,
         error: AppColors.danger,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
+        onSurface: AppColors.textPrimary,
+        onError: Colors.white,
       ),
-      // Inter, comme le web. `google_fonts` télécharge puis met en cache les
-      // fichiers ; en cas d'échec il retombe silencieusement sur la police
-      // système, ce qui reste lisible.
       textTheme: GoogleFonts.interTextTheme(baseTextTheme),
     );
 
     return base.copyWith(
-      // --- Textes -------------------------------------------------------
       textTheme: base.textTheme.apply(
         bodyColor: AppColors.textPrimary,
         displayColor: AppColors.textPrimary,
       ),
 
-      // --- En-tête / barre d'application ---------------------------------
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         centerTitle: false,
-        // Bord à bord : la barre de statut est transparente sur le bleu de
-        // l'en-tête, icônes claires. Sans cette ligne, AppBar la peindrait en
-        // bleu opaque sur Android < 15 et laisserait le défaut sur Android 15.
         systemOverlayStyle: AppSystemUi.surBleu,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: AppColors.textPrimary,
         ),
       ),
 
-      // --- Boutons pleins ------------------------------------------------
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue,
+          backgroundColor: AppColors.primaryLight,
           foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.inputBorder,
           disabledForegroundColor: AppColors.textMuted,
@@ -375,12 +296,11 @@ class AppTheme {
         ),
       ),
 
-      // --- Boutons secondaires ------------------------------------------
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-          backgroundColor: AppColors.cardWhite,
-          side: const BorderSide(color: AppColors.inputBorder, width: 1.5),
+          backgroundColor: AppColors.glassWhite,
+          side: const BorderSide(color: AppColors.glassBorder, width: 1),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusCard),
@@ -392,25 +312,20 @@ class AppTheme {
         ),
       ),
 
-      // --- Boutons texte --------------------------------------------------
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryBlue,
+          foregroundColor: AppColors.primaryLight,
           textStyle: AppTextStyles.link,
         ),
       ),
 
-      // --- Boutons icône ---------------------------------------------------
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(foregroundColor: AppColors.textSecondary),
       ),
 
-      // --- Champs de formulaire -------------------------------------------
-      // Reprend le `.input-focus` du web : bordure bleue au focus et anneau
-      // translucide autour du champ.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.cardWhite,
+        fillColor: AppColors.inputFill,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         labelStyle: AppTextStyles.body,
@@ -429,7 +344,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusCard),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusCard),
@@ -441,74 +356,85 @@ class AppTheme {
         ),
       ),
 
-      // --- Cartes ---------------------------------------------------------
       cardTheme: CardThemeData(
-        color: AppColors.cardWhite,
+        color: AppColors.surfaceElevated,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusCard),
-          side: const BorderSide(color: AppColors.inputBorder),
+          side: const BorderSide(color: AppColors.glassBorder, width: 0.5),
         ),
       ),
 
-      // --- Séparateurs -----------------------------------------------------
       dividerTheme: const DividerThemeData(
-        color: AppColors.inputBorder,
+        color: AppColors.divider,
         thickness: 1,
         space: 1,
       ),
 
-      // --- Dialogues --------------------------------------------------------
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.cardWhite,
+        backgroundColor: AppColors.surfaceElevated,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.glassBorder),
         ),
         titleTextStyle: AppTextStyles.h2.copyWith(fontSize: 18),
         contentTextStyle: AppTextStyles.body,
       ),
 
-      // --- Feuilles du bas ---------------------------------------------------
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.cardWhite,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
 
-      // --- Notifications -----------------------------------------------------
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.textPrimary,
-        contentTextStyle: const TextStyle(fontSize: 13.5, color: Colors.white),
+        backgroundColor: AppColors.surfaceElevated,
+        contentTextStyle: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusCard),
+          side: const BorderSide(color: AppColors.glassBorder),
         ),
       ),
 
-      // --- Cases à cocher -------------------------------------------------------
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected) ? AppColors.primaryBlue : Colors.transparent,
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.primaryLight
+              : Colors.transparent,
         ),
         side: const BorderSide(color: AppColors.inputBorder, width: 1.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
-      // --- Barres de progression ---------------------------------------------------
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primaryBlue,
+        color: AppColors.primaryLight,
         linearTrackColor: AppColors.inputBorder,
         circularTrackColor: AppColors.inputBorder,
       ),
 
-      // --- Listes ---------------------------------------------------------------
       listTileTheme: const ListTileThemeData(
         iconColor: AppColors.textSecondary,
         textColor: AppColors.textPrimary,
+        tileColor: Colors.transparent,
+      ),
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primaryLight.withValues(alpha: 0.15),
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.primaryLight, size: 22);
+          }
+          return const IconThemeData(color: AppColors.textMuted, size: 22);
+        }),
       ),
     );
   }

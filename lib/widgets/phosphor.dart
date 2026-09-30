@@ -134,8 +134,12 @@ class PhosphorIconsDuotone {
       IconData(0xe231, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData fileAudio =
       IconData(0xea21, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileDoc =
+      IconData(0xeb1f, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData filePdf =
       IconData(0xe703, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
+  static const IconData filePpt =
+      IconData(0xeb21, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData filePlus =
       IconData(0xe237, fontFamily: 'PhosphorDuotone', fontPackage: _package, matchTextDirection: true);
   static const IconData fileVideo =
@@ -926,20 +930,28 @@ class PhosphorIconsBold {
       IconData(0xe220, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData eyeSlash =
       IconData(0xe224, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData chatCircle =
+      IconData(0xe168, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData feather =
       IconData(0xe9c0, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData file =
       IconData(0xe230, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData fileAudio =
       IconData(0xea20, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData fileDoc =
+      IconData(0xeb1e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData filePdf =
       IconData(0xe702, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData filePpt =
+      IconData(0xeb20, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData filePlus =
       IconData(0xe236, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData fileVideo =
       IconData(0xea22, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData firstAid =
       IconData(0xe56e, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
+  static const IconData flagBanner =
+      IconData(0xe622, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData flashlight =
       IconData(0xe246, fontFamily: 'PhosphorBold', fontPackage: _package, matchTextDirection: true);
   static const IconData flask =

@@ -253,8 +253,9 @@ class _Sheet extends StatelessWidget {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.cardWhite,
+            color: AppColors.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusAuthSheet)),
+            border: Border(top: BorderSide(color: AppColors.glassBorder, width: 0.5)),
             boxShadow: [
               BoxShadow(
                 color: AppColors.deepBlue.withValues(alpha: 0.22),

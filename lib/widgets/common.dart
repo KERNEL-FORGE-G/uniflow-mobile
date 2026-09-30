@@ -8,11 +8,10 @@ import 'uni_icons.dart';
 import '../utils/avatar.dart';
 import '../utils/error_text.dart';
 
-/// En-tête de page, en dégradé bleu nuit.
+/// En-tête de page dark premium — dégradé violet profond → navy.
 ///
-/// Il reprend le dégradé des en-têtes du web (`admin-header-gradient`) et de la
-/// sidebar du desktop. Auparavant teal, il faisait du mobile une application
-/// visuellement distincte des deux autres plateformes.
+/// Identité visuelle unifiée : même fond dark que le desktop et le web.
+/// Accentuation via une ligne de dégradé bleu → violet en bas du header.
 class GradientHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -22,6 +21,9 @@ class GradientHeader extends StatelessWidget {
   final Widget? trailing;
   final PreferredSizeWidget? bottom;
 
+  /// Quand `true`, affiche un orbe lumineux décoratif derrière le titre.
+  final bool showOrb;
+
   const GradientHeader({
     super.key,
     required this.title,
@@ -29,85 +31,107 @@ class GradientHeader extends StatelessWidget {
     this.leading,
     this.trailing,
     this.bottom,
+    this.showOrb = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    // L'en-tête s'étend sous la barre de statut (bord à bord) et annonce des
-    // icônes claires : c'est la région située en haut de l'écran qui décide
-    // du style de cette barre.
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppSystemUi.surBleu,
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.headerGradient,
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x33152A66),
-              blurRadius: 18,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (leading != null) ...[leading!, const SizedBox(width: 12)],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          if (subtitle != null) ...[
-                            const SizedBox(height: 3),
-                            Text(
-                              subtitle!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.78),
-                                fontSize: 12.5,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    // `mainAxisSize.min` : la zone d'actions ne prend que la place
-                    // nécessaire, le titre étant déjà en Expanded.
-                    if (trailing != null) ...[
-                      const SizedBox(width: 12),
-                      trailing!,
-                    ],
-                  ],
+      child: Stack(
+        children: [
+          // Fond principal
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.headerGradient,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x40000000),
+                  blurRadius: 24,
+                  offset: Offset(0, 8),
                 ),
-                if (bottom != null) ...[const SizedBox(height: 14), bottom!],
               ],
             ),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                    child: Row(
+                      children: [
+                        if (leading != null) ...[leading!, const SizedBox(width: 12)],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              if (subtitle != null) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  subtitle!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        if (trailing != null) ...[
+                          const SizedBox(width: 12),
+                          trailing!,
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (bottom != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: bottom!,
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
+          // Ligne accent en bas du header
+          Positioned(
+            bottom: 0,
+            left: 24,
+            right: 24,
+            child: Container(
+              height: 1,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.transparent, AppColors.primaryLight, AppColors.purpleLight, Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Champ de recherche posé sur l'en-tête dégradé.
+/// Champ de recherche glassmorphism posé sur l'en-tête dark.
 class SearchField extends StatelessWidget {
   final String hint;
   final ValueChanged<String> onChanged;
@@ -122,29 +146,29 @@ class SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
-        prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass, size: 20, color: AppColors.textSecondary),
-        filled: true,
-        fillColor: Colors.white,
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.glassWhite,
           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          borderSide: BorderSide.none,
+          border: Border.all(color: AppColors.glassBorder, width: 0.5),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          borderSide: const BorderSide(color: Colors.white, width: 1.5),
+        child: TextField(
+          controller: controller,
+          onChanged: onChanged,
+          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+            prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass, size: 18, color: AppColors.textMuted),
+            filled: false,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+          ),
         ),
       ),
     );
@@ -222,45 +246,82 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-/// Carte de contenu : surface blanche, bordure fine et coins arrondis, comme
-/// les `bg-white rounded-xl border border-border` du web.
+/// Carte glassmorphism dark — surface translucide avec bordure subtile.
 ///
-/// Construite sur un `Material` et non sur un `Container` coloré : un
-/// `DecoratedBox` opaque interposé entre le `Material` ambiant et un `ListTile`
-/// masque les effets d'encre de ce dernier — Flutter le signale par une
-/// assertion, et la carte restait inerte au survol.
+/// Remplace les cartes blanches : fond `#141B2D`, bord glassBorder 0.5px,
+/// clipBehavior pour que les animations intérieures soient masquées proprement.
 class SectionCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
   final bool bordered;
+
+  /// Couleur d'accentuation de la bordure top — null = glassBorder standard.
+  final Color? accentBorder;
 
   const SectionCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.bordered = true,
+    this.accentBorder,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.cardWhite,
+      color: AppColors.surfaceElevated,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        side: bordered ? const BorderSide(color: AppColors.inputBorder) : BorderSide.none,
+        side: bordered
+            ? BorderSide(color: accentBorder ?? AppColors.glassBorder, width: 0.5)
+            : BorderSide.none,
       ),
       child: Padding(padding: padding, child: child),
     );
   }
 }
 
-/// Titre de section, avec un trait d'accent à gauche et, si on la donne, une
-/// icône Phosphor `duotone` qui annonce le contenu.
-///
-/// Remplace les `Text(..., fontWeight: FontWeight.bold)` disséminés dans les
-/// écrans, qui n'avaient ni la même taille ni la même couleur d'un écran à
-/// l'autre.
+/// Carte avec bordure accent colorée sur le haut (style bento).
+class AccentCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final Color accent;
+
+  const AccentCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.accent = AppColors.primaryLight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Barre accent en haut
+          Container(
+            height: 3,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
+            ),
+          ),
+          Padding(padding: padding, child: child),
+        ],
+      ),
+    );
+  }
+}
+
+/// Titre de section dark — trait d'accent bleu → violet à gauche.
 class SectionTitle extends StatelessWidget {
   final String title;
   final IconData? icon;
@@ -272,7 +333,7 @@ class SectionTitle extends StatelessWidget {
     super.key,
     required this.title,
     this.icon,
-    this.iconColor = AppColors.primaryBlue,
+    this.iconColor = AppColors.primaryLight,
     this.trailing,
     this.padding = const EdgeInsets.only(bottom: 12),
   });
@@ -285,19 +346,21 @@ class SectionTitle extends StatelessWidget {
         children: [
           Container(
             width: 3,
-            height: 16,
+            height: 18,
             decoration: BoxDecoration(
-              gradient: AppColors.logoGradient,
+              gradient: const LinearGradient(
+                colors: [AppColors.primaryLight, AppColors.purpleLight],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(width: 9),
+          const SizedBox(width: 10),
           if (icon != null) ...[
-            PhosphorIcon(icon!, size: 18, color: iconColor, duotoneSecondaryColor: iconColor),
+            PhosphorIcon(icon!, size: 18, color: iconColor),
             const SizedBox(width: 7),
           ],
-          // Expanded plutôt qu'un Row nu : un titre long doit se tronquer au
-          // lieu de pousser le `trailing` hors de la ligne.
           Expanded(
             child: Text(
               title,
@@ -629,9 +692,8 @@ class ErrorBanner extends StatelessWidget {
 
   const ErrorBanner({super.key, required this.message, this.onRetry});
 
-  /// Rouge plus sombre que `AppColors.danger` : le rouge d'alerte est prévu
-  /// pour des icônes et des bordures, il manque de contraste pour de la lecture.
-  static const Color _ink = Color(0xFFB91C1C);
+  /// Couleur texte d'erreur lisible sur fond dark.
+  static const Color _ink = Color(0xFFFCA5A5);
 
   @override
   Widget build(BuildContext context) {
