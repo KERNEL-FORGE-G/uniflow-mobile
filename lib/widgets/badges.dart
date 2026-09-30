@@ -1,28 +1,241 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'phosphor.dart';
 
 import '../models/badges.dart';
 import '../theme/app_theme.dart';
+import '../widgets/phosphor.dart';
 
-/// Un badge rond. Verrouillé : en gris, estompé, avec un cadenas et un anneau
-/// de progression ; gagné : en couleur, avec une légère ombre portée.
-///
-/// L'image reste la même dans les deux états : la désaturation est faite par
-/// un `ColorFiltered`, ce qui évite d'embarquer douze fichiers pour six
-/// badges.
-///
-/// Lorsque [animateUnlock] est `true` et que le badge passe de verrouillé à
-/// déverrouillé (détecté par le changement de [progress.unlocked] entre deux
-/// builds), une animation de « burst » se déclenche : un cercle en couleur
-/// primaire s'étend et disparaît comme un ripple.
-class BadgeMedal extends StatefulWidget {
+// ─── Couleurs et icônes (partagées avec screens/badges.dart) ─────────────────
+// Ces fonctions sont dupliquées volontairement : `widgets/` ne doit pas importer
+// depuis `screens/` pour éviter les dépendances circulaires.
+
+Color badgeColor(StudentBadge id) {
+  switch (id) {
+    case StudentBadge.premierPas:  return const Color(0xFF3B82F6);
+    case StudentBadge.assidu:      return const Color(0xFF10B981);
+    case StudentBadge.ponctuel:    return const Color(0xFF8B5CF6);
+    case StudentBadge.major:       return const Color(0xFFF59E0B);
+    case StudentBadge.entraide:    return const Color(0xFFEC4899);
+    case StudentBadge.sansFaute:   return const Color(0xFFEF4444);
+  }
+}
+
+IconData badgeIcon(StudentBadge id) {
+  switch (id) {
+    case StudentBadge.premierPas:  return PhosphorIconsBold.flagBanner;
+    case StudentBadge.assidu:      return PhosphorIconsBold.calendarCheck;
+    case StudentBadge.ponctuel:    return PhosphorIconsBold.clockCountdown;
+    case StudentBadge.major:       return PhosphorIconsBold.graduationCap;
+    case StudentBadge.entraide:    return PhosphorIconsBold.chatCircle;
+    case StudentBadge.sansFaute:   return PhosphorIconsBold.trophy;
+  }
+}
+
+// ─── Cercle badge (identique au _BadgeCircle de badges.dart) ─────────────────
+
+class BadgeCircle extends StatelessWidget {
+  final BadgeProgress progress;
+  final double size;
+
+  const BadgeCircle({super.key, required this.progress, this.size = 60});
+
+  @override
+  Widget build(BuildContext context) {
+    final unlocked = progress.unlocked;
+    final color = unlocked ? badgeColor(progress.badge) : const Color(0xFF374151);
+    final icon = badgeIcon(progress.badge);
+    final innerSize = size * 0.75;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _CirclePainter(
+          color: badgeColor(progress.badge),
+          progress: progress.progress.clamp(0.0, 1.0),
+          unlocked: unlocked,
+        ),
+        child: Center(
+          child: Container(
+            width: innerSize,
+            height: innerSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: unlocked
+                  ? RadialGradient(colors: [
+                      color.withValues(alpha: 0.9),
+                      color.withValues(alpha: 0.6),
+                    ])
+                  : const RadialGradient(colors: [
+                      Color(0xFF1F2937),
+                      Color(0xFF111827),
+                    ]),
+              boxShadow: unlocked
+                  ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 10, spreadRadius: 1)]
+                  : [],
+            ),
+            child: Icon(icon,
+              color: unlocked ? Colors.white : const Color(0xFF4B5563),
+              size: innerSize * 0.43,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CirclePainter extends CustomPainter {
+  final Color color;
+  final double progress;
+  final bool unlocked;
+
+  const _CirclePainter({
+    required this.color,
+    required this.progress,
+    required this.unlocked,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 3;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..strokeCap = StrokeCap.round;
+
+    paint.color = const Color(0xFF1F2937);
+    canvas.drawCircle(center, radius, paint);
+
+    if (progress > 0) {
+      paint.color = unlocked ? color : color.withValues(alpha: 0.5);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        2 * math.pi * progress,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CirclePainter old) =>
+      old.progress != progress || old.unlocked != unlocked;
+}
+
+// ─── BadgesStrip (dashboard) ─────────────────────────────────────────────────
+
+/// Bande horizontale des six badges pour l'accueil.
+/// Utilise le MÊME style cercle+icône que l'écran /badges,
+/// garantissant une cohérence visuelle totale entre les deux surfaces.
+class BadgesStrip extends StatelessWidget {
+  final List<BadgeProgress> badges;
+  final VoidCallback? onSeeAll;
+
+  const BadgesStrip({super.key, required this.badges, this.onSeeAll});
+
+  @override
+  Widget build(BuildContext context) {
+    final unlocked = badges.where((b) => b.unlocked).length;
+    // Même ordre que la page badges : enum order (pas de re-tri par progression).
+    final ordered = List<BadgeProgress>.from(badges);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF13132B),
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        border: Border.all(color: const Color(0xFF2D2D4E)),
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  unlocked == 0
+                      ? 'Aucun badge pour l\'instant'
+                      : '$unlocked badge${unlocked > 1 ? 's' : ''} sur ${badges.length}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (onSeeAll != null)
+                TextButton(
+                  onPressed: onSeeAll,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                    foregroundColor: AppColors.primaryBlue,
+                  ),
+                  child: const Text('Voir tout'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 105,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(right: 6),
+              itemCount: ordered.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final item = ordered[index];
+                return GestureDetector(
+                  onTap: onSeeAll,
+                  child: SizedBox(
+                    width: 70,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        BadgeCircle(progress: item, size: 62),
+                        const SizedBox(height: 5),
+                        Text(
+                          item.badge.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: item.unlocked ? FontWeight.w700 : FontWeight.w400,
+                            color: item.unlocked ? Colors.white : const Color(0xFF6B7280),
+                          ),
+                        ),
+                        if (item.unlocked)
+                          const Text('✓', style: TextStyle(fontSize: 9, color: Color(0xFF10B981)))
+                        else
+                          Text(
+                            '${item.percent}%',
+                            style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280)),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget de médaille compatible avec l'ancien code (retro-compat).
+/// Redirige vers [BadgeCircle] pour unifier le rendu.
+@Deprecated('Utilise BadgeCircle à la place pour la cohérence visuelle')
+class BadgeMedal extends StatelessWidget {
   final BadgeProgress progress;
   final double size;
   final VoidCallback? onTap;
-
-  /// Déclenche l'animation burst lors du premier build si le badge est déjà
-  /// déverrouillé (pour illustrer la transition en preview/tests), ou quand
-  /// [progress.unlocked] passe de false à true entre deux builds.
   final bool animateUnlock;
 
   const BadgeMedal({
@@ -34,251 +247,10 @@ class BadgeMedal extends StatefulWidget {
   });
 
   @override
-  State<BadgeMedal> createState() => _BadgeMedalState();
-}
-
-class _BadgeMedalState extends State<BadgeMedal> with SingleTickerProviderStateMixin {
-  late AnimationController _burst;
-  late Animation<double> _burstRadius;
-  late Animation<double> _burstOpacity;
-
-  /// Matrice de désaturation (luminance perçue), puis éclaircie.
-  static const ColorFilter _greyscale = ColorFilter.matrix(<double>[
-    0.2126 * 0.75, 0.7152 * 0.75, 0.0722 * 0.75, 0, 70, //
-    0.2126 * 0.75, 0.7152 * 0.75, 0.0722 * 0.75, 0, 70, //
-    0.2126 * 0.75, 0.7152 * 0.75, 0.0722 * 0.75, 0, 70, //
-    0, 0, 0, 1, 0,
-  ]);
-
-  @override
-  void initState() {
-    super.initState();
-    _burst = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _burstRadius = Tween<double>(begin: 0.3, end: 1.2).animate(
-      CurvedAnimation(parent: _burst, curve: Curves.easeOut),
-    );
-    _burstOpacity = Tween<double>(begin: 0.6, end: 0.0).animate(
-      CurvedAnimation(parent: _burst, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void didUpdateWidget(BadgeMedal old) {
-    super.didUpdateWidget(old);
-    // Déclenche le burst quand le badge passe de verrouillé à déverrouillé.
-    if (!old.progress.unlocked && widget.progress.unlocked) {
-      _burst.forward(from: 0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _burst.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final unlocked = widget.progress.unlocked;
-    final size = widget.size;
-
-    final image = Image.asset(
-      widget.progress.badge.asset,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) => PhosphorIcon(
-        PhosphorIconsFill.medal,
-        size: size * 0.7,
-        color: unlocked ? AppColors.warning : AppColors.textMuted,
-      ),
-    );
-
-    final medal = unlocked
-        ? DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.18),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: image,
-          )
-        : Opacity(
-            opacity: 0.55,
-            child: ColorFiltered(colorFilter: _greyscale, child: image),
-          );
-
-    final content = SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Burst : cercle coloré qui s'étend et disparaît.
-          AnimatedBuilder(
-            animation: _burst,
-            builder: (context, _) {
-              if (_burst.value == 0) return const SizedBox.shrink();
-              return Opacity(
-                opacity: _burstOpacity.value,
-                child: Container(
-                  width: size * _burstRadius.value,
-                  height: size * _burstRadius.value,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primaryBlue,
-                  ),
-                ),
-              );
-            },
-          ),
-          if (!unlocked)
-            SizedBox(
-              width: size * 0.98,
-              height: size * 0.98,
-              child: CircularProgressIndicator(
-                value: widget.progress.progress.clamp(0.0, 1.0),
-                strokeWidth: 3,
-                strokeCap: StrokeCap.round,
-                backgroundColor: AppColors.inputBorder,
-                color: AppColors.teal,
-              ),
-            ),
-          Padding(padding: EdgeInsets.all(size * 0.08), child: medal),
-          if (!unlocked)
-            Positioned(
-              right: size * 0.04,
-              bottom: size * 0.04,
-              child: Container(
-                width: size * 0.3,
-                height: size * 0.3,
-                decoration: BoxDecoration(
-                  color: AppColors.cardWhite,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: PhosphorIcon(
-                  PhosphorIconsFill.lock,
-                  size: size * 0.16,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-
-    final labelled = Semantics(
-      label: unlocked
-          ? 'Badge ${widget.progress.badge.title}, gagné'
-          : 'Badge ${widget.progress.badge.title}, ${widget.progress.percent} %',
-      button: widget.onTap != null,
-      child: content,
-    );
-    if (widget.onTap == null) return labelled;
-    return InkResponse(
-      onTap: widget.onTap,
-      radius: size * 0.6,
-      child: labelled,
-    );
-  }
-}
-
-/// Rangée des six badges pour l'accueil : les gagnés d'abord, un compteur, et
-/// tout mène à l'écran détaillé.
-class BadgesStrip extends StatelessWidget {
-  final List<BadgeProgress> badges;
-  final VoidCallback? onSeeAll;
-
-  const BadgesStrip({super.key, required this.badges, this.onSeeAll});
-
-  @override
-  Widget build(BuildContext context) {
-    final unlocked = badges.where((b) => b.unlocked).length;
-    final ordered = [...badges]..sort((a, b) {
-        if (a.unlocked != b.unlocked) return a.unlocked ? -1 : 1;
-        return b.progress.compareTo(a.progress);
-      });
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  unlocked == 0
-                      ? 'Aucun badge pour l\'instant'
-                      : '$unlocked badge${unlocked > 1 ? 's' : ''} sur ${badges.length}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13.5,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-              if (onSeeAll != null)
-                TextButton(
-                  onPressed: onSeeAll,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(0, 32),
-                  ),
-                  child: const Text('Voir tout'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 96,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(right: 6),
-              itemCount: ordered.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 6),
-              itemBuilder: (context, index) {
-                final item = ordered[index];
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    BadgeMedal(progress: item, size: 68, onTap: onSeeAll),
-                    const SizedBox(height: 2),
-                    SizedBox(
-                      width: 72,
-                      child: Text(
-                        item.badge.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: item.unlocked ? AppColors.textPrimary : AppColors.textMuted,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+    return GestureDetector(
+      onTap: onTap,
+      child: BadgeCircle(progress: progress, size: size),
     );
   }
 }

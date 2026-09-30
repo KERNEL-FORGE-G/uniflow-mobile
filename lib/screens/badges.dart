@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/badges.dart';
 import '../providers/badges_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/badges.dart' show badgeColor, badgeIcon, BadgeCircle;
 import '../widgets/common.dart';
 import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
@@ -29,30 +30,6 @@ class BadgesScreen extends ConsumerWidget {
         data: (badges) => _BadgesBody(badges: badges),
       ),
     );
-  }
-}
-
-// ─── Couleurs par badge ───────────────────────────────────────────────────────
-
-Color _badgeColor(StudentBadge id) {
-  switch (id) {
-    case StudentBadge.premierPas:  return const Color(0xFF3B82F6); // bleu
-    case StudentBadge.assidu:      return const Color(0xFF10B981); // vert émeraude
-    case StudentBadge.ponctuel:    return const Color(0xFF8B5CF6); // violet
-    case StudentBadge.major:       return const Color(0xFFF59E0B); // ambre
-    case StudentBadge.entraide:    return const Color(0xFFEC4899); // rose
-    case StudentBadge.sansFaute:   return const Color(0xFFEF4444); // rouge
-  }
-}
-
-IconData _badgeIcon(StudentBadge id) {
-  switch (id) {
-    case StudentBadge.premierPas:  return PhosphorIconsBold.flagBanner;
-    case StudentBadge.assidu:      return PhosphorIconsBold.calendarCheck;
-    case StudentBadge.ponctuel:    return PhosphorIconsBold.clockCountdown;
-    case StudentBadge.major:       return PhosphorIconsBold.graduationCap;
-    case StudentBadge.entraide:    return PhosphorIconsBold.chatCircle;
-    case StudentBadge.sansFaute:   return PhosphorIconsBold.trophy;
   }
 }
 
@@ -232,8 +209,8 @@ class _BadgeTileState extends State<_BadgeTile>
   @override
   Widget build(BuildContext context) {
     final p = widget.progress;
-    final color = p.unlocked ? _badgeColor(p.badge) : const Color(0xFF374151);
-    final icon = _badgeIcon(p.badge);
+    final color = p.unlocked ? badgeColor(p.badge) : const Color(0xFF374151);
+    final icon = badgeIcon(p.badge);
 
     return FadeTransition(
       opacity: _fade,
@@ -242,7 +219,7 @@ class _BadgeTileState extends State<_BadgeTile>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _BadgeCircle(
+            BadgeCircle(
               color: color,
               icon: icon,
               unlocked: p.unlocked,
@@ -267,110 +244,6 @@ class _BadgeTileState extends State<_BadgeTile>
   }
 }
 
-// ─── Cercle badge ─────────────────────────────────────────────────────────────
-
-class _BadgeCircle extends StatelessWidget {
-  final Color color;
-  final IconData icon;
-  final bool unlocked;
-  final double progress;
-
-  const _BadgeCircle({
-    required this.color,
-    required this.icon,
-    required this.unlocked,
-    required this.progress,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      height: 80,
-      child: CustomPaint(
-        painter: _CirclePainter(
-          color: color,
-          progress: progress,
-          unlocked: unlocked,
-        ),
-        child: Center(
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: unlocked
-                  ? RadialGradient(colors: [
-                      color.withValues(alpha: 0.9),
-                      color.withValues(alpha: 0.6),
-                    ])
-                  : const RadialGradient(colors: [
-                      Color(0xFF1F2937),
-                      Color(0xFF111827),
-                    ]),
-              boxShadow: unlocked
-                  ? [
-                      BoxShadow(
-                          color: color.withValues(alpha: 0.4),
-                          blurRadius: 12,
-                          spreadRadius: 2),
-                    ]
-                  : [],
-            ),
-            child: Icon(icon,
-                color: unlocked
-                    ? Colors.white
-                    : const Color(0xFF374151),
-                size: 26),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CirclePainter extends CustomPainter {
-  final Color color;
-  final double progress;
-  final bool unlocked;
-
-  const _CirclePainter({
-    required this.color,
-    required this.progress,
-    required this.unlocked,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 3;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round;
-
-    // Fond
-    paint.color = const Color(0xFF1F2937);
-    canvas.drawCircle(center, radius, paint);
-
-    // Progression
-    if (progress > 0) {
-      paint.color = unlocked ? color : color.withValues(alpha: 0.5);
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -math.pi / 2,
-        2 * math.pi * progress,
-        false,
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CirclePainter old) =>
-      old.progress != progress || old.unlocked != unlocked;
-}
-
 // ─── Carte détail ─────────────────────────────────────────────────────────────
 
 class _BadgeDetailCard extends StatelessWidget {
@@ -381,7 +254,7 @@ class _BadgeDetailCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final badge = progress.badge;
     final unlocked = progress.unlocked;
-    final color = unlocked ? _badgeColor(badge) : const Color(0xFF374151);
+    final color = unlocked ? badgeColor(badge) : const Color(0xFF374151);
 
     return Container(
       decoration: BoxDecoration(
@@ -396,9 +269,9 @@ class _BadgeDetailCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          _BadgeCircle(
+          BadgeCircle(
             color: color,
-            icon: _badgeIcon(badge),
+            icon: badgeIcon(badge),
             unlocked: unlocked,
             progress: progress.progress.clamp(0.0, 1.0),
           ),

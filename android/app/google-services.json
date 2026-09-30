@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "457488057773",
+    "project_id": "uniflow-3270a",
+    "storage_bucket": "uniflow-3270a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:457488057773:android:1f70b40c3bafe98eeb0d24",
+        "android_client_info": {
+          "package_name": "com.uniflow.kernelforge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVC9ILO4NQ4Tc9ZGCyznjmqd1GcyPFr18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

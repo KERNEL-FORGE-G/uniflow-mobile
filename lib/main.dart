@@ -8,6 +8,7 @@ import 'providers/providers.dart';
 import 'offline/background_sync.dart';
 import 'offline/offline_providers.dart';
 import 'services/notification_service.dart';
+import 'services/fcm_service.dart';
 import 'widgets/uni/uni_mascot.dart';
 import 'widgets/uni/uni_scenes.dart';
 
@@ -20,6 +21,9 @@ void main() async {
   // Synchronisation périodique application fermée (Android). La contrainte
   // réseau est reposée par les Réglages quand « Wi-Fi seulement » change.
   await BackgroundSync.initialize();
+  // Firebase Cloud Messaging : push en arrière-plan / app fermée.
+  // L'init est en try-catch interne : un échec FCM ne bloque pas l'app.
+  await FcmService.instance.initialize();
   // Une erreur de rendu non rattrapée affiche Uni qui s'excuse plutôt que le
   // rectangle rouge de Flutter — l'utilisateur comprend qu'il peut revenir en
   // arrière, et le détail reste lisible pour nous.
