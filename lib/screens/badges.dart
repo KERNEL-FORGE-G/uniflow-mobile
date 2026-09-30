@@ -1,47 +1,62 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/phosphor.dart';
 
 import '../models/badges.dart';
 import '../providers/badges_provider.dart';
 import '../theme/app_theme.dart';
-import '../widgets/badges.dart';
 import '../widgets/common.dart';
-import '../widgets/motion.dart';
+import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 
-/// Les six badges de l'apprenant, avec la règle de chacun et où il en est.
 class BadgesScreen extends ConsumerWidget {
   const BadgesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final badgesAsync = ref.watch(studentBadgesProvider);
-
     return Scaffold(
-      body: Column(
-        children: [
-          const GradientHeader(
-            title: 'Mes badges',
-            subtitle: 'Gagnés sur vos présences, notes, devoirs et forum',
-          ),
-          Expanded(
-            child: badgesAsync.when(
-              loading: () => const LoadingView(label: 'Calcul de vos badges…', mascot: true),
-              error: (_, __) => const EmptyState(
-                icon: PhosphorIconsDuotone.cloudSlash,
-                title: 'Badges indisponibles',
-                message: 'Vos données n\'ont pas pu être lues.',
-                pose: UniPose.sorry,
-              ),
-              data: (badges) => _BadgesBody(badges: badges),
-            ),
-          ),
-        ],
+      backgroundColor: const Color(0xFF0A0A14),
+      body: badgesAsync.when(
+        loading: () => const LoadingView(label: 'Calcul de vos badges…', mascot: true),
+        error: (_, __) => const EmptyState(
+          icon: PhosphorIconsDuotone.cloudSlash,
+          title: 'Badges indisponibles',
+          message: 'Vos données n\'ont pas pu être lues.',
+          pose: UniPose.sorry,
+        ),
+        data: (badges) => _BadgesBody(badges: badges),
       ),
     );
   }
 }
+
+// ─── Couleurs par badge ───────────────────────────────────────────────────────
+
+Color _badgeColor(StudentBadge id) {
+  switch (id) {
+    case StudentBadge.premierPas:  return const Color(0xFF3B82F6); // bleu
+    case StudentBadge.assidu:      return const Color(0xFF10B981); // vert émeraude
+    case StudentBadge.ponctuel:    return const Color(0xFF8B5CF6); // violet
+    case StudentBadge.major:       return const Color(0xFFF59E0B); // ambre
+    case StudentBadge.entraide:    return const Color(0xFFEC4899); // rose
+    case StudentBadge.sansFaute:   return const Color(0xFFEF4444); // rouge
+  }
+}
+
+IconData _badgeIcon(StudentBadge id) {
+  switch (id) {
+    case StudentBadge.premierPas:  return PhosphorIconsBold.flagBanner;
+    case StudentBadge.assidu:      return PhosphorIconsBold.calendarCheck;
+    case StudentBadge.ponctuel:    return PhosphorIconsBold.clockCountdown;
+    case StudentBadge.major:       return PhosphorIconsBold.graduationCap;
+    case StudentBadge.entraide:    return PhosphorIconsBold.chatCircle;
+    case StudentBadge.sansFaute:   return PhosphorIconsBold.trophy;
+  }
+}
+
+// ─── Body ─────────────────────────────────────────────────────────────────────
 
 class _BadgesBody extends StatelessWidget {
   final List<BadgeProgress> badges;
@@ -52,137 +67,395 @@ class _BadgesBody extends StatelessWidget {
     final unlocked = badges.where((b) => b.unlocked).length;
     final all = unlocked == badges.length && badges.isNotEmpty;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, uniClearance),
-      children: [
-        FadeSlideIn(
-          index: 0,
-          child: SectionCard(
-            padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-            child: Row(
-              children: [
-                UniMascot(
-                  pose: all ? UniPose.celebrate : UniPose.pointing,
-                  size: 78,
-                  effects: all,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        all
-                            ? 'Collection complète !'
-                            : '$unlocked/${badges.length} badge${unlocked > 1 ? 's' : ''} gagné${unlocked > 1 ? 's' : ''}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        all
-                            ? 'Vous avez tout gagné. Uni est très fier.'
-                            : 'Chaque badge se gagne sur des faits réels : ils sont les mêmes sur le web et le desktop.',
-                        style: AppTextStyles.bodySmall,
-                      ),
-                      const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: badges.isEmpty ? 0 : unlocked / badges.length,
-                          minHeight: 8,
-                          backgroundColor: AppColors.inputBorder,
-                          color: AppColors.teal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        _buildHeader(context, unlocked, all),
+        _buildProgressBar(unlocked, badges.length),
+        _buildGrid(badges),
+        // Détail plein-écran pour le badge sélectionné (liste en-dessous de la grille)
+        _buildDetailList(badges),
+        const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, int unlocked, bool all) {
+    return SliverToBoxAdapter(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1A1A2E), Color(0xFF0A0A14)],
           ),
         ),
-        const SizedBox(height: 18),
-        for (var i = 0; i < badges.length; i++)
-          FadeSlideIn(
-            index: i + 1,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _BadgeCard(progress: badges[i]),
+        padding: EdgeInsets.fromLTRB(
+            20, MediaQuery.of(context).padding.top + 16, 20, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                      colors: [Color(0xFFF59E0B), Color(0xFFEF4444)]),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(PhosphorIconsBold.medal,
+                    color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Mes badges',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5)),
+                Text(
+                  all ? 'Collection complète !' : '$unlocked sur ${badges.length} obtenus',
+                  style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12.5),
+                ),
+              ]),
+              const Spacer(),
+              if (all)
+                UniMascot(pose: UniPose.celebrate, size: 52, effects: true),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(int unlocked, int total) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Progression globale',
+                    style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
+                Text('${total == 0 ? 0 : (unlocked * 100 ~/ total)}%',
+                    style: const TextStyle(
+                        color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+              ],
             ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: total == 0 ? 0 : unlocked / total,
+                minHeight: 8,
+                backgroundColor: const Color(0xFF1A1A2E),
+                valueColor: const AlwaysStoppedAnimation(Color(0xFFF59E0B)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrid(List<BadgeProgress> badges) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.78,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (ctx, i) => _BadgeTile(progress: badges[i], index: i),
+          childCount: badges.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailList(List<BadgeProgress> badges) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, i) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _BadgeDetailCard(progress: badges[i]),
           ),
-      ],
+          childCount: badges.length,
+        ),
+      ),
     );
   }
 }
 
-/// Un badge sur toute la largeur : médaille, titre, règle ou message de
-/// réussite, barre de progression et détail chiffré.
-class _BadgeCard extends StatelessWidget {
+// ─── Tuile grille ─────────────────────────────────────────────────────────────
+
+class _BadgeTile extends StatefulWidget {
   final BadgeProgress progress;
-  const _BadgeCard({required this.progress});
+  final int index;
+  const _BadgeTile({required this.progress, required this.index});
+
+  @override
+  State<_BadgeTile> createState() => _BadgeTileState();
+}
+
+class _BadgeTileState extends State<_BadgeTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+  late final Animation<double> _scale;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _scale = CurvedAnimation(parent: _anim, curve: Curves.elasticOut);
+    _fade = CurvedAnimation(parent: _anim, curve: Curves.easeIn);
+    Future.delayed(
+        Duration(milliseconds: 100 + widget.index * 80), _anim.forward);
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.progress;
+    final color = p.unlocked ? _badgeColor(p.badge) : const Color(0xFF374151);
+    final icon = _badgeIcon(p.badge);
+
+    return FadeTransition(
+      opacity: _fade,
+      child: ScaleTransition(
+        scale: _scale,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _BadgeCircle(
+              color: color,
+              icon: icon,
+              unlocked: p.unlocked,
+              progress: p.progress.clamp(0.0, 1.0),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              p.badge.title,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: p.unlocked ? Colors.white : const Color(0xFF6B7280),
+                fontSize: 11.5,
+                fontWeight: p.unlocked ? FontWeight.w700 : FontWeight.w400,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Cercle badge ─────────────────────────────────────────────────────────────
+
+class _BadgeCircle extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final bool unlocked;
+  final double progress;
+
+  const _BadgeCircle({
+    required this.color,
+    required this.icon,
+    required this.unlocked,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 80,
+      height: 80,
+      child: CustomPaint(
+        painter: _CirclePainter(
+          color: color,
+          progress: progress,
+          unlocked: unlocked,
+        ),
+        child: Center(
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: unlocked
+                  ? RadialGradient(colors: [
+                      color.withValues(alpha: 0.9),
+                      color.withValues(alpha: 0.6),
+                    ])
+                  : const RadialGradient(colors: [
+                      Color(0xFF1F2937),
+                      Color(0xFF111827),
+                    ]),
+              boxShadow: unlocked
+                  ? [
+                      BoxShadow(
+                          color: color.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          spreadRadius: 2),
+                    ]
+                  : [],
+            ),
+            child: Icon(icon,
+                color: unlocked
+                    ? Colors.white
+                    : const Color(0xFF374151),
+                size: 26),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CirclePainter extends CustomPainter {
+  final Color color;
+  final double progress;
+  final bool unlocked;
+
+  const _CirclePainter({
+    required this.color,
+    required this.progress,
+    required this.unlocked,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 3;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+
+    // Fond
+    paint.color = const Color(0xFF1F2937);
+    canvas.drawCircle(center, radius, paint);
+
+    // Progression
+    if (progress > 0) {
+      paint.color = unlocked ? color : color.withValues(alpha: 0.5);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        2 * math.pi * progress,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CirclePainter old) =>
+      old.progress != progress || old.unlocked != unlocked;
+}
+
+// ─── Carte détail ─────────────────────────────────────────────────────────────
+
+class _BadgeDetailCard extends StatelessWidget {
+  final BadgeProgress progress;
+  const _BadgeDetailCard({required this.progress});
 
   @override
   Widget build(BuildContext context) {
     final badge = progress.badge;
     final unlocked = progress.unlocked;
-    return SectionCard(
-      padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+    final color = unlocked ? _badgeColor(badge) : const Color(0xFF374151);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF13132B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: unlocked
+              ? color.withValues(alpha: 0.3)
+              : const Color(0xFF2D2D4E),
+        ),
+      ),
+      padding: const EdgeInsets.all(14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          BadgeMedal(progress: progress, size: 84),
-          const SizedBox(width: 12),
+          _BadgeCircle(
+            color: color,
+            icon: _badgeIcon(badge),
+            unlocked: unlocked,
+            progress: progress.progress.clamp(0.0, 1.0),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        badge.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
+                Row(children: [
+                  Expanded(
+                    child: Text(badge.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: unlocked ? Colors.white : const Color(0xFF6B7280),
+                        )),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: unlocked
+                          ? color.withValues(alpha: 0.15)
+                          : const Color(0xFF1F2937),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      unlocked ? 'Gagné ✓' : '${progress.percent}%',
+                      style: TextStyle(
+                        color: unlocked ? color : const Color(0xFF6B7280),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    StatusBadge(
-                      label: unlocked ? 'Gagné' : '${progress.percent} %',
-                      backgroundColor: unlocked ? AppColors.success.withValues(alpha: 0.12) : AppColors.inputFill,
-                      foregroundColor: unlocked ? AppColors.success : AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
+                  ),
+                ]),
+                const SizedBox(height: 5),
                 Text(
                   unlocked ? badge.unlockedMessage : badge.rule,
-                  style: AppTextStyles.bodySmall,
+                  style: const TextStyle(
+                      color: Color(0xFF9CA3AF), fontSize: 12, height: 1.4),
                 ),
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
                     value: progress.progress.clamp(0.0, 1.0),
-                    minHeight: 6,
-                    backgroundColor: AppColors.inputBorder,
-                    color: unlocked ? AppColors.success : AppColors.teal,
+                    minHeight: 5,
+                    backgroundColor: const Color(0xFF1F2937),
+                    valueColor: AlwaysStoppedAnimation(
+                        unlocked ? color : color.withValues(alpha: 0.4)),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  progress.detail,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
-                ),
+                const SizedBox(height: 5),
+                Text(progress.detail,
+                    style: const TextStyle(
+                        color: Color(0xFF6B7280), fontSize: 11)),
               ],
             ),
           ),
