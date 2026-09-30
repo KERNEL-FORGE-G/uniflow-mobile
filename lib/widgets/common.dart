@@ -340,60 +340,84 @@ class StatCard extends StatefulWidget {
   State<StatCard> createState() => _StatCardState();
 }
 
-class _StatCardState extends State<StatCard> {
+class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin {
   // La pression sur la carte entière rétracte la tuile : c'est la carte qui
   // reçoit le toucher, pas la tuile.
   bool _pressed = false;
 
+  // Contrôleur d'entrée : fondu + glissement vers le haut (400 ms, easeOutCubic).
+  late final AnimationController _enterCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 400),
+  );
+  late final CurvedAnimation _enterCurve = CurvedAnimation(
+    parent: _enterCtrl,
+    curve: Curves.easeOutCubic,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    // Décale chaque carte selon son rang pour un effet cascade léger.
+    Future.delayed(Duration(milliseconds: 60 * widget.index.clamp(0, 4)), () {
+      if (mounted) _enterCtrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _enterCtrl.dispose();
+    _enterCurve.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final card = SectionCard(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconTile(
-            icon: widget.icon,
-            color: widget.color,
-            size: IconTile.large,
-            index: widget.index,
-            pressed: _pressed,
-          ),
-          const SizedBox(height: 12),
-          // `FittedBox` : « 15,5/20 » en gras déborde d'une carte étroite, et
-          // une taille qui s'ajuste vaut mieux que des points de suspension sur
-          // un chiffre.
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              widget.value,
-              maxLines: 1,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
+    final card = AnimatedBuilder(
+      animation: _enterCurve,
+      builder: (context, child) => Opacity(
+        opacity: _enterCurve.value,
+        child: Transform.translate(
+          offset: Offset(0, 14 * (1 - _enterCurve.value)),
+          child: child,
+        ),
+      ),
+      child: SectionCard(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconTile(
+              icon: widget.icon,
+              color: widget.color,
+              size: IconTile.large,
+              index: widget.index,
+              pressed: _pressed,
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            widget.label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodySmall,
-          ),
-          if (widget.caption != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 12),
+            // Compteur animé 0 → valeur finale (800 ms). Uniquement si la
+            // valeur est un entier pur ; pour les fractions (« 15,5/20 ») on
+            // affiche directement.
+            _AnimatedValue(value: widget.value),
+            const SizedBox(height: 3),
             Text(
-              widget.caption!,
-              maxLines: 1,
+              widget.label,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+              style: AppTextStyles.bodySmall,
             ),
+            if (widget.caption != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                widget.caption!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
 
@@ -401,8 +425,57 @@ class _StatCardState extends State<StatCard> {
     return InkWell(
       onTap: widget.onTap,
       onHighlightChanged: (down) => setState(() => _pressed = down),
+      splashColor: AppColors.primary50,
+      highlightColor: AppColors.primary50.withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
       child: card,
+    );
+  }
+}
+
+/// Compteur animé 0 → valeur finale (800 ms, easeOutCubic).
+/// Si la valeur n'est pas un entier pur (ex : « 15,5/20 », « ... », « ! »)
+/// elle s'affiche telle quelle sans animation.
+class _AnimatedValue extends StatelessWidget {
+  final String value;
+  const _AnimatedValue({required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final parsed = int.tryParse(value);
+    if (parsed == null) {
+      // Valeur non numérique : on l'affiche directement.
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          value,
+          maxLines: 1,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      );
+    }
+    return TweenAnimationBuilder<int>(
+      tween: IntTween(begin: 0, end: parsed),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
+      builder: (context, animValue, _) => FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          '$animValue',
+          maxLines: 1,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
     );
   }
 }

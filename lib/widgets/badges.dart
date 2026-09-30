@@ -10,20 +10,39 @@ import '../theme/app_theme.dart';
 /// L'image reste la même dans les deux états : la désaturation est faite par
 /// un `ColorFiltered`, ce qui évite d'embarquer douze fichiers pour six
 /// badges.
-class BadgeMedal extends StatelessWidget {
+///
+/// Lorsque [animateUnlock] est `true` et que le badge passe de verrouillé à
+/// déverrouillé (détecté par le changement de [progress.unlocked] entre deux
+/// builds), une animation de « burst » se déclenche : un cercle en couleur
+/// primaire s'étend et disparaît comme un ripple.
+class BadgeMedal extends StatefulWidget {
   final BadgeProgress progress;
   final double size;
   final VoidCallback? onTap;
+
+  /// Déclenche l'animation burst lors du premier build si le badge est déjà
+  /// déverrouillé (pour illustrer la transition en preview/tests), ou quand
+  /// [progress.unlocked] passe de false à true entre deux builds.
+  final bool animateUnlock;
 
   const BadgeMedal({
     super.key,
     required this.progress,
     this.size = 84,
     this.onTap,
+    this.animateUnlock = false,
   });
 
-  /// Matrice de désaturation (luminance perçue), puis éclaircie : un badge
-  /// gris foncé se lisait comme « cassé », pas comme « à gagner ».
+  @override
+  State<BadgeMedal> createState() => _BadgeMedalState();
+}
+
+class _BadgeMedalState extends State<BadgeMedal> with SingleTickerProviderStateMixin {
+  late AnimationController _burst;
+  late Animation<double> _burstRadius;
+  late Animation<double> _burstOpacity;
+
+  /// Matrice de désaturation (luminance perçue), puis éclaircie.
   static const ColorFilter _greyscale = ColorFilter.matrix(<double>[
     0.2126 * 0.75, 0.7152 * 0.75, 0.0722 * 0.75, 0, 70, //
     0.2126 * 0.75, 0.7152 * 0.75, 0.0722 * 0.75, 0, 70, //
@@ -32,10 +51,39 @@ class BadgeMedal extends StatelessWidget {
   ]);
 
   @override
+  void initState() {
+    super.initState();
+    _burst = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _burstRadius = Tween<double>(begin: 0.3, end: 1.2).animate(
+      CurvedAnimation(parent: _burst, curve: Curves.easeOut),
+    );
+    _burstOpacity = Tween<double>(begin: 0.6, end: 0.0).animate(
+      CurvedAnimation(parent: _burst, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(BadgeMedal old) {
+    super.didUpdateWidget(old);
+    // Déclenche le burst quand le badge passe de verrouillé à déverrouillé.
+    if (!old.progress.unlocked && widget.progress.unlocked) {
+      _burst.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _burst.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final unlocked = progress.unlocked;
+    final unlocked = widget.progress.unlocked;
+    final size = widget.size;
+
     final image = Image.asset(
-      progress.badge.asset,
+      widget.progress.badge.asset,
       width: size,
       height: size,
       fit: BoxFit.contain,
@@ -72,12 +120,30 @@ class BadgeMedal extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Burst : cercle coloré qui s'étend et disparaît.
+          AnimatedBuilder(
+            animation: _burst,
+            builder: (context, _) {
+              if (_burst.value == 0) return const SizedBox.shrink();
+              return Opacity(
+                opacity: _burstOpacity.value,
+                child: Container(
+                  width: size * _burstRadius.value,
+                  height: size * _burstRadius.value,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+              );
+            },
+          ),
           if (!unlocked)
             SizedBox(
               width: size * 0.98,
               height: size * 0.98,
               child: CircularProgressIndicator(
-                value: progress.progress.clamp(0.0, 1.0),
+                value: widget.progress.progress.clamp(0.0, 1.0),
                 strokeWidth: 3,
                 strokeCap: StrokeCap.round,
                 backgroundColor: AppColors.inputBorder,
@@ -97,7 +163,11 @@ class BadgeMedal extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.inputBorder),
                 ),
-                child: PhosphorIcon(PhosphorIconsFill.lock, size: size * 0.16, color: AppColors.textSecondary),
+                child: PhosphorIcon(
+                  PhosphorIconsFill.lock,
+                  size: size * 0.16,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
         ],
@@ -105,13 +175,15 @@ class BadgeMedal extends StatelessWidget {
     );
 
     final labelled = Semantics(
-      label: unlocked ? 'Badge ${progress.badge.title}, gagné' : 'Badge ${progress.badge.title}, ${progress.percent} %',
-      button: onTap != null,
+      label: unlocked
+          ? 'Badge ${widget.progress.badge.title}, gagné'
+          : 'Badge ${widget.progress.badge.title}, ${widget.progress.percent} %',
+      button: widget.onTap != null,
       child: content,
     );
-    if (onTap == null) return labelled;
+    if (widget.onTap == null) return labelled;
     return InkResponse(
-      onTap: onTap,
+      onTap: widget.onTap,
       radius: size * 0.6,
       child: labelled,
     );
