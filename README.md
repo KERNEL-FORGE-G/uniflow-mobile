@@ -30,13 +30,16 @@ une page, plutôt qu'une page vide.
 
 ### Design
 
-Thème **clean minimal UniFlow** : fond blanc/lavande (`#FAFBFF`), accents
-bleu `#1E3A8A` et teal `#0D9488`, cartes arrondies `BorderRadius.circular(20)`
-avec ombres douces bleues. La mascotte **Uni** est animée sur les pages clés
-(onboarding, dashboard, erreurs) avec des répliques contextuelles. Les écrans
-de messagerie utilisent un style dark premium (glassmorphism, bulles dégradées
-bleu→teal). L'onboarding propose 4 pages illustrées avec animations
-SlideTransition + FadeTransition.
+Thème **clean minimal UniFlow** (refonte 2026-10) :
+
+- **Palette** : fond `#FAFBFF` (blanc-lavande), accents bleu `#1E3A8A` et teal `#0D9488`
+- **Cartes** : `BorderRadius.circular(20)`, ombres douces bleues `rgba(30,58,138,0.08)`
+- **Typographie** : Inter, titres bold 24–28 px, corps 14–16 px
+- **Mascotte Uni** : animée (SlideTransition + FadeTransition) sur l'onboarding, le dashboard et les pages d'erreur, avec répliques contextuelles par rôle
+- **Onboarding** : 4 pages avec illustrations 3D flottantes (dégradé bleu→teal), dots de progression, bouton Commencer sur la dernière page
+- **Messagerie** : style dark premium — fond `#0A0E1A`, bulles dégradées bleu→teal, glassmorphism sur les cartes d'aperçu
+- **Badges** : widget `BadgeCircle` partagé entre le dashboard et la page badges (rendu unifié — icônes Phosphor colorées, cercles CustomPaint, progression circulaire)
+- **Splash** : fond dégradé bleu→teal avec logo UniFlow centré
 
 ### Notifications push (FCM)
 
