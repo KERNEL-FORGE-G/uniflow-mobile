@@ -93,35 +93,110 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
   }
 }
 
-/// Écran de garde, affiché entre l'écran de lancement Android et le routeur.
+/// Écran de garde — UniFlow Clean UI bleu+teal avec image de fond et mascotte Uni.
 ///
-/// Son fond est le bleu de marque, comme `windowSplashScreenBackground` et
-/// `launch_background` côté Android (`res/values/colors.xml`) : l'écran de
-/// lancement s'efface au premier rendu Flutter, et un fond différent — il
-/// était turquoise — faisait un saut de couleur visible à chaque démarrage.
-/// Uni garde son liseré blanc et son écharpe orange : il reste lisible sur le
-/// bleu comme sur le turquoise.
+/// Fond dégradé bleu UniFlow → teal, illustration de bienvenue en
+/// transparence, logo centré et indicateur de chargement discret.
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
   @override
   Widget build(BuildContext context) {
-    return const AnnotatedRegion<SystemUiOverlayStyle>(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppSystemUi.surBleu,
       child: Scaffold(
-        backgroundColor: AppColors.primaryBlue,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Uni accueille pendant que la session locale se résout.
-              UniMascot(pose: UniPose.wave, size: 150),
-              SizedBox(height: 18),
-              Text('UniFlow', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
-              SizedBox(height: 14),
-              UniDots(color: Colors.white),
-            ],
-          ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // ── Fond dégradé bleu UniFlow → teal ─────────────────────────
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF2D4FA8), Color(0xFF0D9488)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            // ── Image de fond (illustration onboarding) — opacité réduite ──
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  'assets/onboarding/onboarding_2_univers.webp',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+            // ── Cercles décoratifs ────────────────────────────────────────
+            Positioned(
+              top: -80,
+              right: -80,
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.07),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -60,
+              left: -60,
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+            ),
+            // ── Contenu central ───────────────────────────────────────────
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Mascotte Uni
+                  const UniMascot(pose: UniPose.wave, size: 130),
+                  const SizedBox(height: 20),
+                  // Logo texte dans un conteneur verre
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4)),
+                    ),
+                    child: const Text(
+                      'UniFlow',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'La plateforme de ton campus',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  UniDots(color: Colors.white.withValues(alpha: 0.8)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
