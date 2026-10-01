@@ -111,16 +111,16 @@ class GradientHeader extends StatelessWidget {
               ),
             ),
           ),
-          // Ligne accent en bas du header
+          // Ligne accent en bas du header — dégradé bleu → teal UniFlow
           Positioned(
             bottom: 0,
             left: 24,
             right: 24,
             child: Container(
-              height: 1,
+              height: 2,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.transparent, AppColors.primaryLight, AppColors.purpleLight, Colors.transparent],
+                  colors: [Colors.transparent, AppColors.tealLight, AppColors.primaryLight, Colors.transparent],
                 ),
               ),
             ),
@@ -131,7 +131,7 @@ class GradientHeader extends StatelessWidget {
   }
 }
 
-/// Champ de recherche glassmorphism posé sur l'en-tête dark.
+/// Champ de recherche clean — fond blanc, bordure légère bleu pâle.
 class SearchField extends StatelessWidget {
   final String hint;
   final ValueChanged<String> onChanged;
@@ -150,9 +150,16 @@ class SearchField extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.glassWhite,
+          color: AppColors.cardWhite,
           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          border: Border.all(color: AppColors.glassBorder, width: 0.5),
+          border: Border.all(color: AppColors.inputBorder, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryBlue.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: TextField(
           controller: controller,
@@ -161,7 +168,7 @@ class SearchField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
-            prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass, size: 18, color: AppColors.textMuted),
+            prefixIcon: PhosphorIcon(PhosphorIconsBold.magnifyingGlass, size: 18, color: AppColors.primaryBlue.withValues(alpha: 0.5)),
             filled: false,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -299,9 +306,16 @@ class AccentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: AppColors.cardWhite,
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+        border: Border.all(color: AppColors.inputBorder, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withValues(alpha: 0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -310,7 +324,9 @@ class AccentCard extends StatelessWidget {
           Container(
             height: 3,
             decoration: BoxDecoration(
-              color: accent,
+              gradient: LinearGradient(
+                colors: [accent, AppColors.teal],
+              ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
             ),
           ),
@@ -349,7 +365,7 @@ class SectionTitle extends StatelessWidget {
             height: 18,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.primaryLight, AppColors.purpleLight],
+                colors: [AppColors.primaryBlue, AppColors.teal],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
