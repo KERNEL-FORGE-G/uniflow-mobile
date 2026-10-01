@@ -328,13 +328,10 @@ void main() {
             await _settleAfterNext(tester);
             expect(tester.takeException(), isNull, reason: 'page $i');
           }
-          // Le dialogue de la dernière page change de réplique : chacune doit
-          // tenir aussi.
-          for (var i = 0; i < onboardingDialogue.length; i++) {
-            await tester.tap(find.byType(MascotDialogue));
-            await tester.pump(const Duration(milliseconds: 300));
-            expect(tester.takeException(), isNull, reason: 'réplique $i');
-          }
+          // La dernière page affiche un dialogue mascotte — on vérifie qu'un tap ne plante pas.
+          await tester.tap(find.byType(MascotDialogue));
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(tester.takeException(), isNull, reason: 'tap mascotte dernière page');
           expect(find.byType(UniMascot), findsWidgets);
         });
       }

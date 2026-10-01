@@ -1,12 +1,9 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/badges.dart';
 import '../providers/badges_provider.dart';
-import '../theme/app_theme.dart';
-import '../widgets/badges.dart' show badgeColor, badgeIcon, BadgeCircle;
+import '../widgets/badges.dart' show badgeColor, BadgeCircle;
 import '../widgets/common.dart';
 import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
@@ -209,8 +206,6 @@ class _BadgeTileState extends State<_BadgeTile>
   @override
   Widget build(BuildContext context) {
     final p = widget.progress;
-    final color = p.unlocked ? badgeColor(p.badge) : const Color(0xFF374151);
-    final icon = badgeIcon(p.badge);
 
     return FadeTransition(
       opacity: _fade,
@@ -220,10 +215,7 @@ class _BadgeTileState extends State<_BadgeTile>
           mainAxisSize: MainAxisSize.min,
           children: [
             BadgeCircle(
-              color: color,
-              icon: icon,
-              unlocked: p.unlocked,
-              progress: p.progress.clamp(0.0, 1.0),
+              progress: p,
             ),
             const SizedBox(height: 8),
             Text(
@@ -270,10 +262,8 @@ class _BadgeDetailCard extends StatelessWidget {
       child: Row(
         children: [
           BadgeCircle(
-            color: color,
-            icon: badgeIcon(badge),
-            unlocked: unlocked,
-            progress: progress.progress.clamp(0.0, 1.0),
+            progress: progress,
+            size: 72,
           ),
           const SizedBox(width: 14),
           Expanded(

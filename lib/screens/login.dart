@@ -220,7 +220,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         throw AuthException('Connexion Google réussie, mais aucun profil UniFlow trouvé.');
       }
       // Choix de filière pour les comptes universitaires sans programme.
-      if (user.accountType == UniFlowAccountType.university &&
+      if (user.accountType.toUpperCase() == UniFlowAccountType.university.wireValue &&
           (user.program == null || user.program!.isEmpty)) {
         if (mounted) {
           // Redirige vers l'écran de sélection de filière.

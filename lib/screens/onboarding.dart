@@ -6,8 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../providers/onboarding_provider.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
-import '../widgets/auth_widgets.dart';
-import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
