@@ -19,14 +19,36 @@ et fonctionne en lecture hors connexion grâce à un cache local.
 
 | Rôle | Écrans |
 | --- | --- |
-| Tous | Connexion (compte universitaire ou indépendant), tableau de bord, paramètres, notifications, aide, équipe KERNEL FORGE |
-| Étudiant | Emploi du temps, unités d'enseignement et détail, inscriptions, notes, devoirs (rendu de fichier, quiz), bibliothèque (PDF), présence QR (scan), forum, messagerie |
+| Tous | Connexion (compte universitaire ou indépendant), onboarding animé, tableau de bord, paramètres, notifications push (FCM), aide, équipe KERNEL FORGE |
+| Étudiant | Emploi du temps, unités d'enseignement et détail, inscriptions, notes, devoirs (rendu de fichier, quiz), bibliothèque (PDF), présence QR (scan), forum, messagerie, badges de progression |
 | Délégué | Tout l'étudiant + émission du QR de présence et annonces |
 | Enseignant | Listes d'étudiants et détail, saisie des notes, devoirs, présence |
 | Administration | Annuaire des étudiants et enseignants |
 
 Un écran « accès refusé » explicite s'affiche quand un rôle n'a pas droit à
 une page, plutôt qu'une page vide.
+
+### Design
+
+Thème **clean minimal UniFlow** : fond blanc/lavande (`#FAFBFF`), accents
+bleu `#1E3A8A` et teal `#0D9488`, cartes arrondies `BorderRadius.circular(20)`
+avec ombres douces bleues. La mascotte **Uni** est animée sur les pages clés
+(onboarding, dashboard, erreurs) avec des répliques contextuelles. Les écrans
+de messagerie utilisent un style dark premium (glassmorphism, bulles dégradées
+bleu→teal). L'onboarding propose 4 pages illustrées avec animations
+SlideTransition + FadeTransition.
+
+### Notifications push (FCM)
+
+Les notifications hors-application sont gérées par `firebase_messaging` +
+`FlutterLocalNotificationsPlugin`. Le service `FcmService`
+(`lib/services/fcm_service.dart`) :
+
+- demande les permissions au démarrage ;
+- initialise le canal Android « UniFlow Notifications » ;
+- stocke le token FCM dans Appwrite (`users/{id}.fcmToken`) ;
+- route les messages foreground via `onMessage` et les messages en arrière-plan
+  via `onMessageOpenedApp` + `getInitialMessage`.
 
 ## Prérequis
 
