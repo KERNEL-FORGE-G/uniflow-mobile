@@ -234,7 +234,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final messages = conversation?.messages ?? const <ChatMessage>[];
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
@@ -400,7 +400,7 @@ class _Bubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         decoration: BoxDecoration(
-          color: mine ? AppColors.primaryBlue : Colors.white,
+          color: mine ? AppColors.primaryBlue : AppColors.surfaceElevated,
           border: border,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(14),
@@ -482,13 +482,13 @@ class _Attachment extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         constraints: const BoxConstraints(minWidth: 180),
         decoration: BoxDecoration(
-          color: mine ? Colors.white.withValues(alpha: 0.15) : AppColors.bg,
+          color: mine ? Colors.white.withValues(alpha: 0.15) : AppColors.inputFill,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PhosphorIcon(_iconFor(message.kind), size: 26, color: mine ? Colors.white : AppColors.primaryBlue),
+            PhosphorIcon(_iconFor(message.kind), size: 26, color: mine ? Colors.white : AppColors.primaryLight),
             const SizedBox(width: 10),
             Flexible(
               child: Column(
@@ -673,7 +673,7 @@ class _Composer extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        color: Colors.white,
+        color: AppColors.surface,
         padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -703,7 +703,7 @@ class _Composer extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: urgent ? 'Message urgent…' : 'Votre message…',
                   filled: true,
-                  fillColor: urgent ? AppColors.danger.withValues(alpha: 0.06) : AppColors.bg,
+                  fillColor: urgent ? AppColors.danger.withValues(alpha: 0.08) : AppColors.inputFill,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
