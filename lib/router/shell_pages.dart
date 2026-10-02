@@ -34,6 +34,7 @@ import '../screens/messages.dart';
 import '../screens/notifications.dart';
 import '../screens/personal_space.dart';
 import '../screens/presence.dart';
+import '../screens/quests.dart';
 import '../screens/schedule.dart';
 import '../screens/settings.dart';
 import '../screens/student_detail.dart';
@@ -150,6 +151,7 @@ class ShellPage {
 final List<ShellPage> shellPages = [
   ShellPage(path: '/accueil', builder: (_) => const DashboardScreen()),
   ShellPage(path: '/badges', builder: (_) => const BadgesScreen()),
+  ShellPage(path: '/quetes', builder: (_) => const QuestsScreen()),
   ShellPage(path: '/etudiants', builder: (_) => const StudentsListScreen()),
   ShellPage(
     path: '/etudiants/:id',

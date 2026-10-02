@@ -329,6 +329,13 @@ const List<NavDestination> navDestinations = [
     roles: universityRoles,
   ),
   NavDestination(
+    path: '/quetes',
+    label: 'Quêtes',
+    icon: UniIcons.assignments,
+    roles: everyRole,
+    barRoles: everyRole,
+  ),
+  NavDestination(
     path: '/equipe',
     label: 'L\'Équipe KERNEL FORGE',
     icon: UniIcons.team,
