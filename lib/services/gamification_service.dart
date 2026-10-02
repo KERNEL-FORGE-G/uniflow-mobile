@@ -98,44 +98,44 @@ class GamificationService {
 
   // ── Quêtes ───────────────────────────────────────────────────────────────
 
-  /// Charge les quêtes actives de l'utilisateur pour la période [period].
+  /// Charge TOUTES les quêtes du catalogue, fusionne avec la progression de
+  /// l'utilisateur. Les quêtes sans progression ont currentValue=0.
+  /// Filtre optionnel par [period].
   Future<List<QuestWithProgress>> fetchActiveQuests(
     String userId, {
     QuestPeriod? period,
   }) async {
-    final queries = [
-      Query.equal('userId', userId),
-      Query.equal('status', 'active'),
-      Query.limit(50),
-    ];
+    // 1. Catalogue complet (paginé, potentiellement 3000 quêtes)
+    final catalogQueries = <String>[Query.orderAsc('\$createdAt')];
     if (period != null) {
-      queries.add(Query.equal('period', period.name));
+      catalogQueries.add(Query.equal('period', period.name));
     }
-
-    final progressDocs = await _databases.listDocuments(
-      databaseId: _databaseId,
-      collectionId: _userQuestProg,
-      queries: queries,
+    final catalog = await _listAll(
+      _questsCatalog,
+      QuestDefinition.fromDocument,
+      queries: catalogQueries,
     );
 
-    final results = <QuestWithProgress>[];
-    for (final prog in progressDocs.documents) {
-      final questId = prog.data['questId'] as String?;
-      if (questId == null) continue;
-      try {
-        final questDoc = await _databases.getDocument(
-          databaseId: _databaseId,
-          collectionId: _questsCatalog,
-          documentId: questId,
-        );
-        final def = QuestDefinition.fromDocument(questDoc);
-        final progress = UserQuestProgress.fromDocument(prog);
-        results.add(QuestWithProgress(definition: def, progress: progress));
-      } catch (_) {
-        continue;
-      }
+    // 2. Progressions de l'utilisateur (toutes périodes ou filtrée)
+    final progQueries = <String>[Query.equal('userId', userId)];
+    if (period != null) {
+      progQueries.add(Query.equal('period', period.name));
     }
-    return results;
+    final progressList = await _listAll(
+      _userQuestProg,
+      UserQuestProgress.fromDocument,
+      queries: progQueries,
+    );
+    final progressMap = {for (final p in progressList) p.questId: p};
+
+    // 3. Fusion : garder uniquement les quêtes actives (non expirées)
+    return catalog
+        .where((def) => def.isActive)
+        .map((def) => QuestWithProgress(
+              definition: def,
+              progress: progressMap[def.id],
+            ))
+        .toList();
   }
 
   // ── XP & Classement ──────────────────────────────────────────────────────

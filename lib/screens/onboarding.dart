@@ -7,6 +7,8 @@ import '../providers/onboarding_provider.dart';
 import '../providers/providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/uni/uni_mascot.dart';
+import '../widgets/uni/archlord_mascot.dart';
+import '../widgets/uni/mascot_dialogue.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  DONNÉES DES PAGES
@@ -16,8 +18,9 @@ class OnboardingPage {
   final String illustration;
   final String title;
   final String subtitle;
-  final String uniSays;
+  final List<DialogueLine> dialogue;
   final UniPose uniPose;
+  final ArchlordPose archlordPose;
   final Color accentColor;
   final Color bgFrom;
   final Color bgTo;
@@ -26,11 +29,12 @@ class OnboardingPage {
     required this.illustration,
     required this.title,
     required this.subtitle,
-    this.uniSays = '',
+    this.dialogue = const [],
     this.uniPose = UniPose.pointing,
+    this.archlordPose = ArchlordPose.explain,
     this.accentColor = AppColors.primaryBlue,
-    this.bgFrom = const Color(0xFF7C5CFC),
-    this.bgTo = const Color(0xFFD4C9FF),
+    this.bgFrom = const Color(0xFF1E3A8A),
+    this.bgTo = const Color(0xFF2D5BE3),
   });
 }
 
@@ -39,9 +43,14 @@ const List<OnboardingPage> onboardingPages = [
     illustration: 'assets/onboarding/onboarding_2_univers.webp',
     title: 'Ton emploi du temps\ntoujours à jour',
     subtitle:
-        'Séances filtrées sur ta filière et ton niveau,\nrien d\'autre — disponible même hors ligne.',
-    uniSays: 'Ta filière, ton niveau, tes cours.',
+        'Séances filtrées sur ta filière et ton niveau,\ndisponible même hors ligne.',
+    dialogue: [
+      DialogueLine.archlord('UniFlow affiche seulement tes cours — pas ceux de toute la fac.'),
+      DialogueLine.uni('Ta filière, ton niveau, tes cours. Rien de plus.'),
+      DialogueLine.archlord('Et ça marche sans connexion. On y a mis du soin.'),
+    ],
     uniPose: UniPose.pointing,
+    archlordPose: ArchlordPose.explain,
     accentColor: Color(0xFF1E3A8A),
     bgFrom: Color(0xFF1E3A8A),
     bgTo: Color(0xFF2D5BE3),
@@ -51,8 +60,13 @@ const List<OnboardingPage> onboardingPages = [
     title: 'Cours, devoirs et notes\nau même endroit',
     subtitle:
         'Supports de cours, devoirs à rendre et résultats\ndès leur publication.',
-    uniSays: 'Je te préviens quand un devoir approche.',
+    dialogue: [
+      DialogueLine.uni('Je te préviens quand un devoir approche — plus d\'excuses !'),
+      DialogueLine.archlord('Les notes tombent directement ici, sans passer par l\'admin.'),
+      DialogueLine.uni('Et les cours téléchargés restent disponibles hors ligne.'),
+    ],
     uniPose: UniPose.graduate,
+    archlordPose: ArchlordPose.laptop,
     accentColor: Color(0xFF0D9488),
     bgFrom: Color(0xFF0D9488),
     bgTo: Color(0xFF14B8A8),
@@ -62,8 +76,13 @@ const List<OnboardingPage> onboardingPages = [
     title: 'Messagerie et forum\nde ta promo',
     subtitle:
         'Écris à un camarade, débats sur le forum,\nreçois les urgences en temps réel.',
-    uniSays: 'Une question ? Le forum… ou moi.',
+    dialogue: [
+      DialogueLine.archlord('Forum, messages directs, groupes de promo — tout ici.'),
+      DialogueLine.uni('Une question ? Le forum… ou directement moi !'),
+      DialogueLine.archlord('Les annonces urgentes arrivent en notification instantanée.'),
+    ],
     uniPose: UniPose.headset,
+    archlordPose: ArchlordPose.pointing,
     accentColor: Color(0xFF2D4FA8),
     bgFrom: Color(0xFF152A66),
     bgTo: Color(0xFF2D4FA8),
@@ -72,9 +91,14 @@ const List<OnboardingPage> onboardingPages = [
     illustration: 'assets/onboarding/onboarding_2_univers.webp',
     title: 'Fait par des étudiants,\npour des étudiants',
     subtitle:
-        'Tout reste sur ton téléphone :\nun mois sans réseau et UniFlow s\'ouvre quand même.',
-    uniSays: 'Bonne rentrée !',
+        'Tes données restent sur ton téléphone.\nUn mois sans réseau et UniFlow s\'ouvre quand même.',
+    dialogue: [
+      DialogueLine.archlord('UniFlow est né dans notre propre fac. On a résolu nos propres problèmes.'),
+      DialogueLine.uni('Et on continue à le construire avec vos retours. Bonne rentrée !'),
+      DialogueLine.archlord('KERNEL FORGE — UniFlow est notre premier produit, pas le dernier.'),
+    ],
     uniPose: UniPose.wave,
+    archlordPose: ArchlordPose.thumbs,
     accentColor: Color(0xFF0A7167),
     bgFrom: Color(0xFF0A7167),
     bgTo: Color(0xFF0D9488),
@@ -237,23 +261,29 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 14, 16, 0),
       child: Row(
         children: [
-          // Logo pill
+          // Logo image (vrai logo horizontal UniFlow)
           Container(
             padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.25),
+              color: Colors.white.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.45), width: 1),
+                  color: Colors.white.withValues(alpha: 0.40), width: 1),
             ),
-            child: const Text(
-              'UniFlow',
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: 0.2),
+            child: Image.asset(
+              'assets/brand/uniflow_logo_horizontal.png',
+              height: 28,
+              fit: BoxFit.contain,
+              // Fallback si l'image ne charge pas
+              errorBuilder: (_, __, ___) => const Text(
+                'UniFlow',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.2),
+              ),
             ),
           ),
           const Spacer(),
@@ -297,61 +327,68 @@ class _PageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    final imgH = (size.height * 0.37).clamp(180.0, 320.0);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Column(
         children: [
           // ── Illustration dans une carte verre ─────────────────────────
-          ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                height: imgH,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      width: 1.5),
+          Expanded(
+            flex: 5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 1.5),
+                  ),
+                  child: _AnimatedIllustration(asset: page.illustration),
                 ),
-                child: _AnimatedIllustration(asset: page.illustration),
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
           // ── Titre ─────────────────────────────────────────────────────
           Text(
             page.title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 25,
+              fontSize: 23,
               fontWeight: FontWeight.w700,
               color: Colors.white,
-              height: 1.25,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           // ── Sous-titre ────────────────────────────────────────────────
           Text(
             page.subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14.5,
-              color: Colors.white.withValues(alpha: 0.85),
-              height: 1.55,
+              fontSize: 13,
+              color: Colors.white.withValues(alpha: 0.82),
+              height: 1.5,
             ),
           ),
-          // ── Bulle Uni ─────────────────────────────────────────────────
-          if (page.uniSays.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            _UniSpeechBubble(text: page.uniSays),
-          ],
           const SizedBox(height: 16),
+          // ── Dialogue Archlord + Uni en bas ───────────────────────────
+          if (page.dialogue.isNotEmpty)
+            Expanded(
+              flex: 3,
+              child: MascotDialogue(
+                lines: page.dialogue,
+                uniPose: page.uniPose,
+                archlordPose: page.archlordPose,
+                figureHeight: 96,
+                interval: const Duration(milliseconds: 3200),
+              ),
+            ),
+          if (page.dialogue.isEmpty) const SizedBox(height: 12),
         ],
       ),
     );
@@ -378,48 +415,6 @@ class _AnimatedIllustration extends StatelessWidget {
         errorBuilder: (_, __, ___) => Center(
           child: Icon(Icons.school_rounded,
               size: 80, color: Colors.white.withValues(alpha: 0.55)),
-        ),
-      ),
-    );
-  }
-}
-
-class _UniSpeechBubble extends StatelessWidget {
-  final String text;
-  const _UniSpeechBubble({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          width: double.infinity,
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.38), width: 1),
-          ),
-          child: Row(
-            children: [
-              const Text('✨ ', style: TextStyle(fontSize: 16)),
-              Expanded(
-                child: Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

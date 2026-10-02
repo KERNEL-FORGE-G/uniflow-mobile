@@ -242,8 +242,8 @@ void main() {
       expect(find.text(onboardingPages.first.title), findsOneWidget);
       expect(find.text('Suivant'), findsOneWidget);
       expect(find.byKey(const ValueKey('onboarding-skip')), findsOneWidget);
-      // Uni accompagne chaque page de fonctionnalité d'une bulle courte.
-      expect(find.text(onboardingPages.first.uniSays), findsOneWidget);
+      // Uni accompagne chaque page de fonctionnalité avec ses dialogues.
+      expect(find.text(onboardingPages.first.dialogue.first.text), findsOneWidget);
 
       for (var i = 1; i < onboardingPages.length; i++) {
         await tester.tap(find.byKey(const ValueKey('onboarding-next')));

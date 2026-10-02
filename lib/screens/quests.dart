@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,7 +8,9 @@ import '../services/gamification_service.dart';
 import '../widgets/common.dart';
 import '../widgets/uni/uni_mascot.dart';
 
-// ─── Écran Quêtes ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Écran Quêtes
+// ─────────────────────────────────────────────────────────────────────────────
 
 class QuestsScreen extends ConsumerWidget {
   const QuestsScreen({super.key});
@@ -25,7 +29,9 @@ class QuestsScreen extends ConsumerWidget {
   }
 }
 
-// ─── Corps ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Corps
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuestsBody extends StatefulWidget {
   final List<QuestWithProgress> quests;
@@ -55,7 +61,12 @@ class _QuestsBodyState extends State<_QuestsBody>
   Widget build(BuildContext context) {
     final weekly  = widget.quests.where((q) => q.definition.period == QuestPeriod.weekly).toList();
     final monthly = widget.quests.where((q) => q.definition.period == QuestPeriod.monthly).toList();
-    final annual  = widget.quests.where((q) => q.definition.period == QuestPeriod.yearly).toList();
+    final yearly  = widget.quests.where((q) => q.definition.period == QuestPeriod.yearly).toList();
+
+    // Trier : en cours d'abord, puis non commencées, puis terminées
+    _sortQuests(weekly);
+    _sortQuests(monthly);
+    _sortQuests(yearly);
 
     return NestedScrollView(
       headerSliverBuilder: (context, inner) => [
@@ -63,13 +74,11 @@ class _QuestsBodyState extends State<_QuestsBody>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GradientHeader(
-                title: 'Quêtes',
-                subtitle: '${widget.quests.length} quêtes actives',
-              ),
+              _QuestsHeader(quests: widget.quests),
+              _Leaderboard(),
               Container(
                 color: const Color(0xFFF0F7FF),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: _QuestsSummaryRow(quests: widget.quests),
               ),
             ],
@@ -87,7 +96,7 @@ class _QuestsBodyState extends State<_QuestsBody>
               tabs: [
                 Tab(text: 'Semaine (${weekly.length})'),
                 Tab(text: 'Mois (${monthly.length})'),
-                Tab(text: 'Année (${annual.length})'),
+                Tab(text: 'Année (${yearly.length})'),
               ],
             ),
           ),
@@ -98,14 +107,228 @@ class _QuestsBodyState extends State<_QuestsBody>
         children: [
           _QuestsList(quests: weekly,  emptyLabel: 'Aucune quête hebdomadaire'),
           _QuestsList(quests: monthly, emptyLabel: 'Aucune quête mensuelle'),
-          _QuestsList(quests: annual,  emptyLabel: 'Aucune quête annuelle'),
+          _QuestsList(quests: yearly,  emptyLabel: 'Aucune quête annuelle'),
+        ],
+      ),
+    );
+  }
+
+  void _sortQuests(List<QuestWithProgress> list) {
+    list.sort((a, b) {
+      final aComp = a.completed;
+      final bComp = b.completed;
+      if (aComp != bComp) return aComp ? 1 : -1; // terminées en dernier
+      final aStarted = (a.currentValue) > 0;
+      final bStarted = (b.currentValue) > 0;
+      if (aStarted != bStarted) return aStarted ? -1 : 1; // en cours d'abord
+      return b.definition.xpReward - a.definition.xpReward; // plus gros XP d'abord
+    });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Header dégradé
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _QuestsHeader extends StatelessWidget {
+  final List<QuestWithProgress> quests;
+  const _QuestsHeader({required this.quests});
+
+  @override
+  Widget build(BuildContext context) {
+    final completed = quests.where((q) => q.completed).length;
+    final totalXp   = quests
+        .where((q) => q.completed)
+        .fold(0, (sum, q) => sum + q.definition.xpReward);
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 14, 20, 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Quêtes',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5)),
+                const SizedBox(height: 4),
+                Text(
+                  '$completed terminées · $totalXp XP gagnés',
+                  style: const TextStyle(
+                      color: Colors.white70, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          // XP total badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3)),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.star_rounded,
+                  size: 16, color: Color(0xFFF59E0B)),
+              const SizedBox(width: 4),
+              Text('$totalXp XP',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+            ]),
+          ),
         ],
       ),
     );
   }
 }
 
-// ─── Résumé global ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Leaderboard top 3
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _Leaderboard extends ConsumerWidget {
+  const _Leaderboard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lbAsync = ref.watch(weeklyLeaderboardProvider);
+    return lbAsync.when(
+      loading: () => const SizedBox(height: 80,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (entries) {
+        if (entries.isEmpty) return const SizedBox.shrink();
+        final top3 = entries.take(3).toList();
+        return Container(
+          color: const Color(0xFF1E3A8A),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('🏆  Meilleurs de la semaine',
+                  style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: top3.asMap().entries.map((e) {
+                  final rank  = e.key;
+                  final entry = e.value;
+                  return _LeaderboardItem(entry: entry, rank: rank);
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LeaderboardItem extends StatelessWidget {
+  final LeaderboardEntry entry;
+  final int rank; // 0-based
+
+  const _LeaderboardItem({required this.entry, required this.rank});
+
+  static const _rankColors = [
+    Color(0xFFFFD700), // or
+    Color(0xFFC0C0C0), // argent
+    Color(0xFFCD7F32), // bronze
+  ];
+
+  static const _rankSizes = [52.0, 44.0, 44.0];
+
+  @override
+  Widget build(BuildContext context) {
+    final color   = _rankColors[rank];
+    final size    = _rankSizes[rank];
+    final isFirst = rank == 0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            if (isFirst) ...[
+              const Positioned(
+                top: -6,
+                child: Text('👑', style: TextStyle(fontSize: 16)),
+              ),
+              const SizedBox(height: 10),
+            ],
+            Container(
+              width: size,
+              height: size,
+              margin: EdgeInsets.only(top: isFirst ? 10 : 0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(alpha: 0.2),
+                border: Border.all(color: color, width: 2.5),
+              ),
+              child: Center(
+                child: Text(
+                  entry.displayName.isNotEmpty
+                      ? entry.displayName[0].toUpperCase()
+                      : '?',
+                  style: TextStyle(
+                      color: color,
+                      fontSize: isFirst ? 20 : 17,
+                      fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: 70,
+          child: Text(
+            entry.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: isFirst ? Colors.white : Colors.white70,
+                fontSize: isFirst ? 12 : 11,
+                fontWeight: isFirst ? FontWeight.w700 : FontWeight.w500),
+          ),
+        ),
+        Text(
+          '${entry.score} XP',
+          style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Résumé global
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuestsSummaryRow extends StatelessWidget {
   final List<QuestWithProgress> quests;
@@ -113,21 +336,23 @@ class _QuestsSummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completed = quests.where((q) => q.progress?.completed == true).length;
-    final active    = quests.where((q) => q.progress?.completed != true && q.progress != null).length;
+    final completed = quests.where((q) => q.completed).length;
+    final active    = quests.where((q) => q.currentValue > 0 && !q.completed).length;
     final pct = quests.isEmpty ? 0.0 : completed / quests.length;
 
-    return Row(
-      children: [
-        _SummaryChip(icon: Icons.check_circle_rounded, label: '$completed terminées',
-            color: const Color(0xFF10B981)),
-        const SizedBox(width: 8),
-        _SummaryChip(icon: Icons.bolt_rounded, label: '$active en cours',
-            color: const Color(0xFF3B82F6)),
-        const Spacer(),
-        _CircleProgress(pct: pct),
-      ],
-    );
+    return Row(children: [
+      _SummaryChip(
+          icon: Icons.check_circle_rounded,
+          label: '$completed terminées',
+          color: const Color(0xFF10B981)),
+      const SizedBox(width: 8),
+      _SummaryChip(
+          icon: Icons.bolt_rounded,
+          label: '$active en cours',
+          color: const Color(0xFF3B82F6)),
+      const Spacer(),
+      _CircleProgress(pct: pct),
+    ]);
   }
 }
 
@@ -142,13 +367,17 @@ class _SummaryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -161,7 +390,8 @@ class _CircleProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(alignment: Alignment.center, children: [
-      SizedBox(width: 44, height: 44,
+      SizedBox(
+        width: 44, height: 44,
         child: CircularProgressIndicator(
           value: pct,
           strokeWidth: 4,
@@ -170,12 +400,17 @@ class _CircleProgress extends StatelessWidget {
         ),
       ),
       Text('${(pct * 100).round()}%',
-          style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
+          style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF1E3A8A),
+              fontWeight: FontWeight.bold)),
     ]);
   }
 }
 
-// ─── Liste de quêtes ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Liste de quêtes
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuestsList extends StatelessWidget {
   final List<QuestWithProgress> quests;
@@ -190,12 +425,13 @@ class _QuestsList extends StatelessWidget {
           const UniMascot(pose: UniPose.wave, size: 80),
           const SizedBox(height: 12),
           Text(emptyLabel,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 15)),
+              style: const TextStyle(
+                  color: Color(0xFF64748B), fontSize: 15)),
         ]),
       );
     }
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
       itemCount: quests.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, i) => _QuestCard(item: quests[i]),
@@ -203,7 +439,9 @@ class _QuestsList extends StatelessWidget {
   }
 }
 
-// ─── Carte quête ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Carte quête
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuestCard extends StatelessWidget {
   final QuestWithProgress item;
@@ -211,16 +449,15 @@ class _QuestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final q = item.definition;
-    final p = item.progress;
+    final q           = item.definition;
+    final p           = item.progress;
     final isCompleted = item.completed;
-    final isExpired   = p?.resetAt != null && p!.resetAt!.isBefore(DateTime.now()) && !isCompleted;
-    final current = item.currentValue;
-    final target  = item.targetValue;
-    final pct = item.ratio;
+    final current     = item.currentValue;
+    final target      = item.targetValue;
+    final pct         = item.ratio;
 
-    final categoryColor = _categoryColor(q.criteriaType.name);
-    final icon = _categoryIcon(q.criteriaType.name);
+    // Couleur depuis le catalogue (colorHex Appwrite) ou fallback catégorie
+    final categoryColor = _parseColor(q.colorHex);
 
     return Container(
       decoration: BoxDecoration(
@@ -228,129 +465,238 @@ class _QuestCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E3A8A).withOpacity(0.06),
+            color: const Color(0xFF1E3A8A).withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
         ],
         border: isCompleted
-            ? Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 1.5)
+            ? Border.all(
+                color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                width: 1.5)
             : null,
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            // Icône catégorie
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: categoryColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              // Icône catégorie
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  color: categoryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _questIcon(q.criteriaType),
+                  color: categoryColor,
+                  size: 20,
+                ),
               ),
-              child: Icon(icon, color: categoryColor, size: 20),
+              const SizedBox(width: 10),
+              // Titre + XP
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(q.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isCompleted
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFF1E293B),
+                        )),
+                    const SizedBox(height: 2),
+                    Row(children: [
+                      const Icon(Icons.star_rounded,
+                          size: 13, color: Color(0xFFF59E0B)),
+                      const SizedBox(width: 2),
+                      Text('+${q.xpReward} XP',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFF59E0B),
+                              fontWeight: FontWeight.w600)),
+                    ]),
+                  ],
+                ),
+              ),
+              // Statut + countdown
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _StatusBadge(completed: isCompleted),
+                  if (p?.resetAt != null && !isCompleted) ...[
+                    const SizedBox(height: 3),
+                    _CountdownTimer(resetAt: p!.resetAt!),
+                  ],
+                ],
+              ),
+            ]),
+
+            const SizedBox(height: 10),
+
+            Text(q.description,
+                style: const TextStyle(
+                    fontSize: 12, color: Color(0xFF64748B)),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis),
+
+            const SizedBox(height: 10),
+
+            // Barre de progression
+            _ProgressBar(
+              current: current,
+              target: target,
+              pct: pct,
+              color: isCompleted
+                  ? const Color(0xFF10B981)
+                  : categoryColor,
             ),
-            const SizedBox(width: 10),
-            // Titre + XP
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(q.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: isExpired ? Colors.grey : const Color(0xFF1E293B),
-                    )),
-                const SizedBox(height: 2),
-                Row(children: [
-                  const Icon(Icons.star_rounded, size: 13, color: Color(0xFFF59E0B)),
-                  const SizedBox(width: 2),
-                  Text('${q.xpReward} XP',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFFF59E0B),
-                          fontWeight: FontWeight.w600)),
-                ]),
-              ]),
-            ),
-            // Badge statut
-            _StatusBadge(status: isCompleted ? 'completed' : (isExpired ? 'expired' : 'active')),
-          ]),
-
-          const SizedBox(height: 10),
-
-          // Description
-          Text(q.description,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-              maxLines: 2, overflow: TextOverflow.ellipsis),
-
-          const SizedBox(height: 10),
-
-          // Barre de progression
-          _ProgressBar(current: current, target: target, pct: pct,
-              color: isCompleted ? const Color(0xFF10B981) : categoryColor),
-        ]),
+          ],
+        ),
       ),
     );
   }
 
-  Color _categoryColor(String cat) {
-    switch (cat) {
-      case 'attendance':  return const Color(0xFF3B82F6);
-      case 'academic':    return const Color(0xFF8B5CF6);
-      case 'social':      return const Color(0xFFF59E0B);
-      case 'forum':       return const Color(0xFF10B981);
-      case 'streak':      return const Color(0xFFEF4444);
-      case 'leaderboard': return const Color(0xFFEC4899);
-      case 'library':     return const Color(0xFF0EA5E9);
-      default:            return const Color(0xFF6366F1);
+  Color _parseColor(String hex) {
+    try {
+      final h = hex.replaceFirst('#', '');
+      return Color(int.parse('FF$h', radix: 16));
+    } catch (_) {
+      return const Color(0xFF6366F1);
     }
   }
 
-  IconData _categoryIcon(String cat) {
-    switch (cat) {
-      case 'attendance':  return Icons.event_available_rounded;
-      case 'academic':    return Icons.school_rounded;
-      case 'social':      return Icons.groups_rounded;
-      case 'forum':       return Icons.forum_rounded;
-      case 'streak':      return Icons.local_fire_department_rounded;
-      case 'leaderboard': return Icons.leaderboard_rounded;
-      case 'library':     return Icons.menu_book_rounded;
-      default:            return Icons.emoji_events_rounded;
-    }
-  }
+  IconData _questIcon(QuestCriteriaType type) => switch (type) {
+        QuestCriteriaType.attendSession     => Icons.event_available_rounded,
+        QuestCriteriaType.submitAssignment  => Icons.assignment_turned_in_rounded,
+        QuestCriteriaType.earnGrade         => Icons.school_rounded,
+        QuestCriteriaType.postForum         => Icons.forum_rounded,
+        QuestCriteriaType.sendMessage       => Icons.chat_bubble_rounded,
+        QuestCriteriaType.loginStreak       => Icons.local_fire_department_rounded,
+        QuestCriteriaType.completeQuiz      => Icons.quiz_rounded,
+        QuestCriteriaType.perfectQuiz       => Icons.military_tech_rounded,
+        QuestCriteriaType.earnBadge         => Icons.emoji_events_rounded,
+        QuestCriteriaType.reachXp           => Icons.star_rounded,
+        QuestCriteriaType.rankTop           => Icons.leaderboard_rounded,
+        QuestCriteriaType.bestOfWeek        => Icons.workspace_premium_rounded,
+        QuestCriteriaType.bestOfMonth       => Icons.workspace_premium_rounded,
+        QuestCriteriaType.mostActive        => Icons.groups_rounded,
+        QuestCriteriaType.earlyBird         => Icons.wb_sunny_rounded,
+        QuestCriteriaType.nightOwl          => Icons.nightlight_rounded,
+      };
 }
 
-class _StatusBadge extends StatelessWidget {
-  final String status;
-  const _StatusBadge({required this.status});
+// ─────────────────────────────────────────────────────────────────────────────
+//  Countdown timer (se met à jour chaque seconde)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CountdownTimer extends StatefulWidget {
+  final DateTime resetAt;
+  const _CountdownTimer({required this.resetAt});
+
+  @override
+  State<_CountdownTimer> createState() => _CountdownTimerState();
+}
+
+class _CountdownTimerState extends State<_CountdownTimer> {
+  Timer? _timer;
+  Duration _remaining = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _update();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _update());
+  }
+
+  void _update() {
+    final diff = widget.resetAt.difference(DateTime.now());
+    if (mounted) setState(() => _remaining = diff.isNegative ? Duration.zero : diff);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Color bg; Color fg; String label; IconData icon;
-    switch (status) {
-      case 'completed':
-        bg = const Color(0xFF10B981).withOpacity(0.12);
-        fg = const Color(0xFF10B981);
-        label = 'Terminé';
-        icon = Icons.check_circle_rounded;
-        break;
-      case 'expired':
-        bg = Colors.grey.withOpacity(0.12);
-        fg = Colors.grey;
-        label = 'Expiré';
-        icon = Icons.timer_off_rounded;
-        break;
-      default:
-        bg = const Color(0xFF3B82F6).withOpacity(0.12);
-        fg = const Color(0xFF3B82F6);
-        label = 'En cours';
-        icon = Icons.bolt_rounded;
+    if (_remaining == Duration.zero) {
+      return const Text('Réinitialisation…',
+          style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)));
+    }
+
+    final d = _remaining.inDays;
+    final h = _remaining.inHours.remainder(24);
+    final m = _remaining.inMinutes.remainder(60);
+    final s = _remaining.inSeconds.remainder(60);
+
+    final label = d > 0
+        ? '${d}j ${h}h'
+        : h > 0
+            ? '${h}h ${m}min'
+            : '${m}min ${s.toString().padLeft(2, '0')}s';
+
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      const Icon(Icons.timer_outlined, size: 9, color: Color(0xFF94A3B8)),
+      const SizedBox(width: 2),
+      Text(label,
+          style: const TextStyle(
+              fontSize: 9,
+              color: Color(0xFF94A3B8),
+              fontWeight: FontWeight.w500)),
+    ]);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Widgets réutilisables
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StatusBadge extends StatelessWidget {
+  final bool completed;
+  const _StatusBadge({required this.completed});
+
+  @override
+  Widget build(BuildContext context) {
+    if (completed) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF10B981).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.check_circle_rounded,
+              size: 12, color: Color(0xFF10B981)),
+          SizedBox(width: 3),
+          Text('Terminé',
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF10B981),
+                  fontWeight: FontWeight.w600)),
+        ]),
+      );
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 12, color: fg),
-        const SizedBox(width: 3),
-        Text(label, style: TextStyle(fontSize: 11, color: fg, fontWeight: FontWeight.w600)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.bolt_rounded, size: 12, color: Color(0xFF3B82F6)),
+        SizedBox(width: 3),
+        Text('En cours',
+            style: TextStyle(
+                fontSize: 11,
+                color: Color(0xFF3B82F6),
+                fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -361,17 +707,25 @@ class _ProgressBar extends StatelessWidget {
   final int target;
   final double pct;
   final Color color;
-  const _ProgressBar({required this.current, required this.target,
-      required this.pct, required this.color});
+  const _ProgressBar({
+    required this.current,
+    required this.target,
+    required this.pct,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('$current / $target',
-            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+            style: const TextStyle(
+                fontSize: 11, color: Color(0xFF94A3B8))),
         Text('${(pct * 100).round()}%',
-            style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.bold)),
       ]),
       const SizedBox(height: 4),
       ClipRRect(
@@ -387,7 +741,9 @@ class _ProgressBar extends StatelessWidget {
   }
 }
 
-// ─── Erreur ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Erreur
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuestsError extends StatelessWidget {
   final String message;
@@ -402,19 +758,24 @@ class _QuestsError extends StatelessWidget {
           const UniMascot(pose: UniPose.sorry, size: 80),
           const SizedBox(height: 16),
           const Text('Impossible de charger les quêtes',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                   color: Color(0xFF1E293B))),
           const SizedBox(height: 8),
           Text(message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+              style: const TextStyle(
+                  fontSize: 13, color: Color(0xFF64748B))),
         ]),
       ),
     );
   }
 }
 
-// ─── Tab header ──────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Tab header
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _TabDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
