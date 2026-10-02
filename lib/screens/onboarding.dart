@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -266,10 +265,15 @@ class _TopBar extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.22),
+              color: Colors.white.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.40), width: 1),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: Image.asset(
               'assets/brand/uniflow_logo_horizontal.png',
@@ -281,7 +285,7 @@ class _TopBar extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppColors.primaryBlue,
                     letterSpacing: 0.2),
               ),
             ),
@@ -298,7 +302,7 @@ class _TopBar extends StatelessWidget {
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor:
-                      Colors.white.withValues(alpha: 0.2),
+                      Colors.white.withValues(alpha: 0.25),
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
@@ -331,24 +335,25 @@ class _PageContent extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Column(
         children: [
-          // ── Illustration dans une carte verre ─────────────────────────
+          // ── Illustration dans une carte blanche arrondie ──────────────
           Expanded(
             flex: 5,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        width: 1.5),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x1A000000),
+                    blurRadius: 20,
+                    offset: Offset(0, 6),
                   ),
-                  child: _AnimatedIllustration(asset: page.illustration),
-                ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: _AnimatedIllustration(asset: page.illustration),
               ),
             ),
           ),
@@ -414,7 +419,7 @@ class _AnimatedIllustration extends StatelessWidget {
         fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => Center(
           child: Icon(Icons.school_rounded,
-              size: 80, color: Colors.white.withValues(alpha: 0.55)),
+              size: 80, color: AppColors.primaryBlue.withValues(alpha: 0.25)),
         ),
       ),
     );

@@ -47,9 +47,9 @@ class GradientHeader extends StatelessWidget {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
               boxShadow: [
                 BoxShadow(
-                  color: Color(0x40000000),
-                  blurRadius: 24,
-                  offset: Offset(0, 8),
+                  color: Color(0x1A1E3A8A),
+                  blurRadius: 20,
+                  offset: Offset(0, 6),
                 ),
               ],
             ),
@@ -253,16 +253,16 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-/// Carte glassmorphism dark — surface translucide avec bordure subtile.
+/// Carte blanche arrondie — surface claire avec ombre douce.
 ///
-/// Remplace les cartes blanches : fond `#141B2D`, bord glassBorder 0.5px,
-/// clipBehavior pour que les animations intérieures soient masquées proprement.
+/// Remplace l'ancienne carte glassmorphism : fond blanc pur, ombre subtile,
+/// bordure optionnelle `inputBorder`.
 class SectionCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
   final bool bordered;
 
-  /// Couleur d'accentuation de la bordure top — null = glassBorder standard.
+  /// Couleur d'accentuation de la bordure — null = `inputBorder` standard.
   final Color? accentBorder;
 
   const SectionCard({
@@ -276,14 +276,16 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceElevated,
+      color: AppColors.cardWhite,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
         side: bordered
-            ? BorderSide(color: accentBorder ?? AppColors.glassBorder, width: 0.5)
+            ? BorderSide(color: accentBorder ?? AppColors.inputBorder, width: 0.8)
             : BorderSide.none,
       ),
+      shadowColor: const Color(0x0D000000),
+      elevation: 2,
       child: Padding(padding: padding, child: child),
     );
   }
@@ -708,8 +710,8 @@ class ErrorBanner extends StatelessWidget {
 
   const ErrorBanner({super.key, required this.message, this.onRetry});
 
-  /// Couleur texte d'erreur lisible sur fond dark.
-  static const Color _ink = Color(0xFFFCA5A5);
+  /// Couleur texte d'erreur sur fond clair.
+  static const Color _ink = AppColors.dangerDark;
 
   @override
   Widget build(BuildContext context) {
