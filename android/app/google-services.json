@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:457488057773:android:5985ecd7124b28faeb0d24",
+        "android_client_info": {
+          "package_name": "com.kernelforge.uniflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVC9ILO4NQ4Tc9ZGCyznjmqd1GcyPFr18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:457488057773:android:1f70b40c3bafe98eeb0d24",
         "android_client_info": {
           "package_name": "com.uniflow.kernelforge"

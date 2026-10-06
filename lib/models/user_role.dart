@@ -319,21 +319,20 @@ const List<NavDestination> navDestinations = [
     path: '/messages',
     label: 'Messages',
     icon: UniIcons.messages,
-    roles: universityRoles,
+    roles: everyRole,
     barRoles: universityRoles,
   ),
   NavDestination(
     path: '/notifications',
     label: 'Notifications',
     icon: UniIcons.notifications,
-    roles: universityRoles,
+    roles: everyRole,
   ),
   NavDestination(
     path: '/quetes',
     label: 'Quêtes',
     icon: UniIcons.assignments,
     roles: everyRole,
-    barRoles: everyRole,
   ),
   NavDestination(
     path: '/equipe',
@@ -373,6 +372,46 @@ List<NavDestination> overflowFor(UniFlowRole role) {
   final barre = bottomBarFor(role).map((d) => d.path).toSet();
   return destinationsFor(role).where((d) => !barre.contains(d.path)).toList();
 }
+
+/// Nombre maximal d'onglets visibles dans la barre du bas mobile. Le reste
+/// passe dans le bouton « Menu » (5e place, toujours à droite).
+const int maxBottomTabs = 4;
+
+/// Ordre de priorité des onglets visibles : l'accueil, les cours, les quêtes
+/// (demandées visibles partout) puis la messagerie.
+const List<String> _tabPriority = [
+  '/accueil',
+  '/ues',
+  '/matieres',
+  '/etudiants',
+  '/quetes',
+  '/messages',
+  '/taches',
+  '/presence',
+  '/notes',
+  '/comptes',
+  '/enseignants',
+  '/agenda',
+];
+
+/// Les [maxBottomTabs] onglets réellement affichés dans la barre du bas.
+List<NavDestination> primaryTabsFor(UniFlowRole role) {
+  final candidats = bottomBarFor(role).where((d) => d.path != '/settings').toList();
+  int rang(NavDestination d) {
+    final i = _tabPriority.indexOf(d.path);
+    return i == -1 ? _tabPriority.length : i;
+  }
+
+  candidats.sort((a, b) => rang(a).compareTo(rang(b)));
+  return candidats.take(maxBottomTabs).toList();
+}
+
+/// Tout ce qui n'est pas dans la barre : ouvert par le bouton « Menu ».
+List<NavDestination> menuEntriesFor(UniFlowRole role) {
+  final visibles = primaryTabsFor(role).map((d) => d.path).toSet();
+  return destinationsFor(role).where((d) => !visibles.contains(d.path)).toList();
+}
+
 
 /// Vrai si [role] a le droit d'atteindre [location].
 ///

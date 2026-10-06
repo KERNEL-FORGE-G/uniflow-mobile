@@ -68,16 +68,37 @@ class AppShell extends ConsumerWidget {
 
   const AppShell({super.key, required this.child, required this.location});
 
-  int _currentIndex(List<NavDestination> tabs) {
-    final i = tabs.indexWhere((t) => location.startsWith(t.path));
-    return i == -1 ? 0 : i;
+  /// Index de l'onglet actif, ou -1 si la page courante vit dans le menu.
+  int _currentIndex(List<NavDestination> tabs) =>
+      tabs.indexWhere((t) => location.startsWith(t.path));
+
+  void _openMenu(BuildContext context, List<NavDestination> entries) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.cardWhite,
+      showDragHandle: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) => _MenuSheet(
+        entries: entries,
+        location: location,
+        onSelect: (path) {
+          Navigator.of(sheetContext).pop();
+          context.go(path);
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(currentRoleProvider);
-    final tabs = bottomBarFor(role);
+    final tabs = primaryTabsFor(role);
+    final menu = menuEntriesFor(role);
     final current = _currentIndex(tabs);
+    final menuActive = menu.any((d) => location.startsWith(d.path));
     final dock = uniDockFor(bottomEdgeAt(location, role));
     final reduce = MediaQuery.disableAnimationsOf(context);
 
@@ -124,35 +145,45 @@ class AppShell extends ConsumerWidget {
       // la région en bas de l'écran qui en décide.
       bottomNavigationBar: AnnotatedRegion<SystemUiOverlayStyle>(
         value: AppSystemUi.surClair,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            color: AppColors.cardWhite,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-            border: Border(top: BorderSide(color: AppColors.inputBorder)),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x141E3A8A),
-                blurRadius: 20,
-                offset: Offset(0, -6),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Container(
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.cardWhite,
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: AppColors.inputBorder, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              height: 68,
-              child: Row(
-                children: List.generate(tabs.length, (i) {
-                  final t = tabs[i];
-                  return Expanded(
-                    child: _NavTab(
-                      icon: t.icon,
-                      label: t.label,
-                      selected: i == current,
-                      onTap: () => context.go(t.path),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < tabs.length; i++)
+                      Expanded(
+                        child: _NavTab(
+                          icon: tabs[i].icon,
+                          label: tabs[i].label,
+                          selected: i == current,
+                          onTap: () => context.go(tabs[i].path),
+                        ),
+                      ),
+                    Expanded(
+                      child: _MenuTab(
+                        selected: current == -1 && menuActive,
+                        onTap: () => _openMenu(context, menu),
+                      ),
                     ),
-                  );
-                }),
+                  ],
+                ),
               ),
             ),
           ),
@@ -195,20 +226,20 @@ class _NavTab extends StatelessWidget {
       // même type de widget et ne jouerait aucune transition.
       key: ValueKey(selected),
       color: color,
-      size: 22,
+      size: 20,
     );
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: selected ? AppColors.primary50 : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
@@ -226,7 +257,7 @@ class _NavTab extends StatelessWidget {
                       child: glyph,
                     ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
             Flexible(
               child: Text(
                 label,
@@ -235,12 +266,184 @@ class _NavTab extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 10.5,
+                  letterSpacing: -0.1,
                   color: color,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 5e place de la barre : le bouton « Menu ». Il s'allume quand la page
+/// courante fait partie des entrées repliées dans le menu.
+class _MenuTab extends StatelessWidget {
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _MenuTab({required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primaryBlue : AppColors.textSecondary;
+    return Semantics(
+      button: true,
+      label: 'Menu, autres rubriques',
+      child: InkWell(
+        key: const ValueKey('nav-menu'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 4),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primary50 : Colors.transparent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Icon(Icons.menu_rounded, color: color, size: 22),
+              ),
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  'Menu',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: color,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Feuille du menu : grille de toutes les rubriques qui ne tiennent pas dans
+/// la barre (emploi du temps, devoirs, forum, notifications, réglages…).
+class _MenuSheet extends StatelessWidget {
+  final List<NavDestination> entries;
+  final String location;
+  final ValueChanged<String> onSelect;
+
+  const _MenuSheet({
+    required this.entries,
+    required this.location,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.75;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Toutes les rubriques',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Accède au reste d’UniFlow en un geste.',
+                style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  itemCount: entries.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.95,
+                  ),
+                  itemBuilder: (context, i) {
+                    final d = entries[i];
+                    final active = location.startsWith(d.path);
+                    return InkWell(
+                      onTap: () => onSelect(d.path),
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: active ? AppColors.primary50 : AppColors.background,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: active ? AppColors.primaryBlue : AppColors.inputBorder,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.cardWhite,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryBlue.withValues(alpha: 0.10),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: PhosphorIcon(
+                                  d.icon(active ? UniIconStyle.fill : UniIconStyle.duotone),
+                                  size: 22,
+                                  color: AppColors.primaryBlue,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              d.label,
+                              maxLines: 2,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                height: 1.2,
+                                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

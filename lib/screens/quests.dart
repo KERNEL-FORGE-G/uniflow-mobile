@@ -33,22 +33,22 @@ class QuestsScreen extends ConsumerWidget {
 //  Corps
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _QuestsBody extends StatefulWidget {
+class _QuestsBody extends ConsumerStatefulWidget {
   final List<QuestWithProgress> quests;
   const _QuestsBody({required this.quests});
 
   @override
-  State<_QuestsBody> createState() => _QuestsBodyState();
+  ConsumerState<_QuestsBody> createState() => _QuestsBodyState();
 }
 
-class _QuestsBodyState extends State<_QuestsBody>
+class _QuestsBodyState extends ConsumerState<_QuestsBody>
     with SingleTickerProviderStateMixin {
   late TabController _tab;
 
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 3, vsync: this);
+    _tab = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -59,14 +59,16 @@ class _QuestsBodyState extends State<_QuestsBody>
 
   @override
   Widget build(BuildContext context) {
-    final weekly  = widget.quests.where((q) => q.definition.period == QuestPeriod.weekly).toList();
+    final daily   = widget.quests.where((q) => q.definition.period == QuestPeriod.daily).toList();
     final monthly = widget.quests.where((q) => q.definition.period == QuestPeriod.monthly).toList();
     final yearly  = widget.quests.where((q) => q.definition.period == QuestPeriod.yearly).toList();
+    final all250  = ref.watch(all250QuestsProvider).valueOrNull ?? widget.quests;
 
     // Trier : en cours d'abord, puis non commencées, puis terminées
-    _sortQuests(weekly);
+    _sortQuests(daily);
     _sortQuests(monthly);
     _sortQuests(yearly);
+    _sortQuests(all250);
 
     return NestedScrollView(
       headerSliverBuilder: (context, inner) => [
@@ -75,7 +77,7 @@ class _QuestsBodyState extends State<_QuestsBody>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _QuestsHeader(quests: widget.quests),
-              _Leaderboard(),
+              const _Leaderboard(),
               Container(
                 color: const Color(0xFFF0F7FF),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -93,10 +95,13 @@ class _QuestsBodyState extends State<_QuestsBody>
               unselectedLabelColor: Colors.grey,
               indicatorColor: const Color(0xFF0D9488),
               indicatorWeight: 3,
+              isScrollable: false,
+              labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
               tabs: [
-                Tab(text: 'Semaine (${weekly.length})'),
+                Tab(text: 'Jour (${daily.length})'),
                 Tab(text: 'Mois (${monthly.length})'),
                 Tab(text: 'Année (${yearly.length})'),
+                const Tab(text: 'Tout (250)'),
               ],
             ),
           ),
@@ -105,9 +110,10 @@ class _QuestsBodyState extends State<_QuestsBody>
       body: TabBarView(
         controller: _tab,
         children: [
-          _QuestsList(quests: weekly,  emptyLabel: 'Aucune quête hebdomadaire'),
-          _QuestsList(quests: monthly, emptyLabel: 'Aucune quête mensuelle'),
-          _QuestsList(quests: yearly,  emptyLabel: 'Aucune quête annuelle'),
+          _QuestsList(quests: daily,   emptyLabel: 'Aucune quête du jour disponible'),
+          _QuestsList(quests: monthly, emptyLabel: 'Aucune quête mensuelle disponible'),
+          _QuestsList(quests: yearly,  emptyLabel: 'Aucune quête annuelle disponible'),
+          _QuestsList(quests: all250,  emptyLabel: 'Catalogue de 250 quêtes en cours de chargement'),
         ],
       ),
     );
@@ -202,44 +208,141 @@ class _QuestsHeader extends StatelessWidget {
 //  Leaderboard top 3
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _Leaderboard extends ConsumerWidget {
+class _Leaderboard extends ConsumerStatefulWidget {
   const _Leaderboard();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lbAsync = ref.watch(weeklyLeaderboardProvider);
-    return lbAsync.when(
-      loading: () => const SizedBox(height: 80,
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (entries) {
-        if (entries.isEmpty) return const SizedBox.shrink();
-        final top3 = entries.take(3).toList();
-        return Container(
-          color: const Color(0xFF1E3A8A),
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  ConsumerState<_Leaderboard> createState() => _LeaderboardState();
+}
+
+class _LeaderboardState extends ConsumerState<_Leaderboard> {
+  int _periodIndex = 0; // 0: semaine, 1: mois, 2: année
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = switch (_periodIndex) {
+      1 => monthlyLeaderboardProvider,
+      2 => annualLeaderboardProvider,
+      _ => weeklyLeaderboardProvider,
+    };
+    final lbAsync = ref.watch(provider);
+
+    final title = switch (_periodIndex) {
+      1 => '🏆  Classement du mois',
+      2 => '🏆  Classement annuel',
+      _ => '🏆  Classement de la semaine',
+    };
+
+    return Container(
+      color: const Color(0xFF1E3A8A),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('🏆  Meilleurs de la semaine',
-                  style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5)),
-              const SizedBox(height: 10),
-              Row(
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              // Sélecteur de période
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _PeriodChip(
+                      label: 'Sem.',
+                      selected: _periodIndex == 0,
+                      onTap: () => setState(() => _periodIndex = 0),
+                    ),
+                    _PeriodChip(
+                      label: 'Mois',
+                      selected: _periodIndex == 1,
+                      onTap: () => setState(() => _periodIndex = 1),
+                    ),
+                    _PeriodChip(
+                      label: 'Année',
+                      selected: _periodIndex == 2,
+                      onTap: () => setState(() => _periodIndex = 2),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          lbAsync.when(
+            loading: () => const SizedBox(
+              height: 70,
+              child: Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.white70),
+                ),
+              ),
+            ),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (entries) {
+              if (entries.isEmpty) return const SizedBox.shrink();
+              final top3 = entries.take(3).toList();
+              return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: top3.asMap().entries.map((e) {
                   final rank  = e.key;
                   final entry = e.value;
                   return _LeaderboardItem(entry: entry, rank: rank);
                 }).toList(),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
+    );
+  }
+}
+
+class _PeriodChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PeriodChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+            color: selected ? const Color(0xFF1E3A8A) : Colors.white70,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -751,23 +854,52 @@ class _QuestsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const UniMascot(pose: UniPose.sorry, size: 80),
-          const SizedBox(height: 16),
-          const Text('Impossible de charger les quêtes',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B))),
-          const SizedBox(height: 8),
-          Text(message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 13, color: Color(0xFF64748B))),
-        ]),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F7FF),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const UniMascot(pose: UniPose.graduate, size: 90),
+              const SizedBox(height: 20),
+              const Text(
+                'Quêtes bientôt disponibles',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Le catalogue de quêtes et défis du campus est en cours de synchronisation. Reviens bientôt pour accumuler des points XP !',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                label: const Text('Retour à l\'accueil'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E3A8A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

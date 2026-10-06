@@ -97,7 +97,12 @@ void main() {
           (tester) async {
             tester.view.physicalSize = size;
             tester.view.devicePixelRatio = 1.0;
-            addTearDown(tester.view.reset);
+            FlutterErrorDetails? errorDetails;
+            final prevOnError = FlutterError.onError;
+            FlutterError.onError = (details) {
+              errorDetails = details;
+              prevOnError?.call(details);
+            };
 
             await tester.pumpWidget(
               MediaQuery(
@@ -108,9 +113,15 @@ void main() {
             // Deux passes : la première construit l'arbre, la seconde peint —
             // c'est à la peinture que Flutter signale un débordement.
             await tester.pump();
-            await tester.pump(const Duration(milliseconds: 50));
+            await tester.pump(const Duration(milliseconds: 300));
 
-            expect(tester.takeException(), isNull);
+            FlutterError.onError = prevOnError;
+
+            final ex = tester.takeException();
+            if (ex != null) {
+              debugPrint('TEST_DETAILS:\n${errorDetails?.toString()}');
+            }
+            expect(ex, isNull);
           },
         );
       }

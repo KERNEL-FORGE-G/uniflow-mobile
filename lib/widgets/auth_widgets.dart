@@ -147,46 +147,66 @@ class _Hero extends StatelessWidget {
     final mascotSize = narrow ? 92.0 : 118.0;
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: kAuthHeroMinHeight + topInset),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, topInset + 10, 20, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                if (onBack != null)
-                  _RoundIconButton(icon: UniIcons.back.bold, tooltip: 'Retour', onTap: onBack!)
-                else if (showBrand)
-                  const BrandChip(),
-              ],
-            ),
-            const SizedBox(height: 14),
-            _FadeUp(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 18),
-                      child: headline == null
-                          ? const SizedBox.shrink()
-                          : _HeadlineText(headline: headline!, narrow: narrow),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  // Uni se tient sur le bord de la feuille : son bas est aligné
-                  // sur celui du bandeau.
-                  UniMascot(pose: pose, size: mascotSize, effects: false),
-                ],
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Illustration décorative en fond à droite (books 3D)
+          Positioned(
+            right: -10,
+            bottom: 0,
+            child: Opacity(
+              opacity: 0.18,
+              child: Image.asset(
+                'assets/mascot/archlord_uni_duo_solid.webp',
+                height: kAuthHeroMinHeight * 1.1,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, __, ___) => const SizedBox(),
               ),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, topInset + 10, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    if (onBack != null)
+                      _RoundIconButton(icon: UniIcons.back.bold, tooltip: 'Retour', onTap: onBack!)
+                    else if (showBrand)
+                      const BrandChip(),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _FadeUp(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 18),
+                          child: headline == null
+                              ? const SizedBox.shrink()
+                              : _HeadlineText(headline: headline!, narrow: narrow),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Mascotte Uni sur le bandeau d'authentification mobile
+                      UniMascot(pose: pose, size: mascotSize, effects: false),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
 
 class _HeadlineText extends StatelessWidget {
   final AuthHeadline headline;

@@ -39,6 +39,7 @@ import '../screens/schedule.dart';
 import '../screens/settings.dart';
 import '../screens/student_detail.dart';
 import '../screens/students_list.dart';
+import '../screens/subscription_screen.dart';
 import '../screens/teacher_assignments.dart';
 import '../screens/teacher_detail.dart';
 import '../screens/teachers_list.dart';
@@ -214,6 +215,7 @@ final List<ShellPage> shellPages = [
   ShellPage.every(path: '/taches', builder: (_) => const PersonalTasksScreen(), edge: BottomEdge.fab),
   ShellPage.every(path: '/agenda', builder: (_) => const PersonalAgendaScreen(), edge: BottomEdge.fab),
   ShellPage(path: '/equipe', builder: (_) => const TeamsScreen()),
+  ShellPage(path: '/abonnement', builder: (_) => const SubscriptionScreen()),
   ShellPage(path: '/settings', builder: (_) => const SettingsScreen()),
   ShellPage(path: '/a-propos', builder: (_) => const AboutScreen()),
   // Hors de la barre du bas : cette page ne s'atteint qu'en se faisant

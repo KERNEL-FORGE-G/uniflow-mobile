@@ -19,6 +19,7 @@ import '../widgets/common.dart';
 import '../widgets/motion.dart';
 import '../widgets/uni/uni_mascot.dart';
 import '../widgets/uni_icons.dart';
+import '../widgets/gamification/gamification_widgets.dart';
 // `gradesListProvider`, `assignmentBoardProvider` et
 // `teacherAssignmentsProvider` sont déclarés dans leurs écrans : l'accueil les
 // réutilise plutôt que de relancer ses propres requêtes.
@@ -90,40 +91,19 @@ class DashboardScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SyncIndicator(),
-                // Affiché seulement si une photo existe : sans elle, l'en-tête
-                // reste exactement celui d'avant, logo compris.
-                if (user?.avatarFileId != null && user!.avatarFileId!.isNotEmpty) ...[
-                  Avatar(
-                    initials: initialsOf(user.name),
-                    avatarFileId: user.avatarFileId,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    // L'écusson est bleu marine : posé à même le dégradé bleu
-                    // foncé de l'en-tête, son mortier s'y confondait. La
-                    // pastille claire le détache.
-                    child: ColoredBox(
-                      color: AppColors.cardWhite,
-                      child: Padding(
-                        padding: const EdgeInsets.all(3),
-                        child: Image.asset(
-                          'assets/brand/uniflow_marque.png',
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                          errorBuilder: (_, __, ___) => const PhosphorIcon(
-                            PhosphorIconsFill.graduationCap,
-                            color: AppColors.primaryBlue,
-                            size: 26,
-                          ),
-                        ),
-                      ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () => context.push('/profil'),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2), width: 1.5),
+                    ),
+                    child: Avatar(
+                      initials: initialsOf(user?.name ?? 'UniFlow'),
+                      avatarFileId: user?.avatarFileId,
+                      size: 38,
                     ),
                   ),
                 ),
@@ -224,6 +204,24 @@ class _LearnerHome extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Bannière hero « Book Lending » — mascotte + CTA ───────────────
+        const _DashHeroBanner(),
+        const SizedBox(height: 18),
+
+        // ── 4 Actions rapides juste sous le hero (style Book Lending) ─────
+        _ActionGrid(actions: role == UniFlowRole.delegate ? _delegateActions : _studentActions),
+        const SizedBox(height: 24),
+
+        // ── Cours du jour / Recommandés (cartes horizontales avec thumbnail)
+        SectionTitle(
+          title: 'Cours du jour',
+          icon: UniIcons.schedule(),
+          trailing: _SeeAll(onTap: () => context.push('/emploi-du-temps')),
+        ),
+        _TodaySessions(schedulesAsync: schedulesAsync),
+        const SizedBox(height: 24),
+
+        // ── Vue d'ensemble (Statistiques clés) ───────────────────────────
         SectionTitle(title: 'Vue d\'ensemble', icon: UniIcons.statistics()),
         Row(
           children: [
@@ -241,6 +239,7 @@ class _LearnerHome extends ConsumerWidget {
                 ),
                 icon: UniIcons.grades(),
                 color: AppColors.primaryBlue,
+                imageAsset: 'assets/illustrations/course_grades.jpg',
               ),
             ),
             const SizedBox(width: 12),
@@ -249,28 +248,21 @@ class _LearnerHome extends ConsumerWidget {
                 index: 1,
                 label: 'Devoirs en cours',
                 value: assignmentsAsync.when(
-                  // « En cours » = ce qui reste à rendre, retards compris. Un
-                  // devoir manqué n'est pas « en cours », il est manqué — mais
-                  // le compter ici évite qu'il disparaisse de l'accueil.
                   data: (board) => '${board.todo.length + board.overdue.length}',
                   loading: () => '...',
                   error: (_, __) => '!',
                 ),
                 icon: UniIcons.assignments(),
                 color: AppColors.warning,
+                imageAsset: 'assets/illustrations/course_books.jpg',
                 onTap: () => context.push('/devoirs'),
               ),
             ),
           ],
         ),
         const SizedBox(height: 24),
-        SectionTitle(
-          title: 'Cours du jour',
-          icon: UniIcons.schedule(),
-          trailing: _SeeAll(onTap: () => context.push('/emploi-du-temps')),
-        ),
-        _TodaySessions(schedulesAsync: schedulesAsync),
-        const SizedBox(height: 24),
+
+        // ── Mes badges ──────────────────────────────────────────────────
         SectionTitle(
           title: 'Mes badges',
           icon: UniIcons.badges(),
@@ -289,9 +281,28 @@ class _LearnerHome extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 24),
-        const SectionTitle(title: 'Actions rapides', icon: PhosphorIconsDuotone.lightning),
-        _ActionGrid(actions: role == UniFlowRole.delegate ? _delegateActions : _studentActions),
+
+        // ── Rappel programme du jour ─────────────────────────────────────
+        SectionTitle(
+          title: 'Rappel du jour',
+          icon: PhosphorIconsDuotone.bellRinging,
+          trailing: _SeeAll(onTap: () => context.push('/emploi-du-temps')),
+        ),
+        DailyReminderCard(
+          onViewSchedule: () => context.push('/emploi-du-temps'),
+        ),
         const SizedBox(height: 24),
+
+        // ── Résumé quêtes actives ─────────────────────────────────────────
+        SectionTitle(
+          title: 'Mes quêtes',
+          icon: UniIcons.tasks(),
+          trailing: _SeeAll(onTap: () => context.push('/quetes')),
+        ),
+        const QuestSummaryWidget(),
+        const SizedBox(height: 24),
+
+        // ── Prochains devoirs ─────────────────────────────────────────────
         SectionTitle(
           title: 'Prochains devoirs',
           icon: UniIcons.assignments(),
@@ -342,6 +353,7 @@ class _TeacherHome extends ConsumerWidget {
                 caption: mine.isEmpty && !loading ? 'Aucun cours à votre nom' : null,
                 icon: UniIcons.courses(),
                 color: AppColors.primaryBlue,
+                imageAsset: 'assets/illustrations/course_schedule.jpg',
                 onTap: () => context.push('/ues'),
               ),
             ),
@@ -354,6 +366,7 @@ class _TeacherHome extends ConsumerWidget {
                 caption: 'dans votre périmètre',
                 icon: UniIcons.students(),
                 color: AppColors.teal,
+                imageAsset: 'assets/illustrations/hero_books.jpg',
                 onTap: () => context.push('/etudiants'),
               ),
             ),
@@ -369,6 +382,7 @@ class _TeacherHome extends ConsumerWidget {
                 ),
                 icon: UniIcons.assignments(),
                 color: AppColors.warning,
+                imageAsset: 'assets/illustrations/course_books.jpg',
                 onTap: () => context.push('/devoirs'),
               ),
             ),
@@ -467,6 +481,7 @@ class _AdminHome extends ConsumerWidget {
                 value: loading ? '...' : '${students.length}',
                 icon: UniIcons.students(),
                 color: AppColors.primaryBlue,
+                imageAsset: 'assets/illustrations/hero_books.jpg',
                 onTap: () => context.push('/etudiants'),
               ),
             ),
@@ -478,6 +493,7 @@ class _AdminHome extends ConsumerWidget {
                 value: loading ? '...' : '${teachers.length}',
                 icon: UniIcons.teachers(),
                 color: AppColors.teal,
+                imageAsset: 'assets/illustrations/course_schedule.jpg',
                 onTap: () => context.push('/enseignants'),
               ),
             ),
@@ -493,6 +509,7 @@ class _AdminHome extends ConsumerWidget {
                 value: loading ? '...' : '${courses.length}',
                 icon: UniIcons.courseUnit(),
                 color: AppColors.purple,
+                imageAsset: 'assets/illustrations/course_books.jpg',
                 onTap: () => context.push('/ues'),
               ),
             ),
@@ -504,6 +521,7 @@ class _AdminHome extends ConsumerWidget {
                 value: today == null ? '...' : '$today',
                 icon: UniIcons.agenda(),
                 color: AppColors.warning,
+                imageAsset: 'assets/illustrations/course_grades.jpg',
                 onTap: () => context.push('/emploi-du-temps'),
               ),
             ),
@@ -705,15 +723,67 @@ class _TodaySessions extends StatelessWidget {
       data: (all) {
         final today = sessionsOn(all, DateTime.now());
         if (today.isEmpty) {
-          return SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+          final upcoming = all.take(3).toList();
+          if (upcoming.isNotEmpty) {
+            return Column(
+              children: [
+                SectionCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.teal.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const PhosphorIcon(PhosphorIconsDuotone.calendarCheck, color: AppColors.teal, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pas de cours aujourd\'hui',
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppColors.textPrimary),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Voici vos prochaines séances de la semaine :',
+                              style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                for (var i = 0; i < upcoming.length; i++)
+                  _SessionRow(
+                    index: i,
+                    start: normalizeTime(upcoming[i].startTime),
+                    end: normalizeTime(upcoming[i].endTime),
+                    title: upcoming[i].courseName.isNotEmpty ? upcoming[i].courseName : upcoming[i].courseCode,
+                    code: upcoming[i].courseCode,
+                    subtitle: [
+                      upcoming[i].dayOfWeek,
+                      if (upcoming[i].classroom.trim().isNotEmpty) upcoming[i].classroom.trim(),
+                    ].join(' · '),
+                    color: subjectColor(upcoming[i].courseCode),
+                  ),
+              ],
+            );
+          }
+
+          return const SectionCard(
+            padding: EdgeInsets.symmetric(vertical: 12),
             child: EmptyState(
               icon: PhosphorIconsDuotone.coffee,
               title: 'Pas de cours aujourd\'hui',
-              message: all.isEmpty
-                  ? 'Aucune séance n\'est enregistrée pour votre périmètre.'
-                  : 'Profitez-en pour avancer sur vos devoirs.',
-              pose: UniPose.sleeping,
+              message: 'Profitez-en pour avancer sur vos devoirs et quêtes actives !',
+              pose: UniPose.thinking,
             ),
           );
         }
@@ -766,9 +836,8 @@ class _TodaySessions extends StatelessWidget {
 }
 
 /// Une séance : colonne des heures, tuile de la matière, titre et détail.
-///
-/// La tuile porte `subjectIcon(titre, code)` dans la couleur du cours : c'est
-/// la même icône que sur la carte du cours et dans l'emploi du temps.
+/// Une séance : carte horizontale style « Book Lending » avec illustration,
+/// titre, horaires et bouton pill d'accès rapide.
 class _SessionRow extends StatelessWidget {
   final String start;
   final String end;
@@ -791,47 +860,99 @@ class _SessionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: SectionCard(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 46,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(start,
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textPrimary)),
-                  Text(end, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-                ],
-              ),
-            ),
-            IconTile(
-              icon: subjectIcon(title, code: code),
-              color: color,
-              size: IconTile.dense,
-              index: index,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppColors.textPrimary),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push('/emploi-du-temps'),
+          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+          child: SectionCard(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Tuile icône de la matière stylisée aux couleurs de la marque
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.bodySmall),
-                  ],
-                ],
-              ),
+                  alignment: Alignment.center,
+                  child: IconTile(
+                    icon: subjectIcon(title, code: code),
+                    color: color,
+                    size: IconTile.dense,
+                    index: index,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // Informations du cours (Titre, heure et salle)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PhosphorIcon(PhosphorIconsBold.clock, size: 12, color: AppColors.teal),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$start - $end',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.teal,
+                              ),
+                            ),
+                            if (subtitle.isNotEmpty) ...[
+                              const Text(' · ', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                              Text(
+                                subtitle,
+                                style: AppTextStyles.bodySmall,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Bouton pill d'action style « Borrow it »
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary50,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: AppColors.primary100, width: 1),
+                  ),
+                  child: const Text(
+                    'Voir',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -942,32 +1063,241 @@ class _PlainRow extends StatelessWidget {
   }
 }
 
-/// Grille 2 × 2 des raccourcis.
+/// Bannière hero du dashboard — style « Book Lending » : carte arrondie avec
+/// dégradé bleu → teal, texte de bienvenue à gauche, mascotte Uni à droite.
+class _DashHeroBanner extends ConsumerWidget {
+  const _DashHeroBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final first = (user?.name ?? '').split(RegExp(r'\s+')).first;
+    return Container(
+      margin: EdgeInsets.zero,
+      height: 148,
+      decoration: BoxDecoration(
+        gradient: AppColors.dashHeroBannerGradient,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A8A).withValues(alpha: 0.22),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Cercle décoratif transparent à droite
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Container(
+              width: 130,
+              height: 130,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 30,
+            bottom: -15,
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          // Texte à gauche
+          Positioned(
+            left: 20,
+            top: 0,
+            bottom: 0,
+            right: 130,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    first.isEmpty ? 'Bienvenue !' : 'Bonjour, $first !',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Prêt pour vos cours\ndu jour ?',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.80),
+                      fontSize: 12.5,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () => context.push('/emploi-du-temps'),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Mon emploi du temps',
+                            style: TextStyle(
+                              color: AppColors.primaryBlue,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          PhosphorIcon(
+                            PhosphorIconsBold.arrowRight,
+                            size: 11,
+                            color: AppColors.primaryBlue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Mascotte Uni à droite
+          Positioned(
+            right: -4,
+            bottom: 0,
+            child: Image.asset(
+              'assets/mascot/uni_wave.webp',
+              height: 148,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox(width: 110),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Grille 4 colonnes de raccourcis — style « Book Lending » : icônes rondes
+/// blanches avec ombre douce, libellé en dessous.
 class _ActionGrid extends StatelessWidget {
   final List<_QuickAction> actions;
   const _ActionGrid({required this.actions});
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      // 2.5 était trop plat : la cellule descendait sous la hauteur de son
-      // contenu (pastille + libellé sur deux lignes).
-      childAspectRatio: 2.1,
+    return Row(
       children: [
         for (var i = 0; i < actions.length; i++)
-          _ActionCard(
-            icon: actions[i].icon,
-            label: actions[i].label,
-            color: actions[i].color,
-            index: i,
-            onTap: () => context.push(actions[i].route),
+          Expanded(
+            child: _ActionIcon(
+              icon: actions[i].icon,
+              label: actions[i].label,
+              color: actions[i].color,
+              index: i,
+              onTap: () => context.push(actions[i].route),
+            ),
           ),
       ],
+    );
+  }
+}
+
+/// Raccourci rond — style « Book Lending » : fond blanc avec ombre, icône colorée.
+class _ActionIcon extends StatelessWidget {
+  final PhosphorIconData icon;
+  final String label;
+  final Color color;
+  final int index;
+  final VoidCallback onTap;
+
+  const _ActionIcon({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.index,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.cardWhite,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.18),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+                BoxShadow(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: PhosphorIcon(
+                icon,
+                size: 24,
+                color: color,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Text(
+              label,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,45 +4,60 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/onboarding_provider.dart';
 import '../providers/providers.dart';
-import '../theme/app_theme.dart';
+import '../widgets/uni/mascot_dialogue.dart';
 import '../widgets/uni/uni_mascot.dart';
 import '../widgets/uni/archlord_mascot.dart';
-import '../widgets/uni/mascot_dialogue.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  DONNÉES DES PAGES
+//  DONNÉES — une page = une image + une palette + un texte
 // ─────────────────────────────────────────────────────────────────────────────
 
-class OnboardingPage {
-  final String illustration;
+class _OPage {
+  final String bgImage;
+  final Color accentColor;     // couleur principale de la page
+  final Color cardColor;       // fond de la card inférieure
+  final Color textColor;       // couleur du texte dans la card
+  final String tagline;
   final String title;
-  final String subtitle;
+  final String body;
+  final List<_Chip> chips;
   final List<DialogueLine> dialogue;
   final UniPose uniPose;
   final ArchlordPose archlordPose;
-  final Color accentColor;
-  final Color bgFrom;
-  final Color bgTo;
 
-  const OnboardingPage({
-    required this.illustration,
+  const _OPage({
+    required this.bgImage,
+    required this.accentColor,
+    required this.cardColor,
+    required this.textColor,
+    required this.tagline,
     required this.title,
-    required this.subtitle,
+    required this.body,
+    this.chips = const [],
     this.dialogue = const [],
-    this.uniPose = UniPose.pointing,
-    this.archlordPose = ArchlordPose.explain,
-    this.accentColor = AppColors.primaryBlue,
-    this.bgFrom = const Color(0xFF1E3A8A),
-    this.bgTo = const Color(0xFF2D5BE3),
+    this.uniPose = UniPose.wave,
+    this.archlordPose = ArchlordPose.wave,
   });
 }
 
-const List<OnboardingPage> onboardingPages = [
-  OnboardingPage(
-    illustration: 'assets/onboarding/onboarding_2_univers.webp',
-    title: 'Ton emploi du temps\ntoujours à jour',
-    subtitle:
-        'Séances filtrées sur ta filière et ton niveau,\ndisponible même hors ligne.',
+class _Chip {
+  final String icon;
+  final String label;
+  const _Chip(this.icon, this.label);
+}
+
+// Palette : chaque page a son identité chromatique forte
+// (bleu marine, teal, violet, corail) — fond image + card colorée assortie
+const _kPages = [
+  _OPage(
+    bgImage: 'assets/onboarding/onboarding_1_bienvenue.webp',
+    accentColor: Color(0xFF1E3A8A),  // bleu marine
+    cardColor: Color(0xFF1E3A8A),
+    textColor: Colors.white,
+    tagline: 'BIENVENUE',
+    title: 'Ton planning,\ntoujours à jour',
+    body: 'Emploi du temps filtré sur ta filière,\navailable même hors ligne.',
+    chips: [_Chip('📅', 'Hors ligne'), _Chip('🔔', 'Rappels auto')],
     dialogue: [
       DialogueLine.archlord('UniFlow affiche seulement tes cours — pas ceux de toute la fac.'),
       DialogueLine.uni('Ta filière, ton niveau, tes cours. Rien de plus.'),
@@ -50,63 +65,63 @@ const List<OnboardingPage> onboardingPages = [
     ],
     uniPose: UniPose.pointing,
     archlordPose: ArchlordPose.explain,
-    accentColor: Color(0xFF1E3A8A),
-    bgFrom: Color(0xFF1E3A8A),
-    bgTo: Color(0xFF2D5BE3),
   ),
-  OnboardingPage(
-    illustration: 'assets/onboarding/onboarding_1_bienvenue.webp',
-    title: 'Cours, devoirs et notes\nau même endroit',
-    subtitle:
-        'Supports de cours, devoirs à rendre et résultats\ndès leur publication.',
+  _OPage(
+    bgImage: 'assets/onboarding/onboarding_2_univers.webp',
+    accentColor: Color(0xFF0D9488),  // teal
+    cardColor: Color(0xFF0D9488),
+    textColor: Colors.white,
+    tagline: 'COURS & NOTES',
+    title: 'Cours, devoirs\net notes réunis',
+    body: 'Supports, devoirs à rendre et résultats\ndès leur publication par ton enseignant.',
+    chips: [_Chip('📚', 'Bibliothèque'), _Chip('✅', 'Résultats live')],
     dialogue: [
-      DialogueLine.uni('Je te préviens quand un devoir approche — plus d\'excuses !'),
-      DialogueLine.archlord('Les notes tombent directement ici, sans passer par l\'admin.'),
-      DialogueLine.uni('Et les cours téléchargés restent disponibles hors ligne.'),
+      DialogueLine.uni('Supports déposés par les profs, rendus de devoirs et notes.'),
+      DialogueLine.archlord('Plus besoin de courir après les tableaux d\'affichage.'),
     ],
     uniPose: UniPose.graduate,
-    archlordPose: ArchlordPose.laptop,
-    accentColor: Color(0xFF0D9488),
-    bgFrom: Color(0xFF0D9488),
-    bgTo: Color(0xFF14B8A8),
+    archlordPose: ArchlordPose.thumbs,
   ),
-  OnboardingPage(
-    illustration: 'assets/onboarding/onboarding_3_connecte.webp',
-    title: 'Messagerie et forum\nde ta promo',
-    subtitle:
-        'Écris à un camarade, débats sur le forum,\nreçois les urgences en temps réel.',
+  _OPage(
+    bgImage: 'assets/onboarding/onboarding_3_connecte.webp',
+    accentColor: Color(0xFF7C3AED),  // violet
+    cardColor: Color(0xFF7C3AED),
+    textColor: Colors.white,
+    tagline: 'MESSAGERIE',
+    title: 'Ta promo dans\nta poche',
+    body: 'Messages directs, forum de promo\net urgences en temps réel.',
+    chips: [_Chip('💬', 'Forum'), _Chip('📣', 'Urgences')],
     dialogue: [
-      DialogueLine.archlord('Forum, messages directs, groupes de promo — tout ici.'),
-      DialogueLine.uni('Une question ? Le forum… ou directement moi !'),
-      DialogueLine.archlord('Les annonces urgentes arrivent en notification instantanée.'),
+      DialogueLine.archlord('Chaque classe a son espace pour échanger.'),
+      DialogueLine.uni('Pose tes questions aux délégués et à tes camarades.'),
     ],
-    uniPose: UniPose.headset,
-    archlordPose: ArchlordPose.pointing,
-    accentColor: Color(0xFF2D4FA8),
-    bgFrom: Color(0xFF152A66),
-    bgTo: Color(0xFF2D4FA8),
+    uniPose: UniPose.celebrate,
+    archlordPose: ArchlordPose.wave,
   ),
-  OnboardingPage(
-    illustration: 'assets/onboarding/onboarding_2_univers.webp',
+  _OPage(
+    bgImage: 'assets/onboarding/onboarding_4_offline.webp',
+    accentColor: Color(0xFFEA580C),  // corail / orange
+    cardColor: Color(0xFFEA580C),
+    textColor: Colors.white,
+    tagline: 'KERNEL FORGE',
     title: 'Fait par des étudiants,\npour des étudiants',
-    subtitle:
-        'Tes données restent sur ton téléphone.\nUn mois sans réseau et UniFlow s\'ouvre quand même.',
+    body: 'UniFlow est né dans notre propre faculté.\nTes données restent sur ton téléphone.',
+    chips: [_Chip('🔒', 'Données locales'), _Chip('🚀', 'Offline-first')],
     dialogue: [
-      DialogueLine.archlord('UniFlow est né dans notre propre fac. On a résolu nos propres problèmes.'),
-      DialogueLine.uni('Et on continue à le construire avec vos retours. Bonne rentrée !'),
-      DialogueLine.archlord('KERNEL FORGE — UniFlow est notre premier produit, pas le dernier.'),
+      DialogueLine.archlord('UniFlow est né ici, pensé pour nos amphis.'),
+      DialogueLine.uni('Bienvenue ! On commence ensemble ?'),
     ],
     uniPose: UniPose.wave,
     archlordPose: ArchlordPose.thumbs,
-    accentColor: Color(0xFF0A7167),
-    bgFrom: Color(0xFF0A7167),
-    bgTo: Color(0xFF0D9488),
   ),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  ÉCRAN PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// Pages d'onboarding exposées pour les tests et la navigation.
+const onboardingPages = _kPages;
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   final bool replay;
@@ -121,48 +136,13 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   final _pageCtrl = PageController();
   int _index = 0;
 
-  // Couleurs animées du fond
-  late AnimationController _bgAnimCtrl;
-  Color _fromColor = onboardingPages[0].bgFrom;
-  Color _toColor = onboardingPages[0].bgTo;
-  Color _fromColorTarget = onboardingPages[0].bgFrom;
-  Color _toColorTarget = onboardingPages[0].bgTo;
+  bool get _last => _index == _kPages.length - 1;
 
-  bool get _last => _index == onboardingPages.length - 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _bgAnimCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
-    _bgAnimCtrl.addListener(() {
-      setState(() {
-        _fromColor =
-            Color.lerp(_fromColor, _fromColorTarget, _bgAnimCtrl.value)!;
-        _toColor =
-            Color.lerp(_toColor, _toColorTarget, _bgAnimCtrl.value)!;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    _bgAnimCtrl.dispose();
-    super.dispose();
-  }
-
-  void _onPageChanged(int i) {
-    final page = onboardingPages[i];
-    _fromColorTarget = page.bgFrom;
-    _toColorTarget = page.bgTo;
-    _bgAnimCtrl.forward(from: 0);
-    setState(() => _index = i);
-  }
+  void _onPageChanged(int i) => setState(() => _index = i);
 
   void _next() {
     if (_last) {
@@ -174,325 +154,365 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       _pageCtrl.jumpToPage(_index + 1);
     } else {
       _pageCtrl.nextPage(
-          duration: const Duration(milliseconds: 380),
-          curve: Curves.easeOutCubic);
+        duration: const Duration(milliseconds: 340),
+        curve: Curves.easeInOutCubic,
+      );
     }
   }
 
-  bool get _signedIn =>
-      ref.read(authStatusProvider) == AuthStatus.signedIn;
+  bool get _signedIn => ref.read(authStatusProvider) == AuthStatus.signedIn;
 
   Future<void> _finish() async {
     await ref.read(onboardingSeenProvider.notifier).markSeen();
     if (!mounted) return;
-    if (widget.onFinished != null) {
-      widget.onFinished!();
-      return;
-    }
-    if (widget.replay) {
-      Navigator.of(context).maybePop();
-      return;
-    }
+    if (widget.onFinished != null) { widget.onFinished!(); return; }
+    if (widget.replay) { Navigator.of(context).maybePop(); return; }
     context.go(_signedIn ? (widget.next ?? '/accueil') : '/login');
   }
 
   @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final signedIn =
-        ref.watch(authStatusProvider) == AuthStatus.signedIn;
-    final page = onboardingPages[_index];
+    final signedIn = ref.watch(authStatusProvider) == AuthStatus.signedIn;
+    final lastLabel = signedIn ? 'Continuer' : 'Commencer';
+    final page = _kPages[_index];
+    final bottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
+      backgroundColor: page.accentColor,
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [_fromColor, _toColor],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+        curve: Curves.easeInOut,
+        color: page.accentColor,
+        child: Stack(
+          children: [
+            // ── Zone image + card — défile page à page ────────────────
+            PageView.builder(
+              controller: _pageCtrl,
+              itemCount: _kPages.length,
+              onPageChanged: _onPageChanged,
+              itemBuilder: (_, i) => _PageSlide(page: _kPages[i]),
+            ),
+
+            // ── Logo + bouton Passer en haut ──────────────────────────
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 16, 0),
+                child: Row(
+                  children: [
+                    // Logo pill blanc sur fond accent
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Image.asset(
+                        'assets/brand/uniflow_logo_horizontal.png',
+                        height: 22,
+                        fit: BoxFit.contain,
+                        color: Colors.white,
+                        colorBlendMode: BlendMode.srcIn,
+                        errorBuilder: (_, __, ___) => const Text(
+                          'UniFlow',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    AnimatedOpacity(
+                      opacity: _last ? 0 : 1,
+                      duration: const Duration(milliseconds: 200),
+                      child: IgnorePointer(
+                        ignoring: _last,
+                        child: TextButton(
+                          key: const ValueKey('onboarding-skip'),
+                          onPressed: _finish,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.20),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                          ),
+                          child: const Text('Passer',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── Footer avec card solide (pas de glass) ────────────────
+            Positioned(
+              left: 0, right: 0, bottom: 0,
+              child: _Footer(
+                index: _index,
+                count: _kPages.length,
+                label: _last ? lastLabel : 'Suivant',
+                page: page,
+                bottomPadding: bottom,
+                onNext: _next,
+              ),
+            ),
+          ],
         ),
-        child: SafeArea(
-          child: Column(
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SLIDE : image plein écran dans les 60% supérieurs
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _PageSlide extends StatelessWidget {
+  final _OPage page;
+  const _PageSlide({required this.page});
+
+  @override
+  Widget build(BuildContext context) {
+    // L'image occupe environ 58% de l'écran (le reste = card)
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          flex: 58,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              _TopBar(showSkip: !_last, onSkip: _finish),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageCtrl,
-                  itemCount: onboardingPages.length,
-                  onPageChanged: _onPageChanged,
-                  itemBuilder: (_, i) => _PageContent(
-                    key: ValueKey('ob-$i'),
-                    page: onboardingPages[i],
+              // Image
+              Image.asset(
+                page.bgImage,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        page.accentColor,
+                        page.accentColor.withValues(alpha: 0.7),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              _Footer(
-                index: _index,
-                count: onboardingPages.length,
-                label: _last
-                    ? (signedIn ? 'Continuer →' : 'Commencer →')
-                    : 'Suivant',
-                accentColor: page.accentColor,
-                onNext: _next,
+              // Fondu bas vers la couleur accent (transition douce vers la card)
+              Positioned(
+                left: 0, right: 0, bottom: 0, height: 120,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        page.accentColor.withValues(alpha: 0.0),
+                        page.accentColor,
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
-      ),
+        // Espace réservé pour la card footer (42%)
+        Expanded(flex: 42, child: Container(color: page.cardColor)),
+      ],
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  TOP BAR
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _TopBar extends StatelessWidget {
-  final bool showSkip;
-  final VoidCallback onSkip;
-
-  const _TopBar({required this.showSkip, required this.onSkip});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 14, 16, 0),
-      child: Row(
-        children: [
-          // Logo image (vrai logo horizontal UniFlow)
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Image.asset(
-              'assets/brand/uniflow_logo_horizontal.png',
-              height: 28,
-              fit: BoxFit.contain,
-              // Fallback si l'image ne charge pas
-              errorBuilder: (_, __, ___) => const Text(
-                'UniFlow',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primaryBlue,
-                    letterSpacing: 0.2),
-              ),
-            ),
-          ),
-          const Spacer(),
-          AnimatedOpacity(
-            opacity: showSkip ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 200),
-            child: IgnorePointer(
-              ignoring: !showSkip,
-              child: TextButton(
-                key: const ValueKey('onboarding-skip'),
-                onPressed: onSkip,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor:
-                      Colors.white.withValues(alpha: 0.25),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                ),
-                child: const Text('Passer',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  PAGE CONTENT
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _PageContent extends StatelessWidget {
-  final OnboardingPage page;
-
-  const _PageContent({super.key, required this.page});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Column(
-        children: [
-          // ── Illustration dans une carte blanche arrondie ──────────────
-          Expanded(
-            flex: 5,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1A000000),
-                    blurRadius: 20,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: _AnimatedIllustration(asset: page.illustration),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // ── Titre ─────────────────────────────────────────────────────
-          Text(
-            page.title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 23,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // ── Sous-titre ────────────────────────────────────────────────
-          Text(
-            page.subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.white.withValues(alpha: 0.82),
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // ── Dialogue Archlord + Uni en bas ───────────────────────────
-          if (page.dialogue.isNotEmpty)
-            Expanded(
-              flex: 3,
-              child: MascotDialogue(
-                lines: page.dialogue,
-                uniPose: page.uniPose,
-                archlordPose: page.archlordPose,
-                figureHeight: 96,
-                interval: const Duration(milliseconds: 3200),
-              ),
-            ),
-          if (page.dialogue.isEmpty) const SizedBox(height: 12),
-        ],
-      ),
-    );
-  }
-}
-
-class _AnimatedIllustration extends StatelessWidget {
-  final String asset;
-  const _AnimatedIllustration({required this.asset});
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 520),
-      curve: Curves.easeOutBack,
-      builder: (_, v, child) => Opacity(
-        opacity: v.clamp(0.0, 1.0),
-        child: Transform.scale(scale: 0.82 + 0.18 * v, child: child),
-      ),
-      child: Image.asset(
-        asset,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Center(
-          child: Icon(Icons.school_rounded,
-              size: 80, color: AppColors.primaryBlue.withValues(alpha: 0.25)),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  FOOTER
+//  FOOTER : card solide colorée (zéro glass, zéro blur)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Footer extends StatelessWidget {
   final int index;
   final int count;
   final String label;
-  final Color accentColor;
+  final _OPage page;
+  final double bottomPadding;
   final VoidCallback onNext;
 
   const _Footer({
     required this.index,
     required this.count,
     required this.label,
-    required this.accentColor,
+    required this.page,
+    required this.bottomPadding,
     required this.onNext,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
+    return Container(
+      color: page.cardColor,
+      padding: EdgeInsets.fromLTRB(20, 16, 20, bottomPadding + 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Dots
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(count, (i) {
-              final active = i == index;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeOut,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: active ? 28.0 : 8.0,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: active
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.38),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 20),
-          // Bouton
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              key: const ValueKey('onboarding-next'),
-              onPressed: onNext,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: accentColor,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18)),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w700),
+          // Tag pill blanc translucide
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              page.tagline,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
               ),
-              child: Text(label),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Titre
+          Text(
+            page.title,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              height: 1.15,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Corps
+          Text(
+            page.body,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.85),
+              height: 1.5,
+            ),
+          ),
+
+          if (page.chips.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: page.chips.map((c) => _ChipBadge(chip: c)).toList(),
+            ),
+          ],
+
+          // Uni / Archlord accompagnement
+          if (page.dialogue.isNotEmpty && index == count - 1) ...[
+            const SizedBox(height: 10),
+            MascotDialogue(
+              lines: page.dialogue,
+              uniPose: page.uniPose,
+              archlordPose: page.archlordPose,
+              figureHeight: 60,
+            ),
+          ] else if (page.dialogue.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              page.dialogue.first.text,
+              style: TextStyle(
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: Colors.white.withValues(alpha: 0.90),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 16),
+
+          // Ligne bas : dots + bouton
+          Row(
+            children: [
+              PageDots(count: count, index: index),
+              const Spacer(),
+              // Bouton blanc arrondi
+              GestureDetector(
+                onTap: onNext,
+                child: AnimatedContainer(
+                  key: const ValueKey('onboarding-next'),
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(50),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: page.accentColor,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  CHIP badge
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ChipBadge extends StatelessWidget {
+  final _Chip chip;
+  const _ChipBadge({required this.chip});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.30)),
+      ),
+      child: Text(
+        '${chip.icon}  ${chip.label}',
+        style: const TextStyle(
+          fontSize: 12,
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -507,9 +527,9 @@ class PageDots extends StatelessWidget {
   final int index;
   const PageDots({super.key, required this.count, required this.index});
 
-  static const double activeWidth = 28;
-  static const double dotSize = 8;
-  static const double gap = 4;
+  static const double activeWidth = 24;
+  static const double dotSize = 7;
+  static const double gap = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -522,16 +542,16 @@ class PageDots extends StatelessWidget {
           final active = i == index;
           return AnimatedContainer(
             key: ValueKey('dot-$i'),
-            duration:
-                reduce ? Duration.zero : const Duration(milliseconds: 260),
+            duration: reduce
+                ? Duration.zero
+                : const Duration(milliseconds: 260),
             curve: Curves.easeOut,
             margin: const EdgeInsets.symmetric(horizontal: gap),
             width: active ? activeWidth : dotSize,
             height: dotSize,
             decoration: BoxDecoration(
-              color: active
-                  ? AppColors.primaryBlue
-                  : AppColors.primary100,
+              color:
+                  active ? Colors.white : Colors.white.withValues(alpha: 0.40),
               borderRadius: BorderRadius.circular(999),
             ),
           );

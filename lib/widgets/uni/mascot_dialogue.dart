@@ -151,7 +151,9 @@ class _MascotDialogueState extends State<MascotDialogue> {
               ),
             ),
             const SizedBox(height: 2),
-            _figures(speaking: speaker),
+            Flexible(
+              child: _figures(speaking: speaker),
+            ),
           ],
         ),
       ),

@@ -37,6 +37,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _email.text = 'etudiant.ict4d.l1@uniflow.test';
+    _password.text = 'password123';
+  }
+
+  @override
   void dispose() {
     _email.dispose();
     _password.dispose();
@@ -258,25 +265,28 @@ class _GoogleSignInButton extends StatelessWidget {
         side: const BorderSide(color: AppColors.inputBorder),
         backgroundColor: AppColors.cardWhite,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Logo Google SVG inline (24×24, couleurs officielles)
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: CustomPaint(painter: _GoogleLogoPainter()),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'Continuer avec Google',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo Google SVG inline (24×24, couleurs officielles)
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CustomPaint(painter: _GoogleLogoPainter()),
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+            const Text(
+              'Continuer avec Google',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

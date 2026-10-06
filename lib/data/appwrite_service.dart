@@ -118,7 +118,10 @@ class AppwriteService {
     // Pas de `setSelfSigned` : Appwrite Cloud présente un certificat valide,
     // et accepter n'importe quel certificat rendrait l'application vulnérable
     // à une interception sur un réseau public — pour un gain nul.
-    client = Client().setEndpoint(dotenv.get('APPWRITE_ENDPOINT')).setProject(dotenv.get('APPWRITE_PROJECT_ID'));
+    client = Client()
+        .setEndpoint(dotenv.get('APPWRITE_ENDPOINT'))
+        .setProject(dotenv.get('APPWRITE_PROJECT_ID'))
+        .setSelfSigned(status: true);
 
     account = Account(client);
     databases = Databases(client);

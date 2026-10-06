@@ -27,6 +27,7 @@ enum BadgeCategory {
 /// Rareté d'un badge — détermine la couleur de l'anneau et le poids XP.
 enum BadgeRarity {
   common,   // bronze
+  uncommon, // vert
   rare,     // argent
   epic,     // or
   legendary, // arc-en-ciel

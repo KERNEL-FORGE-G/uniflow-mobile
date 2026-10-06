@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/motion.dart';
 import '../widgets/scope_selector.dart';
+import '../widgets/timetable_scan_sheet.dart';
 import '../widgets/uni/uni_mascot.dart';
 import '../widgets/uni_icons.dart';
 import 'personal_space.dart' show dayLabel;
@@ -45,6 +46,19 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           GradientHeader(
             title: 'Emploi du temps',
             subtitle: scope.label.isEmpty ? 'Semaine de cours' : scope.label,
+            trailing: IconButton(
+              icon: const PhosphorIcon(
+                PhosphorIconsDuotone.image,
+                size: 22,
+                color: AppColors.primaryBlue,
+              ),
+              tooltip: 'Affichage officiel (Scan)',
+              onPressed: () => MobileTimetableScanSheet.show(
+                context,
+                program: scope.program,
+                level: scope.level,
+              ),
+            ),
           ),
           const ScopeSelector(),
           Expanded(

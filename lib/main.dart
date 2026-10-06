@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/providers.dart';
@@ -9,11 +10,14 @@ import 'offline/background_sync.dart';
 import 'offline/offline_providers.dart';
 import 'services/notification_service.dart';
 import 'services/fcm_service.dart';
+import 'services/push_token_service.dart';
 import 'widgets/uni/uni_mascot.dart';
 import 'widgets/uni/uni_scenes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialisation des données locales de date (fr_FR) pour intl
+  await initializeDateFormatting('fr_FR', null);
   // Bord à bord dès le premier rendu, comme Android 15 l'impose ; voir
   // AppSystemUi pour le style des barres.
   await AppSystemUi.appliquer();
@@ -53,6 +57,8 @@ class _UniFlowAppState extends ConsumerState<UniFlowApp> {
     // session — une socket laissée ouverte sur le compte précédent enverrait
     // les alertes du mauvais utilisateur.
     ref.listenManual(urgentNotificationsProvider, (_, __) {});
+    // Enregistrement du token push FCM dans Appwrite Messaging.
+    ref.read(pushTokenRegistrationProvider);
     // Hors ligne : le coordinateur écoute le réseau et le premier plan ; la
     // session chiffrée suit le profil pour redémarrer sans réseau.
     ref.read(syncCoordinatorProvider);

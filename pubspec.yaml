@@ -80,3 +80,6 @@ flutter:
     # Les six badges de l'apprenant (WebP détourés) : affichés hors ligne sur
     # l'accueil, ils ne peuvent pas dépendre du réseau.
     - assets/badges/
+    # Illustrations 3D générées pour le redesign "Book Lending" : hero banner,
+    # thumbnails de cours pour les cartes d'accueil.
+    - assets/illustrations/

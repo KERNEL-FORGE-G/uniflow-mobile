@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/appwrite_models.dart';
 import '../offline/cached_providers.dart';
+import '../providers/appwrite_provider.dart';
 import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../theme/app_theme.dart';
@@ -62,6 +64,52 @@ IconData _typeIcon(String type) {
 
 String _typeLabel(String type) => type.isEmpty ? 'Fichier' : type.toUpperCase();
 
+// ─── Modèle Uni Book ──────────────────────────────────────────────────────────
+
+class UniBookItem {
+  final String id;
+  final String title;
+  final List<String> authors;
+  final String category;
+  final String? coverUrl;
+  final String? downloadUrl;
+  final String format;
+  final String source;
+  final int? year;
+  final String? description;
+  final int downloadsCount;
+
+  const UniBookItem({
+    required this.id,
+    required this.title,
+    required this.authors,
+    required this.category,
+    this.coverUrl,
+    this.downloadUrl,
+    this.format = 'PDF',
+    this.source = 'Uni Book',
+    this.year,
+    this.description,
+    this.downloadsCount = 100,
+  });
+
+  factory UniBookItem.fromJson(Map<String, dynamic> json) {
+    return UniBookItem(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? 'Livre').toString(),
+      authors: (json['authors'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      category: (json['category'] ?? 'Général').toString(),
+      coverUrl: json['coverUrl'] as String?,
+      downloadUrl: json['downloadUrl'] as String?,
+      format: (json['format'] ?? 'PDF').toString(),
+      source: (json['source'] ?? 'Uni Book').toString(),
+      year: json['year'] is int ? json['year'] as int : null,
+      description: json['description'] as String?,
+      downloadsCount: (json['downloadsCount'] as num?)?.toInt() ?? 100,
+    );
+  }
+}
+
 // ─── Screen ──────────────────────────────────────────────────────────────────
 
 class LibraryScreen extends ConsumerStatefulWidget {
@@ -79,6 +127,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   String? _selectedCategory;
   late final AnimationController _headerAnim;
 
+  // Mode Uni Book
+  int _selectedMode = 0; // 0 = Supports de cours, 1 = Uni Book
+  List<UniBookItem> _uniBookResults = [];
+  bool _isLoadingUniBook = false;
+  String _uniBookQuery = '';
+  String _selectedUniBookCategory = 'Tous';
+
   @override
   void initState() {
     super.initState();
@@ -86,12 +141,49 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
+    _searchUniBook(query: 'sciences');
   }
 
   @override
   void dispose() {
     _headerAnim.dispose();
     super.dispose();
+  }
+
+  Future<void> _searchUniBook({String? query, String? category}) async {
+    final q = (query ?? _uniBookQuery).trim();
+    final cat = category ?? _selectedUniBookCategory;
+    setState(() {
+      _isLoadingUniBook = true;
+      _erreur = null;
+    });
+    try {
+      final res = await ref.read(appwriteServiceProvider).callService('/open-library', {
+        'action': 'search',
+        'query': q,
+        'category': cat,
+        'limit': 35,
+      });
+      if (res['ok'] == true && res['results'] is List) {
+        final list = (res['results'] as List)
+            .whereType<Map<String, dynamic>>()
+            .map(UniBookItem.fromJson)
+            .toList();
+        if (mounted) {
+          setState(() {
+            _uniBookResults = list;
+          });
+        }
+      } else if (mounted) {
+        setState(() {
+          _erreur = res['error']?.toString() ?? 'Erreur lors de la recherche Uni Book.';
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _erreur = e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoadingUniBook = false);
+    }
   }
 
   Future<void> _telecharger(AcademicLibraryEntry entry) async {
@@ -119,12 +211,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedMode == 1) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: _buildUniBookContent(),
+      );
+    }
+
     final libraryAsync = ref.watch(libraryListProvider);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A14),
+      backgroundColor: Colors.white,
       body: libraryAsync.when(
         data: (entries) => _buildContent(entries),
-        loading: () => const LoadingView(),
+        loading: () => const LoadingView(label: 'Chargement des ressources…', mascot: true),
         error: (err, _) => LoadErrorView(
           title: 'La bibliothèque n\'a pas pu être chargée',
           error: err,
@@ -158,7 +257,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        _buildSliverHeader(),
+        _buildSliverHeader(entries.length),
+        _buildModeSwitcher(),
         _buildSearchBar(),
         if (categories.length > 1) _buildCategoryChips(categories),
         if (_erreur != null) _buildErrorBanner(),
@@ -171,51 +271,443 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     );
   }
 
-  // ── Header animé ───────────────────────────────────────────────────────────
+  // ── Header hero « Book Lending » ───────────────────────────────────────────
 
-  Widget _buildSliverHeader() {
+  Widget _buildSliverHeader(int count) {
+    final isUniBook = _selectedMode == 1;
+    final badgeLabel = isUniBook ? '$count ouvrages libres' : '$count ressources';
+    final titleLabel = isUniBook ? 'Uni Book' : 'Bibliothèque';
+    final subtitleLabel = isUniBook
+        ? 'Bibliothèque ouverte — 30+ résultats par recherche'
+        : 'Supports de cours & polycopiés officiels';
+
     return SliverToBoxAdapter(
       child: Container(
-        decoration: const BoxDecoration(
+        margin: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 10, 16, 12),
+        height: 148,
+        decoration: BoxDecoration(
           gradient: LinearGradient(
+            colors: isUniBook
+                ? const [Color(0xFF0F172A), Color(0xFF0D9488)]
+                : const [Color(0xFF1E3A8A), Color(0xFF0D9488)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF1A1A2E), Color(0xFF0A0A14)],
           ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1E3A8A).withValues(alpha: 0.22),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 24),
-        child: FadeTransition(
-          opacity: _headerAnim,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
+        child: Stack(
+          children: [
+            // Couverture livre hero en filigrane à droite
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 170,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+                child: ShaderMask(
+                  shaderCallback: (rect) => const LinearGradient(
+                    begin: Alignment.centerRight,
+                    end: Alignment.centerLeft,
+                    colors: [Colors.black, Colors.transparent],
+                  ).createShader(rect),
+                  blendMode: BlendMode.dstIn,
+                  child: Image.asset(
+                    'assets/illustrations/hero_books.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox(),
+                  ),
+                ),
+              ),
+            ),
+            // Contenu texte à gauche
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.20),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(PhosphorIconsBold.books, color: Colors.white, size: 13),
+                          const SizedBox(width: 6),
+                          Text(
+                            badgeLabel,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Icon(PhosphorIconsBold.books, color: Colors.white, size: 20),
+                    const SizedBox(height: 10),
+                    Text(
+                      titleLabel,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitleLabel,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Switcher de mode : Supports vs Uni Book ────────────────────────────────
+
+  Widget _buildModeSwitcher() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedMode = 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
+                    decoration: BoxDecoration(
+                      color: _selectedMode == 0 ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: _selectedMode == 0
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          PhosphorIconsBold.folderOpen,
+                          size: 15,
+                          color: _selectedMode == 0 ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Supports',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: _selectedMode == 0 ? FontWeight.w700 : FontWeight.w500,
+                              color: _selectedMode == 0 ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Bibliothèque',
-                          style: TextStyle(color: Colors.white, fontSize: 22,
-                              fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-                      Text('Ressources & supports de cours',
-                          style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12.5)),
-                    ],
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedMode = 1);
+                    if (_uniBookResults.isEmpty && !_isLoadingUniBook) {
+                      _searchUniBook();
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
+                    decoration: BoxDecoration(
+                      color: _selectedMode == 1 ? const Color(0xFF1E3A8A) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: _selectedMode == 1
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF1E3A8A).withValues(alpha: 0.25),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          PhosphorIconsBold.books,
+                          size: 15,
+                          color: _selectedMode == 1 ? Colors.white : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Uni Book',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: _selectedMode == 1 ? FontWeight.w700 : FontWeight.w500,
+                              color: _selectedMode == 1 ? Colors.white : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ── Contenu Uni Book ───────────────────────────────────────────────────────
+
+  Widget _buildUniBookContent() {
+    final uniBookCategories = [
+      'Tous',
+      'Informatique & Tech',
+      'Mathématiques',
+      'Physique & Chimie',
+      'Biologie & Santé',
+      'Économie & Droit',
+      'Sciences Générales',
+    ];
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        _buildSliverHeader(_uniBookResults.length),
+        _buildModeSwitcher(),
+        _buildUniBookSearchBar(),
+        _buildUniBookCategoryChips(uniBookCategories),
+        if (_erreur != null) _buildErrorBanner(),
+        if (_isLoadingUniBook)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: LoadingView(
+              label: 'Recherche dans Uni Book (30+ ouvrages)…',
+              mascot: true,
+            ),
+          )
+        else if (_uniBookResults.isEmpty)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              icon: PhosphorIconsDuotone.books,
+              title: 'Aucun livre trouvé',
+              message: 'Essayez un autre mot-clé (ex: Python, Algèbre, Physique, Biologie).',
+            ),
+          )
+        else ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
+              child: Row(
+                children: [
+                  const Icon(PhosphorIconsBold.bookBookmark, size: 16, color: Color(0xFF1E3A8A)),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${_uniBookResults.length} ouvrages disponibles (≥ 30 par requête)',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final book = _uniBookResults[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _UniBookCard(book: book),
+                  );
+                },
+                childCount: _uniBookResults.length,
+              ),
+            ),
+          ),
+        ],
+        const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
+      ],
+    );
+  }
+
+  Widget _buildUniBookSearchBar() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+        child: Container(
+          height: 46,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 14, right: 8),
+                child: Icon(PhosphorIconsBold.magnifyingGlass,
+                    color: Color(0xFF64748B), size: 18),
+              ),
+              Expanded(
+                child: TextField(
+                  onSubmitted: (v) {
+                    _uniBookQuery = v;
+                    _searchUniBook(query: v);
+                  },
+                  onChanged: (v) => _uniBookQuery = v,
+                  style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
+                  decoration: const InputDecoration(
+                    hintText: 'Rechercher dans Uni Book (titre, sujet, auteur)…',
+                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+              if (_uniBookQuery.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _uniBookQuery = '');
+                    _searchUniBook(query: '');
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Icon(PhosphorIconsBold.x, color: Color(0xFF94A3B8), size: 16),
+                  ),
+                ),
+              GestureDetector(
+                onTap: () => _searchUniBook(query: _uniBookQuery),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E3A8A),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Chercher',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUniBookCategoryChips(List<String> cats) {
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 36,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: cats.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) {
+            final selected = _selectedUniBookCategory == cats[i];
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selectedUniBookCategory = cats[i]);
+                _searchUniBook(category: cats[i]);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: selected ? const Color(0xFF0D9488) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: selected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
+                  ),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF0D9488).withValues(alpha: 0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  cats[i],
+                  style: TextStyle(
+                    color: selected ? Colors.white : const Color(0xFF475569),
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -226,28 +718,35 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   Widget _buildSearchBar() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
         child: Container(
           height: 46,
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A2E),
+            color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF2D2D4E)),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
               const Padding(
                 padding: EdgeInsets.only(left: 14, right: 8),
                 child: Icon(PhosphorIconsBold.magnifyingGlass,
-                    color: Color(0xFF6B7280), size: 18),
+                    color: Color(0xFF64748B), size: 18),
               ),
               Expanded(
                 child: TextField(
                   onChanged: (v) => setState(() => _searchQuery = v),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                   decoration: const InputDecoration(
-                    hintText: 'Rechercher un document…',
-                    hintStyle: TextStyle(color: Color(0xFF4B5563), fontSize: 14),
+                    hintText: 'Rechercher un cours, un document…',
+                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
@@ -259,7 +758,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                   onTap: () => setState(() => _searchQuery = ''),
                   child: const Padding(
                     padding: EdgeInsets.only(right: 12),
-                    child: Icon(PhosphorIconsBold.x, color: Color(0xFF6B7280), size: 16),
+                    child: Icon(PhosphorIconsBold.x, color: Color(0xFF94A3B8), size: 16),
                   ),
                 ),
             ],
@@ -286,23 +785,31 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               onTap: () => setState(() => _selectedCategory = cats[i]),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  gradient: selected
-                      ? const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)])
-                      : null,
-                  color: selected ? null : const Color(0xFF1A1A2E),
+                  color: selected ? const Color(0xFF1E3A8A) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: selected ? Colors.transparent : const Color(0xFF2D2D4E),
+                    color: selected ? const Color(0xFF1E3A8A) : const Color(0xFFE2E8F0),
+                  ),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF1E3A8A).withValues(alpha: 0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  cats[i],
+                  style: TextStyle(
+                    color: selected ? Colors.white : const Color(0xFF475569),
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
-                child: Text(cats[i],
-                    style: TextStyle(
-                      color: selected ? Colors.white : const Color(0xFF9CA3AF),
-                      fontSize: 12.5,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                    )),
               ),
             );
           },
@@ -353,20 +860,24 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               const SizedBox(width: 8),
               Text(entry.key,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.5,
+                    color: Color(0xFF0F172A),
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
+                    letterSpacing: -0.2,
                   )),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text('${entry.value.length}',
-                    style: const TextStyle(color: Color(0xFF93C5FD), fontSize: 11)),
+                    style: const TextStyle(
+                      color: Color(0xFF1E3A8A),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    )),
               ),
             ]),
           ),
@@ -376,7 +887,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (ctx, i) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: _LibraryCard(
                   entry: entry.value[i],
                   isDownloading: _enCours == entry.value[i].id,
@@ -393,7 +904,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
+// ─── Card avec Couverture Livre Réelle ──────────────────────────────────────
 
 class _LibraryCard extends StatefulWidget {
   final AcademicLibraryEntry entry;
@@ -423,12 +934,12 @@ class _LibraryCardState extends State<_LibraryCard>
     super.initState();
     _anim = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 350 + widget.index * 50),
+      duration: Duration(milliseconds: 300 + widget.index * 40),
     );
     _fade = CurvedAnimation(parent: _anim, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+    _slide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
         .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
-    Future.delayed(Duration(milliseconds: widget.index * 60), _anim.forward);
+    Future.delayed(Duration(milliseconds: widget.index * 40), _anim.forward);
   }
 
   @override
@@ -449,9 +960,16 @@ class _LibraryCardState extends State<_LibraryCard>
         position: _slide,
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF13132B),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF2D2D4E)),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1E3A8A).withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -459,99 +977,127 @@ class _LibraryCardState extends State<_LibraryCard>
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: widget.isDownloading ? null : widget.onDownload,
-              splashColor: accent.withValues(alpha: 0.08),
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(12),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Icône type
-                    Container(
-                      width: 50, height: 50,
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: accent.withValues(alpha: 0.25)),
-                      ),
+                    // Couverture du livre en miniature réelle
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
                       child: Stack(
                         children: [
-                          Center(child: PhosphorIcon(icon, color: accent, size: 24)),
+                          Container(
+                            width: 64,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [accent.withValues(alpha: 0.8), accent],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Image.asset(
+                              'assets/illustrations/course_books.jpg',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Center(
+                                child: Icon(icon,
+                                    color: Colors.white, size: 24),
+                              ),
+                            ),
+                          ),
+                          // Badge format (PDF, DOCX) en haut à gauche
                           Positioned(
-                            bottom: 2, right: 2,
+                            top: 4,
+                            left: 4,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                               decoration: BoxDecoration(
-                                color: accent,
+                                color: Colors.black.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text(label,
-                                  style: const TextStyle(
-                                    color: Colors.white, fontSize: 7,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.3,
-                                  )),
+                              child: Text(
+                                label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Infos
+                    const SizedBox(width: 14),
+
+                    // Titre et métadonnées
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.entry.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                height: 1.3,
-                              )),
-                          const SizedBox(height: 5),
+                          Text(
+                            widget.entry.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               if (widget.entry.course.isNotEmpty) ...[
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primaryBlue.withValues(alpha: 0.2),
+                                    color: const Color(0xFFEBF4FF),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: Text(widget.entry.course,
-                                      style: const TextStyle(
-                                        color: Color(0xFF93C5FD),
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      )),
+                                  child: Text(
+                                    widget.entry.course,
+                                    style: const TextStyle(
+                                      color: Color(0xFF1E3A8A),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                               ],
                               if (widget.entry.size != null)
-                                Text(widget.entry.size!,
-                                    style: const TextStyle(
-                                      color: Color(0xFF6B7280),
-                                      fontSize: 11,
-                                    )),
+                                Text(
+                                  widget.entry.size!,
+                                  style: const TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                             ],
                           ),
                           if (widget.entry.description != null &&
                               widget.entry.description!.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(widget.entry.description!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Color(0xFF4B5563),
-                                  fontSize: 11.5,
-                                )),
+                            Text(
+                              widget.entry.description!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 11.5,
+                              ),
+                            ),
                           ],
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    // Bouton téléchargement
+                    const SizedBox(width: 10),
+
+                    // Bouton Télécharger
                     _DownloadButton(
                       isDownloading: widget.isDownloading,
                       accent: accent,
@@ -584,26 +1130,227 @@ class _DownloadButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36, height: 36,
+        width: 38,
+        height: 38,
         decoration: BoxDecoration(
           color: isDownloading
-              ? const Color(0xFF1A1A2E)
-              : accent.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
+              ? const Color(0xFFF1F5F9)
+              : const Color(0xFFEFF6FF),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDownloading ? const Color(0xFF2D2D4E) : accent.withValues(alpha: 0.3),
+            color: isDownloading
+                ? const Color(0xFFCBD5E1)
+                : const Color(0xFFBFDBFE),
           ),
         ),
         child: isDownloading
-            ? Padding(
-                padding: const EdgeInsets.all(9),
+            ? const Padding(
+                padding: EdgeInsets.all(10),
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(accent),
+                  valueColor: AlwaysStoppedAnimation(Color(0xFF1E3A8A)),
                 ),
               )
-            : Icon(PhosphorIconsBold.downloadSimple, color: accent, size: 18),
+            : const Center(
+                child: Icon(
+                  PhosphorIconsBold.downloadSimple,
+                  color: Color(0xFF1E3A8A),
+                  size: 18,
+                ),
+              ),
       ),
     );
   }
 }
+
+// ── Carte livre Uni Book ────────────────────────────────────────────────────
+
+class _UniBookCard extends StatelessWidget {
+  final UniBookItem book;
+
+  const _UniBookCard({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Couverture de livre
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 72,
+              height: 102,
+              color: const Color(0xFFF1F5F9),
+              child: book.coverUrl != null && book.coverUrl!.isNotEmpty
+                  ? Image.network(
+                      book.coverUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _defaultCover(),
+                    )
+                  : _defaultCover(),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Métadonnées
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  book.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  book.authors.isEmpty ? 'Auteur académique' : book.authors.join(', '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: book.format == 'EPUB'
+                            ? const Color(0xFFECFDF5)
+                            : const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        book.format,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: book.format == 'EPUB'
+                              ? const Color(0xFF059669)
+                              : const Color(0xFF2563EB),
+                        ),
+                      ),
+                    ),
+                    if (book.year != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Text(
+                          '${book.year}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'Uni Book',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Bouton de consultation / téléchargement
+                if (book.downloadUrl != null && book.downloadUrl!.isNotEmpty)
+                  GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.parse(book.downloadUrl!);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Impossible d\'ouvrir le lien de téléchargement.')),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E3A8A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(PhosphorIconsBold.arrowSquareOut, size: 13, color: Colors.white),
+                          SizedBox(width: 5),
+                          Text(
+                            'Consulter / Télécharger',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _defaultCover() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(PhosphorIconsDuotone.bookOpen, size: 30, color: Colors.white),
+      ),
+    );
+  }
+}
+

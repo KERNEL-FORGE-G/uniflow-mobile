@@ -139,7 +139,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SizedBox(height: 8),
           Text(
             university
-                ? 'Compte étudiant rattaché à votre université.'
+                ? 'Compte rattaché à votre université.'
                 : 'Espace personnel pour organiser vos propres études.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodySmall,
@@ -211,7 +211,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           const SizedBox(height: 22),
           GradientButton(
-            label: university ? 'Créer mon compte étudiant' : 'Créer mon espace personnel',
+            label: 'Créer mon compte',
             isLoading: _busy,
             onPressed: _busy ? null : _submit,
           ),

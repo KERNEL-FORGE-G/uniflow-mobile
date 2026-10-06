@@ -234,39 +234,117 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final messages = conversation?.messages ?? const <ChatMessage>[];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            Avatar(
-              initials: conversation == null ? '?' : initialsOf(conversation.name),
-              avatarFileId: conversation?.avatarFileId,
-              size: 34,
+      backgroundColor: const Color(0xFFF5F5F5), // fond légèrement gris pour contraster les bulles
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(64),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.cardWhite,
+            border: Border(
+              bottom: BorderSide(color: AppColors.inputBorder, width: 0.8),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 8, 8),
+              child: Row(
                 children: [
-                  Text(
-                    conversation?.name ?? 'Conversation',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (conversation != null && conversation.handle.isNotEmpty)
-                    Text(
-                      conversation.handle,
-                      style: const TextStyle(fontSize: 11, color: Colors.white70),
-                      overflow: TextOverflow.ellipsis,
+                  // Bouton retour
+                  IconButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const PhosphorIcon(
+                      PhosphorIconsBold.arrowLeft,
+                      color: AppColors.textPrimary,
+                      size: 20,
                     ),
+                  ),
+                  // Avatar + infos contact
+                  Stack(
+                    children: [
+                      Avatar(
+                        initials: conversation == null ? '?' : initialsOf(conversation.name),
+                        avatarFileId: conversation?.avatarFileId,
+                        size: 38,
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 11,
+                          height: 11,
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.cardWhite,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          conversation?.name ?? 'Conversation',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (conversation != null && conversation.handle.isNotEmpty)
+                          Text(
+                            conversation.handle,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.teal,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else
+                          const Text(
+                            'En ligne',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.success,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Actions
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.phone_rounded,
+                      color: AppColors.teal,
+                      size: 20,
+                    ),
+                    tooltip: 'Appeler',
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                    tooltip: 'Plus d\'options',
+                  ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
       body: Column(

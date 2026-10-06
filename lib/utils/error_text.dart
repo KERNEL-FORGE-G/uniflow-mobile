@@ -24,12 +24,19 @@ ErrorText describeError(Object error) {
     case MessagingException e:
       return ErrorText(e.message, e.code.isEmpty ? 'MESSAGING' : e.code);
     case AppwriteException e:
+      final raw = e.message ?? '';
+      if (raw.contains('reads limit') || raw.contains('billing cycle') || raw.contains('budget cap') || e.code == 429) {
+        return const ErrorText(
+          'Le quota cloud est temporairement atteint. Vos données locales et fonctionnalités hors-ligne restent actives.',
+          'QUOTA DÉPASSÉ',
+        );
+      }
       final code = [
         'APPWRITE',
         if (e.code != null) '${e.code}',
         if (e.type != null && e.type!.isNotEmpty) e.type!,
       ].join(' ');
-      return ErrorText(e.message ?? 'Le serveur a refusé la demande.', code);
+      return ErrorText(raw.isNotEmpty ? raw : 'Le serveur a refusé la demande.', code);
     case HandshakeException _:
     case TlsException _:
       return const ErrorText('La connexion sécurisée au serveur a échoué.', 'TLS');
@@ -46,6 +53,12 @@ ErrorText describeError(Object error) {
   final colon = detail.indexOf(': ');
   if (colon > 0 && RegExp(r'^\w*(Exception|Error)$').hasMatch(detail.substring(0, colon))) {
     detail = detail.substring(colon + 2).trim();
+  }
+  if (detail.contains('reads limit') || detail.contains('billing cycle') || detail.contains('budget cap')) {
+    return const ErrorText(
+      'Le quota cloud est temporairement atteint. Vos données locales et fonctionnalités hors-ligne restent actives.',
+      'QUOTA DÉPASSÉ',
+    );
   }
   if (detail.isEmpty) detail = 'Une erreur inattendue est survenue.';
   return ErrorText(detail, error.runtimeType.toString());

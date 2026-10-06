@@ -3,7 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Marge basse des listes des pages connectées.
-const double uniClearance = 88;
+///
+/// Plus haute que la barre flottante (pilule ~64 + marge 16) : sans elle,
+/// le dernier élément d'une liste passait sous la nav, comme avant le
+/// passage à la pilule du modèle « book lending ».
+const double uniClearance = 108;
 
 /// Marges des pages connectées.
 class AppInsets {
@@ -45,31 +49,37 @@ class AppSystemUi {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  PALETTE  —  UniFlow Clean UI  (inspiré grocery/ecommerce clean minimal)
-//  Fond : blanc pur + touches mint/teal   Accents : bleu #1E3A8A + teal #0D9488
-//  Style : cartes blanches arrondies, illustrations 3D, bottom nav élégant
+//  PALETTE  —  modèle « book lending » + couleurs du logo UniFlow
+//  Fond crème, tache pastel en haut à droite, cartes blanches très arrondies.
+//  Accents : bleu logo #1E3A8A et teal #0D9488 (à la place du jaune maquette).
 // ─────────────────────────────────────────────────────────────────────────────
 class AppColors {
   AppColors._();
 
   // ── Fond & surfaces ──────────────────────────────────────────────────────
-  /// Fond général — blanc légèrement teinté mint/bleu glacier.
-  static const Color background = Color(0xFFF0F7FF);
+  /// Fond général — crème du modèle, légèrement teinté logo.
+  static const Color background = Color(0xFFFFFFFF);
 
   /// Surface des cartes — blanc pur.
   static const Color cardWhite = Color(0xFFFFFFFF);
 
-  /// Surface secondaire — bleu glacé très pâle.
-  static const Color surface = Color(0xFFE8F4FD);
+  /// Surface secondaire — teal très pâle (tache / chips inactifs).
+  static const Color surface = Color(0xFFE7F3EE);
 
   /// Surface surélevée (modals, sheets).
   static const Color surfaceElevated = Color(0xFFFFFFFF);
 
   /// Surface mutée (fond de tableaux, lignes).
-  static const Color surfaceMuted = Color(0xFFF8FBFF);
+  static const Color surfaceMuted = Color(0xFFF3F1EA);
 
   /// Fond des inputs — blanc pur.
   static const Color inputFill = Color(0xFFFFFFFF);
+
+  /// Tache décorative du coin haut-droit (jaune maquette → teal logo).
+  static const Color headerBlob = Color(0xFFEBF4FF);
+
+  /// Deuxième tache, plus bleue, pour le mélange logo.
+  static const Color headerBlobAlt = Color(0xFFE0F2FE);
 
   // ── Marque principale — bleu UniFlow + teal ───────────────────────────────
   /// Bleu principal UniFlow (#1E3A8A).
@@ -148,7 +158,7 @@ class AppColors {
 
   /// En-tête des pages principales — bleu UniFlow → teal.
   static const LinearGradient headerGradient = LinearGradient(
-    colors: [Color(0xFF1E3A8A), Color(0xFF2D5BE3), Color(0xFF0D9488)],
+    colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -175,25 +185,50 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
-  /// Fond mesh — pages auth/onboarding.
+  /// Fond mesh — pages auth/onboarding crème.
   static const LinearGradient meshGradient = LinearGradient(
-    colors: [Color(0xFFEFF6FF), Color(0xFFF0FDFA), Color(0xFFEDE9FE)],
+    colors: [Color(0xFFF6F3EC), Color(0xFFE7F3EE), Color(0xFFD9E4F5)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Fond de l'onboarding — bleu UniFlow vers teal pâle.
+  /// Fond de l'onboarding — crème, plus le bleu/teal du logo.
   static const LinearGradient onboardingGradient = LinearGradient(
-    colors: [Color(0xFF1E3A8A), Color(0xFF2D4FA8), Color(0xFF0D9488)],
+    colors: [Color(0xFFF6F3EC), Color(0xFFE7F3EE)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
+
+  /// Ombre douce des cartes du modèle (pas de bordure dure).
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x140F2744),
+      blurRadius: 18,
+      offset: Offset(0, 8),
+    ),
+  ];
+
+  /// Ombre de la nav pilule.
+  static const List<BoxShadow> navShadow = [
+    BoxShadow(
+      color: Color(0x1A1E3A8A),
+      blurRadius: 24,
+      offset: Offset(0, 8),
+    ),
+  ];
 
   /// Carte hero dashboard (bandeau « Bienvenue »).
   static const LinearGradient dashHeroGradient = LinearGradient(
     colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
+  );
+
+  /// Dégradé de la bannière hero du dashboard (style book lending).
+  static const LinearGradient dashHeroBannerGradient = LinearGradient(
+    colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 }
 
@@ -270,10 +305,11 @@ class AppTextStyles {
 class AppTheme {
   AppTheme._();
 
-  static const double radiusCard = 16;
-  static const double radiusControl = 12;
-  static const double radiusSheet = 24;
+  static const double radiusCard = 22;
+  static const double radiusControl = 16;
+  static const double radiusSheet = 28;
   static const double radiusAuthSheet = 32;
+  static const double radiusPill = 999;
 
   static ThemeData get light {
     final baseTextTheme = ThemeData(useMaterial3: true).textTheme;

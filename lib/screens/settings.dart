@@ -290,6 +290,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const IconTile(
+                          icon: PhosphorIconsDuotone.creditCard,
+                          color: Color(0xFF0D9488),
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
+                      title: const Text('Mon Abonnement & Formules Pro'),
+                      subtitle: const Text('Passerelle Flutterwave (Orange Money, MoMo, Carte)', style: TextStyle(fontSize: 12)),
+                      trailing:
+                          const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
+                      onTap: () => GoRouter.of(context).push('/abonnement'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const IconTile(
                           icon: PhosphorIconsDuotone.usersFour,
                           color: AppColors.primaryBlue,
                           variant: IconTileVariant.soft,

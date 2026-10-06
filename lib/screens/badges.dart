@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../widgets/common.dart';
+import '../widgets/gamification/gamification_widgets.dart';
 import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 
@@ -16,15 +17,9 @@ class BadgesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final badgesAsync = ref.watch(badgesWithProgressProvider);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A14),
       body: badgesAsync.when(
         loading: () => const LoadingView(label: 'Chargement des badges…', mascot: true),
-        error: (e, _) => EmptyState(
-          icon: PhosphorIconsDuotone.cloudSlash,
-          title: 'Badges indisponibles',
-          message: e.toString(),
-          pose: UniPose.sorry,
-        ),
+        error: (e, _) => const _BadgesOfflineBody(),
         data: (badges) => _BadgesBody(badges: badges),
       ),
     );
@@ -84,6 +79,12 @@ class _BadgesBodyState extends State<_BadgesBody>
         SliverToBoxAdapter(
           child: _GlobalProgressBar(unlocked: unlocked, total: total),
         ),
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: BadgeHighlightWidget(),
+          ),
+        ),
         SliverPersistentHeader(
           pinned: true,
           delegate: _TabDelegate(
@@ -91,10 +92,11 @@ class _BadgesBodyState extends State<_BadgesBody>
               controller: _tab,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF6B7280),
-              indicatorColor: const Color(0xFFF59E0B),
+              labelColor: const Color(0xFF1E3A8A),
+              unselectedLabelColor: const Color(0xFF64748B),
+              indicatorColor: const Color(0xFF0D9488),
               indicatorWeight: 3,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
               tabs: [
                 const Tab(text: 'Tous'),
                 ..._categories.map((c) => Tab(text: c.$2)),
@@ -130,7 +132,7 @@ class _Header extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1A1A2E), Color(0xFF0A0A14)],
+          colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
         ),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -159,11 +161,11 @@ class _Header extends StatelessWidget {
                 allDone
                     ? 'Collection complète !'
                     : '$unlocked sur $total obtenus',
-                style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ]),
           ),
-          if (allDone) UniMascot(pose: UniPose.celebrate, size: 52, effects: true),
+          if (allDone) const UniMascot(pose: UniPose.celebrate, size: 52, effects: true),
         ],
       ),
     );
@@ -180,14 +182,15 @@ class _GlobalProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = total == 0 ? 0.0 : unlocked / total;
-    return Padding(
+    return Container(
+      color: const Color(0xFF1E3A8A),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       child: Column(children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Progression globale',
-                style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
+                style: TextStyle(color: Colors.white70, fontSize: 12)),
             Text('${(pct * 100).round()}%',
                 style: const TextStyle(
                     color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
@@ -199,7 +202,7 @@ class _GlobalProgressBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: pct,
             minHeight: 8,
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             valueColor: const AlwaysStoppedAnimation(Color(0xFFF59E0B)),
           ),
         ),
@@ -299,20 +302,21 @@ class _BadgeTileAppwriteState extends State<_BadgeTileAppwrite>
                 maxLines: 2,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: item.unlocked ? Colors.white : const Color(0xFF6B7280),
+                  color: item.unlocked ? const Color(0xFF1E293B) : const Color(0xFF64748B),
                   fontSize: 10,
-                  fontWeight: item.unlocked ? FontWeight.w700 : FontWeight.w400,
+                  fontWeight: item.unlocked ? FontWeight.w700 : FontWeight.w500,
                   height: 1.2,
                 ),
               ),
+              const SizedBox(height: 2),
               if (item.unlocked)
-                const Text('✓',
-                    style: TextStyle(fontSize: 9, color: Color(0xFF10B981)))
+                const Text('✓ Débloqué',
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF10B981)))
               else
                 Text(
                   '${item.progressPercent}%',
                   style: const TextStyle(
-                      fontSize: 9, color: Color(0xFF6B7280)),
+                      fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                 ),
             ],
           ),
@@ -363,7 +367,7 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
             child: CircularProgressIndicator(
               value: pct,
               strokeWidth: 3,
-              backgroundColor: const Color(0xFF1F2937),
+              backgroundColor: const Color(0xFFE2E8F0),
               valueColor: AlwaysStoppedAnimation(
                 unlocked ? rarityColor : rarityColor.withValues(alpha: 0.4),
               ),
@@ -375,12 +379,17 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
             height: size * 0.76,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: unlocked ? const Color(0xFF1A1A2E) : const Color(0xFF111827),
+              color: unlocked ? Colors.white : const Color(0xFFF1F5F9),
+              border: Border.all(
+                color: unlocked ? rarityColor.withValues(alpha: 0.4) : const Color(0xFFE2E8F0),
+                width: 1.5,
+              ),
               boxShadow: unlocked
                   ? [BoxShadow(
-                      color: rarityColor.withValues(alpha: 0.4),
-                      blurRadius: 10,
-                      spreadRadius: 1)]
+                      color: rarityColor.withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    )]
                   : [],
             ),
             child: ClipOval(
@@ -405,14 +414,14 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
                 width: size * 0.3,
                 height: size * 0.3,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F2937),
+                  color: const Color(0xFFF1F5F9),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF374151)),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
                 child: Icon(
                   Icons.lock_rounded,
                   size: size * 0.15,
-                  color: const Color(0xFF6B7280),
+                  color: const Color(0xFF64748B),
                 ),
               ),
             ),
@@ -444,6 +453,7 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
 
   Color _rarityColor(BadgeRarity r) => switch (r) {
         BadgeRarity.common    => const Color(0xFF9CA3AF),
+        BadgeRarity.uncommon  => const Color(0xFF10B981),
         BadgeRarity.rare      => const Color(0xFF3B82F6),
         BadgeRarity.epic      => const Color(0xFF8B5CF6),
         BadgeRarity.legendary => const Color(0xFFFFD700),
@@ -480,7 +490,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF13132B),
+        color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -493,7 +503,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
             width: 40, height: 4,
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
-              color: const Color(0xFF374151),
+              color: const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -506,7 +516,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
           Text(def.name,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: unlocked ? Colors.white : const Color(0xFF9CA3AF),
+                color: unlocked ? const Color(0xFF1E293B) : const Color(0xFF64748B),
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               )),
@@ -521,7 +531,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
             unlocked ? def.unlockedMessage : def.description,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF9CA3AF),
+              color: Color(0xFF64748B),
               fontSize: 14,
               height: 1.5,
             ),
@@ -536,7 +546,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
             Text(
               'Obtenu le ${_fmtDate(item.userBadge!.unlockedAt)}',
               style: const TextStyle(
-                  color: Color(0xFF6B7280), fontSize: 12),
+                  color: Color(0xFF64748B), fontSize: 12),
             ),
           ],
           const SizedBox(height: 16),
@@ -577,21 +587,22 @@ class _RarityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (rarity) {
-      BadgeRarity.common    => (const Color(0xFF9CA3AF), 'Commun'),
+      BadgeRarity.common    => (const Color(0xFF64748B), 'Commun'),
+      BadgeRarity.uncommon  => (const Color(0xFF10B981), 'Peu commun'),
       BadgeRarity.rare      => (const Color(0xFF3B82F6), 'Rare'),
       BadgeRarity.epic      => (const Color(0xFF8B5CF6), 'Épique'),
-      BadgeRarity.legendary => (const Color(0xFFFFD700), 'Légendaire'),
+      BadgeRarity.legendary => (const Color(0xFFF59E0B), 'Légendaire'),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(label,
           style: TextStyle(
-              color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+              color: color, fontSize: 12, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -607,10 +618,10 @@ class _DetailProgressBar extends StatelessWidget {
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(item.progressDetail,
             style: const TextStyle(
-                color: Color(0xFF9CA3AF), fontSize: 12)),
+                color: Color(0xFF64748B), fontSize: 12)),
         Text('${item.progressPercent}%',
             style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF1E293B),
                 fontSize: 12,
                 fontWeight: FontWeight.w700)),
       ]),
@@ -620,7 +631,7 @@ class _DetailProgressBar extends StatelessWidget {
         child: LinearProgressIndicator(
           value: pct,
           minHeight: 7,
-          backgroundColor: const Color(0xFF1F2937),
+          backgroundColor: const Color(0xFFE2E8F0),
           valueColor: AlwaysStoppedAnimation(
             item.unlocked ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
           ),
@@ -642,7 +653,7 @@ class _TabDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext ctx, double shrink, bool overlaps) {
     return ColoredBox(
-      color: const Color(0xFF0A0A14),
+      color: const Color(0xFFF0F7FF),
       child: tabBar,
     );
   }
@@ -650,3 +661,181 @@ class _TabDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_TabDelegate old) => tabBar != old.tabBar;
 }
+
+// ─── Mode Hors-Ligne / Fallback Local ────────────────────────────────────────
+
+class _BadgesOfflineBody extends StatelessWidget {
+  const _BadgesOfflineBody();
+
+  static const _localBadges = [
+    (
+      title: 'Premier pas',
+      desc: 'Première connexion réussie sur UniFlow',
+      asset: 'assets/badges/badge_premier_pas.webp',
+      rarity: 'Commun',
+      color: Color(0xFF10B981),
+    ),
+    (
+      title: 'Assidu',
+      desc: 'Présence confirmée à tous les cours de la semaine',
+      asset: 'assets/badges/badge_assidu.webp',
+      rarity: 'Rare',
+      color: Color(0xFF3B82F6),
+    ),
+    (
+      title: 'Ponctuel',
+      desc: 'Arrivé à l\'heure à 10 cours consécutifs',
+      asset: 'assets/badges/badge_ponctuel.webp',
+      rarity: 'Peu commun',
+      color: Color(0xFF8B5CF6),
+    ),
+    (
+      title: 'Entraide',
+      desc: 'A aidé un camarade sur le forum ou partagé un cours',
+      asset: 'assets/badges/badge_entraide.webp',
+      rarity: 'Épique',
+      color: Color(0xFFF59E0B),
+    ),
+    (
+      title: 'Sans faute',
+      desc: 'Obtenu la note maximale sur une évaluation',
+      asset: 'assets/badges/badge_sans_faute.webp',
+      rarity: 'Épique',
+      color: Color(0xFFEF4444),
+    ),
+    (
+      title: 'Major de promo',
+      desc: 'Parmi les 5 meilleurs étudiants du semestre',
+      asset: 'assets/badges/badge_major.webp',
+      rarity: 'Légendaire',
+      color: Color(0xFFEC4899),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          const GradientHeader(
+            title: 'Mes Badges',
+            subtitle: 'Collection & Réussites académiques',
+          ),
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0F2FE),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFBAE6FD)),
+            ),
+            child: const Row(
+              children: [
+                UniMascot(pose: UniPose.wave, size: 36),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Catalogue synchronisé localement. Continue tes efforts pour débloquer de nouveaux trophées !',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF0369A1),
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.78,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+              ),
+              itemCount: _localBadges.length,
+              itemBuilder: (ctx, i) {
+                final b = _localBadges[i];
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 72,
+                        width: 72,
+                        child: Image.asset(
+                          b.asset,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Icon(
+                            PhosphorIconsBold.medal,
+                            size: 48,
+                            color: b.color,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        b.title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        b.desc,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                          height: 1.25,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: b.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          b.rarity,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: b.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

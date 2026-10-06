@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'phosphor.dart';
@@ -8,20 +9,17 @@ import 'uni_icons.dart';
 import '../utils/avatar.dart';
 import '../utils/error_text.dart';
 
-/// En-tête de page dark premium — dégradé violet profond → navy.
+/// En-tête page « Book Lending » — fond blanc, tache décorative pastel,
+/// logo horizontal à gauche, titre/sous-titre au centre, trailing à droite.
 ///
-/// Identité visuelle unifiée : même fond dark que le desktop et le web.
-/// Accentuation via une ligne de dégradé bleu → violet en bas du header.
+/// Remplace l'ancien header à dégradé sombre : UniFlow passe à un style
+/// clair, aéré, cohérent avec les maquettes de référence fournies.
 class GradientHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
-
-  /// Posé avant le titre : la tuile de la matière sur la fiche d'une UE.
   final Widget? leading;
   final Widget? trailing;
   final PreferredSizeWidget? bottom;
-
-  /// Quand `true`, affiche un orbe lumineux décoratif derrière le titre.
   final bool showOrb;
 
   const GradientHeader({
@@ -37,21 +35,16 @@ class GradientHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: AppSystemUi.surBleu,
+      value: AppSystemUi.surClair,
       child: Stack(
+        clipBehavior: Clip.hardEdge,
         children: [
-          // Fond principal
+          // En-tête Premium avec dégradé
           Container(
             decoration: const BoxDecoration(
               gradient: AppColors.headerGradient,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x1A1E3A8A),
-                  blurRadius: 20,
-                  offset: Offset(0, 6),
-                ),
-              ],
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+              boxShadow: AppColors.cardShadow,
             ),
             child: SafeArea(
               bottom: false,
@@ -60,10 +53,13 @@ class GradientHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                    padding: const EdgeInsets.fromLTRB(18, 10, 18, 12),
                     child: Row(
                       children: [
-                        if (leading != null) ...[leading!, const SizedBox(width: 12)],
+                        if (leading != null) ...[
+                          leading!,
+                          const SizedBox(width: 10),
+                        ],
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,21 +69,21 @@ class GradientHeader extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
                                   letterSpacing: -0.3,
                                 ),
                               ),
                               if (subtitle != null) ...[
-                                const SizedBox(height: 3),
+                                const SizedBox(height: 2),
                                 Text(
                                   subtitle!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.6),
-                                    fontSize: 12.5,
+                                    color: AppColors.textSecondary.withValues(alpha: 0.8),
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),
@@ -96,7 +92,7 @@ class GradientHeader extends StatelessWidget {
                           ),
                         ),
                         if (trailing != null) ...[
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           trailing!,
                         ],
                       ],
@@ -104,24 +100,10 @@ class GradientHeader extends StatelessWidget {
                   ),
                   if (bottom != null)
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: bottom!,
                     ),
                 ],
-              ),
-            ),
-          ),
-          // Ligne accent en bas du header — dégradé bleu → teal UniFlow
-          Positioned(
-            bottom: 0,
-            left: 24,
-            right: 24,
-            child: Container(
-              height: 2,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.transparent, AppColors.tealLight, AppColors.primaryLight, Colors.transparent],
-                ),
               ),
             ),
           ),
@@ -402,6 +384,7 @@ class StatCard extends StatefulWidget {
   final Color color;
   final String? caption;
   final VoidCallback? onTap;
+  final String? imageAsset;
 
   /// Rang dans la rangée : décale l'apparition de la tuile (cascade).
   final int index;
@@ -414,6 +397,7 @@ class StatCard extends StatefulWidget {
     required this.color,
     this.caption,
     this.onTap,
+    this.imageAsset,
     this.index = 0,
   });
 
@@ -425,6 +409,8 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
   // La pression sur la carte entière rétracte la tuile : c'est la carte qui
   // reçoit le toucher, pas la tuile.
   bool _pressed = false;
+
+  Timer? _delayTimer;
 
   // Contrôleur d'entrée : fondu + glissement vers le haut (400 ms, easeOutCubic).
   late final AnimationController _enterCtrl = AnimationController(
@@ -440,13 +426,19 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     // Décale chaque carte selon son rang pour un effet cascade léger.
-    Future.delayed(Duration(milliseconds: 60 * widget.index.clamp(0, 4)), () {
-      if (mounted) _enterCtrl.forward();
-    });
+    final delay = 60 * widget.index.clamp(0, 4);
+    if (delay == 0) {
+      _enterCtrl.forward();
+    } else {
+      _delayTimer = Timer(Duration(milliseconds: delay), () {
+        if (mounted) _enterCtrl.forward();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _enterCtrl.dispose();
     _enterCurve.dispose();
     super.dispose();
@@ -469,13 +461,33 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconTile(
-              icon: widget.icon,
-              color: widget.color,
-              size: IconTile.large,
-              index: widget.index,
-              pressed: _pressed,
-            ),
+            if (widget.imageAsset != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Image.asset(
+                    widget.imageAsset!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => IconTile(
+                      icon: widget.icon,
+                      color: widget.color,
+                      size: IconTile.large,
+                      index: widget.index,
+                      pressed: _pressed,
+                    ),
+                  ),
+                ),
+              )
+            else
+              IconTile(
+                icon: widget.icon,
+                color: widget.color,
+                size: IconTile.large,
+                index: widget.index,
+                pressed: _pressed,
+              ),
             const SizedBox(height: 12),
             // Compteur animé 0 → valeur finale (800 ms). Uniquement si la
             // valeur est un entier pur ; pour les fractions (« 15,5/20 ») on

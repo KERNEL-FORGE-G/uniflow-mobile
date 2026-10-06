@@ -300,8 +300,11 @@ class MessagingRepository {
       );
     }
     if (data['ok'] != true) {
+      final msg = data['message'] as String?;
       throw MessagingException(
-        data['message'] ?? 'La messagerie a échoué.',
+        (msg != null && msg.isNotEmpty)
+            ? msg
+            : 'Le service de messagerie est momentanément indisponible. Réessaie dans quelques instants.',
         code: data['code'] ?? '',
       );
     }
