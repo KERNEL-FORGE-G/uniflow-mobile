@@ -56,7 +56,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           children: [
             GradientHeader(
               title: 'Abonnements & Pro',
-              subtitle: 'Propulsé par la passerelle Flutterwave',
+              subtitle: 'Activation et assistance officielle via WhatsApp (+237 6 57 63 56 44)',
               leading: IconButton(
                 icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, color: AppColors.textPrimary),
                 onPressed: () => context.pop(),
@@ -466,8 +466,8 @@ class _PlanCard extends StatelessWidget {
   }
 }
 
-/// Feuille modale de règlement Flutterwave (Orange Money, MoMo, Carte).
-class _PaymentModalSheet extends ConsumerStatefulWidget {
+/// Feuille modale de confirmation manuelle via WhatsApp (+237 6 57 63 56 44).
+class _PaymentModalSheet extends ConsumerWidget {
   final SubscriptionPlanInfo plan;
   final bool isAnnual;
 
@@ -477,88 +477,8 @@ class _PaymentModalSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_PaymentModalSheet> createState() => _PaymentModalSheetState();
-}
-
-class _PaymentModalSheetState extends ConsumerState<_PaymentModalSheet> {
-  FlutterwavePaymentMethod _method = FlutterwavePaymentMethod.orangeMoney;
-  final _phoneController = TextEditingController(text: '+237 6');
-  final _cardController = TextEditingController(text: '4111 2222 3333 4444');
-  final _expController = TextEditingController(text: '12/28');
-  final _cvvController = TextEditingController(text: '123');
-
-  bool _loading = false;
-  String? _successMessage;
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _cardController.dispose();
-    _expController.dispose();
-    _cvvController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _payDirect() async {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-    final service = ref.read(flutterwaveServiceProvider);
-
-    setState(() => _loading = true);
-
-    try {
-      if (_method == FlutterwavePaymentMethod.card) {
-        final res = await service.processCardDirect(
-          plan: widget.plan,
-          isAnnual: widget.isAnnual,
-          user: user,
-          cardNumber: _cardController.text.trim(),
-          expiryDate: _expController.text.trim(),
-          cvv: _cvvController.text.trim(),
-        );
-        setState(() => _successMessage = res.message);
-      } else {
-        final res = await service.processMobileMoneyDirect(
-          plan: widget.plan,
-          isAnnual: widget.isAnnual,
-          user: user,
-          phoneNumber: _phoneController.text.trim(),
-          method: _method,
-        );
-        setState(() => _successMessage = res.message);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur paiement: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _payViaWebCheckout() async {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-    final service = ref.read(flutterwaveServiceProvider);
-
-    setState(() => _loading = true);
-    await service.openHostedPayment(
-      plan: widget.plan,
-      isAnnual: widget.isAnnual,
-      user: user,
-      phoneNumber: _phoneController.text.trim(),
-    );
-    if (mounted) {
-      setState(() => _loading = false);
-      Navigator.pop(context);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final amount = widget.isAnnual ? widget.plan.annualAmount : widget.plan.monthlyAmount;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final amount = isAnnual ? plan.annualAmount : plan.monthlyAmount;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 24),
@@ -592,11 +512,11 @@ class _PaymentModalSheetState extends ConsumerState<_PaymentModalSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Paiement Flutterwave',
+                    'Activation Formule Pro',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                   ),
                   Text(
-                    '${widget.plan.name} · $amount ${widget.plan.currency}',
+                    '${plan.name} · $amount ${plan.currency}',
                     style: const TextStyle(fontSize: 13, color: Color(0xFF0D9488), fontWeight: FontWeight.w700),
                   ),
                 ],
@@ -608,225 +528,78 @@ class _PaymentModalSheetState extends ConsumerState<_PaymentModalSheet> {
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          if (_successMessage != null) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFBBF7D0)),
-              ),
-              child: Column(
-                children: [
-                  const PhosphorIcon(PhosphorIconsFill.checkCircle, color: Color(0xFF16A34A), size: 40),
-                  const SizedBox(height: 10),
-                  Text(
-                    _successMessage!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF15803D), fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A34A),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Fermer et retourner'),
-                  ),
-                ],
-              ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFBBF7D0)),
             ),
-          ] else ...[
-            // Sélecteur de méthode
-            Row(
+            child: Row(
               children: [
-                _MethodPill(
-                  label: 'Orange Money',
-                  icon: PhosphorIconsFill.deviceMobile,
-                  selected: _method == FlutterwavePaymentMethod.orangeMoney,
-                  onTap: () => setState(() => _method = FlutterwavePaymentMethod.orangeMoney),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDCFCE7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const PhosphorIcon(PhosphorIconsFill.whatsappLogo, color: Color(0xFF16A34A), size: 24),
                 ),
-                const SizedBox(width: 8),
-                _MethodPill(
-                  label: 'MTN MoMo',
-                  icon: PhosphorIconsFill.deviceMobile,
-                  selected: _method == FlutterwavePaymentMethod.mtnMomo,
-                  onTap: () => setState(() => _method = FlutterwavePaymentMethod.mtnMomo),
-                ),
-                const SizedBox(width: 8),
-                _MethodPill(
-                  label: 'Carte Bancaire',
-                  icon: PhosphorIconsFill.creditCard,
-                  selected: _method == FlutterwavePaymentMethod.card,
-                  onTap: () => setState(() => _method = FlutterwavePaymentMethod.card),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Validation manuelle immédiate',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF166534)),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Paiement par Orange Money, MTN Mobile Money ou virement. Votre référence est transmise automatiquement.',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF15803D)),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+          ),
 
-            const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
-            if (_method != FlutterwavePaymentMethod.card) ...[
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'Numéro de téléphone mobile money',
-                  hintText: '+237 6...',
-                  prefixIcon: const PhosphorIcon(PhosphorIconsBold.deviceMobile),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final user = ref.read(currentUserProvider);
+                if (user == null) return;
+                Navigator.pop(context);
+                await ref.read(flutterwaveServiceProvider).openWhatsAppBilling(
+                  plan: plan,
+                  isAnnual: isAnnual,
+                  user: user,
+                );
+              },
+              icon: const PhosphorIcon(PhosphorIconsFill.whatsappLogo, color: Colors.white, size: 20),
+              label: const Text(
+                'Valider via WhatsApp (+237 6 57 63 56 44)',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
               ),
-            ] else ...[
-              TextField(
-                controller: _cardController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Numéro de carte Visa / Mastercard',
-                  prefixIcon: const PhosphorIcon(PhosphorIconsBold.creditCard),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _expController,
-                      decoration: InputDecoration(
-                        labelText: 'Exp (MM/AA)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _cvvController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'CVV',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _payDirect,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E3A8A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: _loading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        'Payer $amount ${widget.plan.currency} via Flutterwave',
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                      ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF16A34A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            Center(
-              child: TextButton.icon(
-                onPressed: _loading ? null : _payViaWebCheckout,
-                icon: const PhosphorIcon(PhosphorIconsBold.arrowSquareOut, size: 16),
-                label: const Text(
-                  'Ouvrir le guichet web sécurisé Flutterwave',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF0D9488), fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            Center(
-              child: TextButton.icon(
-                onPressed: () async {
-                  final user = ref.read(currentUserProvider);
-                  if (user == null) return;
-                  await ref.read(flutterwaveServiceProvider).openWhatsAppBilling(
-                    plan: widget.plan,
-                    isAnnual: widget.isAnnual,
-                    user: user,
-                  );
-                },
-                icon: const PhosphorIcon(PhosphorIconsFill.whatsappLogo, color: Color(0xFF16A34A), size: 18),
-                label: const Text(
-                  'Payer par WhatsApp (+237 657 635 644)',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF16A34A), fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _MethodPill extends StatelessWidget {
-  final String label;
-  final PhosphorIconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _MethodPill({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selected ? const Color(0xFF1E3A8A) : const Color(0xFFCBD5E1),
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PhosphorIcon(
-                icon,
-                size: 20,
-                color: selected ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? const Color(0xFF1E3A8A) : const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

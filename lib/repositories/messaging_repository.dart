@@ -317,10 +317,14 @@ class MessagingRepository {
   /// Même liste, en JSON brut : c'est cette forme que le cache hors ligne
   /// conserve, pour la relire avec `Conversation.fromJson` sans réseau.
   Future<List<Map<String, dynamic>>> getConversationsJson() async {
-    final data = await _invoke({'action': 'list'});
-    final list = data['conversations'];
-    if (list is! List) return const [];
-    return list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    try {
+      final data = await _invoke({'action': 'list'});
+      final list = data['conversations'];
+      if (list is! List) return const [];
+      return list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// Retrouve des contacts par pseudo, nom ou email (au moins deux caractères).
@@ -476,10 +480,14 @@ class MessagingRepository {
       (await getNotificationsJson()).map(AppNotification.fromJson).toList();
 
   Future<List<Map<String, dynamic>>> getNotificationsJson() async {
-    final data = await _invoke({'action': 'notifications'});
-    final list = data['notifications'];
-    if (list is! List) return const [];
-    return list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    try {
+      final data = await _invoke({'action': 'notifications'});
+      final list = data['notifications'];
+      if (list is! List) return const [];
+      return list.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// Marque une notification comme lue, ou toutes si [notificationId] est vide.

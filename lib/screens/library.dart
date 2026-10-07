@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -158,13 +159,37 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       _erreur = null;
     });
     try {
-      final res = await ref.read(appwriteServiceProvider).callService('/open-library', {
-        'action': 'search',
-        'query': q,
-        'category': cat,
-        'limit': 35,
-      });
-      if (res['ok'] == true && res['results'] is List) {
+      Map<String, dynamic>? res;
+      try {
+        res = await ref.read(appwriteServiceProvider).callService('/open-library', {
+          'action': 'search',
+          'query': q,
+          'category': cat,
+          'limit': 35,
+        });
+      } catch (_) {
+        res = null;
+      }
+
+      // Le web UniFlow retransmet l'API book si le BaaS local/cloud tarde ou échoue
+      if (res == null || res['ok'] != true) {
+        try {
+          final client = HttpClient();
+          final uri = Uri.parse('https://uniflow.kernelforge.codes/api/books').replace(queryParameters: {
+            'q': q,
+            'category': cat,
+            'limit': '35',
+          });
+          final req = await client.getUrl(uri).timeout(const Duration(seconds: 6));
+          final resp = await req.close().timeout(const Duration(seconds: 6));
+          if (resp.statusCode == 200) {
+            final body = await resp.transform(utf8.decoder).join();
+            res = jsonDecode(body) as Map<String, dynamic>;
+          }
+        } catch (_) {}
+      }
+
+      if (res != null && res['ok'] == true && res['results'] is List) {
         final list = (res['results'] as List)
             .whereType<Map<String, dynamic>>()
             .map(UniBookItem.fromJson)
@@ -176,7 +201,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         }
       } else if (mounted) {
         setState(() {
-          _erreur = res['error']?.toString() ?? 'Erreur lors de la recherche Uni Book.';
+          _erreur = res?['error']?.toString() ?? 'Erreur lors de la recherche Uni Book.';
         });
       }
     } catch (e) {

@@ -83,3 +83,5 @@ flutter:
     # Illustrations 3D générées pour le redesign "Book Lending" : hero banner,
     # thumbnails de cours pour les cartes d'accueil.
     - assets/illustrations/
+    # Scans officiels des emplois du temps (ICT4D, SIGL, Faculté des Sciences)
+    - assets/emplois_du_temps/

@@ -62,15 +62,22 @@ UniDock uniDockFor(BottomEdge edge) => switch (edge) {
 /// [bottomBarFor], donc du rôle. Un étudiant n'a pas d'onglet « Étudiants »,
 /// un enseignant n'a pas d'onglet « Présence ». Les entrées qui ne tiennent pas
 /// dans la barre restent accessibles depuis l'accueil.
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   final Widget child;
   final String location;
 
   const AppShell({super.key, required this.child, required this.location});
 
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  DateTime? _lastBack;
+
   /// Index de l'onglet actif, ou -1 si la page courante vit dans le menu.
   int _currentIndex(List<NavDestination> tabs) =>
-      tabs.indexWhere((t) => location.startsWith(t.path));
+      tabs.indexWhere((t) => widget.location.startsWith(t.path));
 
   void _openMenu(BuildContext context, List<NavDestination> entries) {
     showModalBottomSheet<void>(
@@ -83,7 +90,7 @@ class AppShell extends ConsumerWidget {
       ),
       builder: (sheetContext) => _MenuSheet(
         entries: entries,
-        location: location,
+        location: widget.location,
         onSelect: (path) {
           Navigator.of(sheetContext).pop();
           context.go(path);
@@ -93,22 +100,40 @@ class AppShell extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final role = ref.watch(currentRoleProvider);
     final tabs = primaryTabsFor(role);
     final menu = menuEntriesFor(role);
     final current = _currentIndex(tabs);
-    final menuActive = menu.any((d) => location.startsWith(d.path));
-    final dock = uniDockFor(bottomEdgeAt(location, role));
+    final menuActive = menu.any((d) => widget.location.startsWith(d.path));
+    final dock = uniDockFor(bottomEdgeAt(widget.location, role));
     final reduce = MediaQuery.disableAnimationsOf(context);
 
-    return Scaffold(
-      // Le bandeau hors ligne / en attente d'envoi coiffe chaque page ; il
-      // se replie tout seul quand tout est synchronisé.
-      body: LayoutBuilder(
-        builder: (context, constraints) => Stack(
-          children: [
-            Column(children: [const OfflineBanner(), Expanded(child: child)]),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final now = DateTime.now();
+        if (_lastBack != null && now.difference(_lastBack!) < const Duration(seconds: 2)) {
+          SystemNavigator.pop();
+          return;
+        }
+        _lastBack = now;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Appuyez encore une fois pour quitter'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      child: Scaffold(
+        // Le bandeau hors ligne / en attente d'envoi coiffe chaque page ; il
+        // se replie tout seul quand tout est synchronisé.
+        body: LayoutBuilder(
+          builder: (context, constraints) => Stack(
+            children: [
+              Column(children: [const OfflineBanner(), Expanded(child: widget.child)]),
             // Uni : le bouton flottant de l'assistant. Sa place dépend de ce
             // que la page pose en bas de l'écran (voir `shell_pages.dart`) : il
             // glisse dans le coin gauche quand la page a son propre bouton
@@ -189,8 +214,9 @@ class AppShell extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 /// Un onglet de la barre du bas.
