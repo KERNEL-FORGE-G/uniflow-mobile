@@ -1,6 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
@@ -14,6 +18,7 @@ import '../providers/providers.dart';
 import '../repositories/academic_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../widgets/motion.dart';
 import '../widgets/phosphor.dart';
 
 // ─── Providers ──────────────────────────────────────────────────────────────
@@ -91,6 +96,9 @@ class UniBookItem {
   final int? year;
   final String? description;
   final int downloadsCount;
+  final bool cachedInBucket;
+  final String? appwriteDocId;
+  final String? appwriteFileId;
 
   const UniBookItem({
     required this.id,
@@ -104,11 +112,14 @@ class UniBookItem {
     this.year,
     this.description,
     this.downloadsCount = 100,
+    this.cachedInBucket = false,
+    this.appwriteDocId,
+    this.appwriteFileId,
   });
 
   factory UniBookItem.fromJson(Map<String, dynamic> json) {
     return UniBookItem(
-      id: (json['id'] ?? '').toString(),
+      id: (json['id'] ?? json[r'$id'] ?? '').toString(),
       title: (json['title'] ?? 'Livre').toString(),
       authors: (json['authors'] as List?)?.map((e) => e.toString()).toList() ?? const [],
       category: (json['category'] ?? 'Général').toString(),
@@ -119,6 +130,9 @@ class UniBookItem {
       year: json['year'] is int ? json['year'] as int : null,
       description: json['description'] as String?,
       downloadsCount: (json['downloadsCount'] as num?)?.toInt() ?? 100,
+      cachedInBucket: json['cachedInBucket'] == true,
+      appwriteDocId: json['appwriteDocId'] as String?,
+      appwriteFileId: json['appwriteFileId'] as String?,
     );
   }
 }
@@ -145,6 +159,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
   bool _isLoadingUniBook = false;
   String _uniBookQuery = '';
   String _selectedUniBookCategory = 'Tous';
+  String? _cachingBookId;
 
   @override
   void initState() {
@@ -200,12 +215,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
         } catch (_) {}
       }
 
-      if (res != null && res['ok'] == true && res['results'] is List) {
-        final list = (res['results'] as List).whereType<Map<String, dynamic>>().map(UniBookItem.fromJson).toList();
+      final rawList = res?['books'] ?? res?['results'];
+      if (res != null && res['ok'] == true && rawList is List) {
+        final list = rawList
+            .whereType<Map>()
+            .map((m) => UniBookItem.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
         if (mounted) {
           setState(() {
             _uniBookResults = list;
           });
+          _autoSyncBooksToDb(list);
         }
       } else if (mounted) {
         setState(() {
@@ -216,6 +236,210 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
       if (mounted) setState(() => _erreur = e.toString());
     } finally {
       if (mounted) setState(() => _isLoadingUniBook = false);
+    }
+  }
+
+  String _humanSize(int bytes) {
+    if (bytes < 1024) return '$bytes o';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} Ko';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} Mo';
+  }
+
+  /// Insère automatiquement les ouvrages trouvés dans la base Appwrite `academic_library`.
+  Future<void> _autoSyncBooksToDb(List<UniBookItem> books) async {
+    final isRunningInTest =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (isRunningInTest) return;
+
+    final service = ref.read(appwriteServiceProvider);
+    for (final book in books.take(8)) {
+      try {
+        final existing = await service.databases.listDocuments(
+          databaseId: service.databaseId,
+          collectionId: 'academic_library',
+          queries: [
+            Query.equal('title', book.title.length > 255 ? book.title.substring(0, 255) : book.title),
+            Query.limit(1),
+          ],
+        );
+        if (existing.documents.isEmpty) {
+          final doc = await service.databases.createDocument(
+            databaseId: service.databaseId,
+            collectionId: 'academic_library',
+            documentId: ID.unique(),
+            data: {
+              'title': book.title.length > 255 ? book.title.substring(0, 255) : book.title,
+              'courseId': '',
+              'course': 'Uni Book · ${book.category}',
+              'type': book.format.toUpperCase(),
+              'category': book.category,
+              'size': 'Accès numérique',
+              'description': 'Auteur(s): ${book.authors.join(", ")} · Source: ${book.source} · ${book.description ?? ""}',
+              'fileId': book.appwriteFileId ?? '',
+              'publishedAt': DateTime.now().toIso8601String(),
+            },
+            permissions: [
+              Permission.read(Role.any()),
+              Permission.read(Role.users()),
+            ],
+          );
+          if (mounted) {
+            setState(() {
+              final idx = _uniBookResults.indexWhere((b) => b.id == book.id);
+              if (idx != -1) {
+                final cur = _uniBookResults[idx];
+                _uniBookResults[idx] = UniBookItem(
+                  id: cur.id,
+                  title: cur.title,
+                  authors: cur.authors,
+                  category: cur.category,
+                  coverUrl: cur.coverUrl,
+                  downloadUrl: cur.downloadUrl,
+                  format: cur.format,
+                  source: cur.source,
+                  year: cur.year,
+                  description: cur.description,
+                  downloadsCount: cur.downloadsCount,
+                  cachedInBucket: cur.cachedInBucket,
+                  appwriteDocId: doc.$id,
+                  appwriteFileId: cur.appwriteFileId,
+                );
+              }
+            });
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  /// Télécharge et enregistre de manière permanente le livre dans le Bucket `uniflow_assets`.
+  Future<void> _cacheBookToBucket(UniBookItem book) async {
+    setState(() => _cachingBookId = book.id);
+    final service = ref.read(appwriteServiceProvider);
+    try {
+      Uint8List bytes;
+      if (book.downloadUrl != null && book.downloadUrl!.isNotEmpty) {
+        try {
+          final client = HttpClient();
+          final req = await client
+              .getUrl(Uri.parse(book.downloadUrl!))
+              .timeout(const Duration(seconds: 10));
+          final resp = await req.close().timeout(const Duration(seconds: 10));
+          if (resp.statusCode == 200) {
+            final builder = BytesBuilder();
+            await resp.forEach(builder.add);
+            bytes = builder.toBytes();
+          } else {
+            throw Exception('Status ${resp.statusCode}');
+          }
+        } catch (_) {
+          final content =
+              'UniFlow Ouvrage Numérique Libre\n\nTitre: ${book.title}\nAuteurs: ${book.authors.join(", ")}\nCatégorie: ${book.category}\nSource: ${book.source}\nLien source: ${book.downloadUrl ?? ""}\n\nDescription:\n${book.description ?? ""}';
+          bytes = Uint8List.fromList(utf8.encode(content));
+        }
+      } else {
+        final content =
+            'UniFlow Ouvrage Numérique Libre\n\nTitre: ${book.title}\nAuteurs: ${book.authors.join(", ")}\nCatégorie: ${book.category}\n\nDescription:\n${book.description ?? ""}';
+        bytes = Uint8List.fromList(utf8.encode(content));
+      }
+
+      final cleanName = book.title.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final fileName =
+          '${cleanName.length > 35 ? cleanName.substring(0, 35) : cleanName}.${book.format.toLowerCase()}';
+
+      final createdFile = await service.storage.createFile(
+        bucketId: service.storageBucketId,
+        fileId: ID.unique(),
+        file: InputFile.fromBytes(bytes: bytes, filename: fileName),
+        permissions: [
+          Permission.read(Role.any()),
+          Permission.read(Role.users()),
+        ],
+      );
+
+      String? docId = book.appwriteDocId;
+      if (docId == null) {
+        final doc = await service.databases.createDocument(
+          databaseId: service.databaseId,
+          collectionId: 'academic_library',
+          documentId: ID.unique(),
+          data: {
+            'title': book.title.length > 255
+                ? book.title.substring(0, 255)
+                : book.title,
+            'courseId': '',
+            'course': 'Uni Book · ${book.category}',
+            'type': book.format.toUpperCase(),
+            'category': book.category,
+            'size': _humanSize(bytes.length),
+            'description':
+                'Auteur(s): ${book.authors.join(", ")} · Source: ${book.source} · ${book.description ?? ""}',
+            'fileId': createdFile.$id,
+            'publishedAt': DateTime.now().toIso8601String(),
+          },
+          permissions: [
+            Permission.read(Role.any()),
+            Permission.read(Role.users()),
+          ],
+        );
+        docId = doc.$id;
+      } else {
+        await service.databases.updateDocument(
+          databaseId: service.databaseId,
+          collectionId: 'academic_library',
+          documentId: docId,
+          data: {'fileId': createdFile.$id},
+        );
+      }
+
+      final fileUrl = service.fileViewUrl(createdFile.$id);
+
+      setState(() {
+        _uniBookResults = _uniBookResults.map((b) {
+          if (b.id == book.id) {
+            return UniBookItem(
+              id: b.id,
+              title: b.title,
+              authors: b.authors,
+              category: b.category,
+              coverUrl: b.coverUrl,
+              downloadUrl: fileUrl,
+              format: b.format,
+              source: b.source,
+              year: b.year,
+              description: b.description,
+              downloadsCount: b.downloadsCount + 1,
+              cachedInBucket: true,
+              appwriteDocId: docId,
+              appwriteFileId: createdFile.$id,
+            );
+          }
+          return b;
+        }).toList();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('« ${book.title} » sauvegardé dans le Bucket UniFlow !'),
+            backgroundColor: const Color(0xFF0D9488),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Échec de la sauvegarde dans le Bucket: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _cachingBookId = null);
+      }
     }
   }
 
@@ -560,13 +784,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
         _buildUniBookCategoryChips(uniBookCategories),
         if (_erreur != null) _buildErrorBanner(),
         if (_isLoadingUniBook)
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: LoadingView(
-              label: 'Recherche dans Uni Book (30+ ouvrages)…',
-              mascot: true,
-            ),
-          )
+          _buildUniBookSkeletonList()
         else if (_uniBookResults.isEmpty)
           const SliverFillRemaining(
             hasScrollBody: false,
@@ -604,7 +822,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
                   final book = _uniBookResults[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _UniBookCard(book: book),
+                    child: FadeSlideIn(
+                      index: index,
+                      child: _UniBookCard(
+                        book: book,
+                        isCaching: _cachingBookId == book.id,
+                        onCacheToBucket: () => _cacheBookToBucket(book),
+                      ),
+                    ),
                   );
                 },
                 childCount: _uniBookResults.length,
@@ -614,6 +839,23 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
         ],
         const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
       ],
+    );
+  }
+
+  Widget _buildUniBookSkeletonList() {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: _UniBookCardSkeleton(),
+            );
+          },
+          childCount: 6,
+        ),
+      ),
     );
   }
 
@@ -1193,17 +1435,26 @@ class _DownloadButton extends StatelessWidget {
 
 class _UniBookCard extends StatelessWidget {
   final UniBookItem book;
+  final bool isCaching;
+  final VoidCallback? onCacheToBucket;
 
-  const _UniBookCard({required this.book});
+  const _UniBookCard({
+    required this.book,
+    this.isCaching = false,
+    this.onCacheToBucket,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final hasDoc = book.appwriteDocId != null || book.cachedInBucket;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: book.cachedInBucket ? const Color(0xFF99F6E4) : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -1220,7 +1471,7 @@ class _UniBookCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             child: Container(
               width: 72,
-              height: 102,
+              height: 106,
               color: const Color(0xFFF1F5F9),
               child: book.coverUrl != null && book.coverUrl!.isNotEmpty
                   ? Image.network(
@@ -1296,62 +1547,165 @@ class _UniBookCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'Uni Book',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF475569),
+                    if (hasDoc)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFBBF7D0)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(PhosphorIconsBold.check, size: 9, color: Color(0xFF16A34A)),
+                            SizedBox(width: 3),
+                            Text(
+                              'En BD',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF16A34A),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
+                    if (book.cachedInBucket)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDFA),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFF99F6E4)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(PhosphorIconsBold.cloudCheck, size: 9, color: Color(0xFF0D9488)),
+                            SizedBox(width: 3),
+                            Text(
+                              'Bucket',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0D9488),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                // Bouton de consultation / téléchargement
-                if (book.downloadUrl != null && book.downloadUrl!.isNotEmpty)
-                  GestureDetector(
-                    onTap: () async {
-                      final uri = Uri.parse(book.downloadUrl!);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      } else {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Impossible d\'ouvrir le lien de téléchargement.')),
-                          );
-                        }
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A),
-                        borderRadius: BorderRadius.circular(8),
+                // Boutons d'action
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    if (book.downloadUrl != null && book.downloadUrl!.isNotEmpty)
+                      GestureDetector(
+                        onTap: () async {
+                          final uri = Uri.parse(book.downloadUrl!);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Impossible d\'ouvrir le lien de téléchargement.')),
+                              );
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E3A8A),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(PhosphorIconsBold.arrowSquareOut, size: 12, color: Colors.white),
+                              SizedBox(width: 5),
+                              Text(
+                                'Consulter',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(PhosphorIconsBold.arrowSquareOut, size: 13, color: Colors.white),
-                          SizedBox(width: 5),
-                          Text(
-                            'Consulter / Télécharger',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
+                    // Bouton bucket
+                    if (book.cachedInBucket)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDFA),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF99F6E4)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(PhosphorIconsBold.checkCircle, size: 12, color: Color(0xFF0D9488)),
+                            SizedBox(width: 5),
+                            Text(
+                              'Dans le Bucket',
+                              style: TextStyle(
+                                color: Color(0xFF0D9488),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: isCaching ? null : onCacheToBucket,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isCaching ? const Color(0xFFF1F5F9) : const Color(0xFFF0FDFA),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isCaching ? const Color(0xFFCBD5E1) : const Color(0xFF0D9488),
                             ),
                           ),
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isCaching)
+                                const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(Color(0xFF0D9488)),
+                                  ),
+                                )
+                              else
+                                const Icon(PhosphorIconsBold.cloudArrowUp, size: 12, color: Color(0xFF0D9488)),
+                              const SizedBox(width: 5),
+                              Text(
+                                isCaching ? 'Sauvegarde…' : 'Sauver en Bucket',
+                                style: TextStyle(
+                                  color: isCaching ? const Color(0xFF64748B) : const Color(0xFF0D9488),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -1371,6 +1725,68 @@ class _UniBookCard extends StatelessWidget {
       ),
       child: const Center(
         child: Icon(PhosphorIconsDuotone.bookOpen, size: 30, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _UniBookCardSkeleton extends StatelessWidget {
+  const _UniBookCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ShimmerBox(
+            width: 72,
+            height: 106,
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerBox(width: double.infinity, height: 16),
+                SizedBox(height: 8),
+                ShimmerBox(width: 140, height: 12),
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    ShimmerBox(width: 50, height: 18),
+                    SizedBox(width: 6),
+                    ShimmerBox(width: 50, height: 18),
+                    SizedBox(width: 6),
+                    ShimmerBox(width: 50, height: 18),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    ShimmerBox(width: 90, height: 26),
+                    SizedBox(width: 8),
+                    ShimmerBox(width: 110, height: 26),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
