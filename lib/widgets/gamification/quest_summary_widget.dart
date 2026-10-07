@@ -49,8 +49,7 @@ class _QuestSummaryWidgetState extends ConsumerState<QuestSummaryWidget> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(
               children: [
-                const Icon(PhosphorIconsBold.trophy,
-                    size: 16, color: AppColors.primaryBlue),
+                const Icon(PhosphorIconsBold.trophy, size: 16, color: AppColors.primaryBlue),
                 const SizedBox(width: 6),
                 const Text(
                   'Mes quêtes',
@@ -164,8 +163,8 @@ class _TabBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = switch (tab) {
-      _QuestTab.daily   => activeQuestsProvider,
-      _QuestTab.weekly  => weeklyQuestsProvider,
+      _QuestTab.daily => activeQuestsProvider,
+      _QuestTab.weekly => weeklyQuestsProvider,
       _QuestTab.monthly => monthlyQuestsProvider,
     };
 
@@ -187,16 +186,14 @@ class _TabBody extends ConsumerWidget {
       ),
       error: (_, __) => const Padding(
         padding: EdgeInsets.all(12),
-        child: Text('Impossible de charger les quêtes.',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+        child: Text('Impossible de charger les quêtes.', style: TextStyle(color: Colors.grey, fontSize: 12)),
       ),
       data: (quests) {
         if (quests.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(
-              child: Text('Aucune quête pour cette période 🎉',
-                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+              child: Text('Aucune quête pour cette période 🎉', style: TextStyle(fontSize: 12, color: Colors.grey)),
             ),
           );
         }
@@ -285,11 +282,16 @@ class _QuestTile extends StatelessWidget {
 
   String get _periodEmoji {
     switch (quest.definition.period) {
-      case QuestPeriod.daily:   return '📅';
-      case QuestPeriod.weekly:  return '📆';
-      case QuestPeriod.monthly: return '🗓️';
-      case QuestPeriod.yearly:  return '🏆';
-      case QuestPeriod.oneshot: return '⭐';
+      case QuestPeriod.daily:
+        return '📅';
+      case QuestPeriod.weekly:
+        return '📆';
+      case QuestPeriod.monthly:
+        return '🗓️';
+      case QuestPeriod.yearly:
+        return '🏆';
+      case QuestPeriod.oneshot:
+        return '⭐';
     }
   }
 
@@ -301,14 +303,10 @@ class _QuestTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isComplete
-            ? const Color(0xFFECFDF5)
-            : const Color(0xFFF9FAFB),
+        color: isComplete ? const Color(0xFFECFDF5) : const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isComplete
-              ? const Color(0xFF10B981).withValues(alpha: 0.3)
-              : const Color(0xFFE5E7EB),
+          color: isComplete ? const Color(0xFF10B981).withValues(alpha: 0.3) : const Color(0xFFE5E7EB),
           width: 1,
         ),
       ),
@@ -329,9 +327,7 @@ class _QuestTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isComplete
-                        ? const Color(0xFF10B981)
-                        : Colors.grey[800],
+                    color: isComplete ? const Color(0xFF10B981) : Colors.grey[800],
                     decoration: isComplete ? TextDecoration.lineThrough : null,
                   ),
                 ),
@@ -343,9 +339,7 @@ class _QuestTile extends StatelessWidget {
                     minHeight: 4,
                     backgroundColor: const Color(0xFFE5E7EB),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isComplete
-                          ? const Color(0xFF10B981)
-                          : AppColors.primaryBlue,
+                      isComplete ? const Color(0xFF10B981) : AppColors.primaryBlue,
                     ),
                   ),
                 ),
@@ -367,9 +361,7 @@ class _QuestTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: isComplete
-                    ? const Color(0xFF10B981)
-                    : AppColors.primaryBlue,
+                color: isComplete ? const Color(0xFF10B981) : AppColors.primaryBlue,
               ),
             ),
           ),

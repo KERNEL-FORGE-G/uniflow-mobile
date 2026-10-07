@@ -412,7 +412,6 @@ List<NavDestination> menuEntriesFor(UniFlowRole role) {
   return destinationsFor(role).where((d) => !visibles.contains(d.path)).toList();
 }
 
-
 /// Vrai si [role] a le droit d'atteindre [location].
 ///
 /// Les sous-chemins héritent de leur parent : `/etudiants/u1` suit la règle de

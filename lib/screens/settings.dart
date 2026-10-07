@@ -295,7 +295,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           variant: IconTileVariant.soft,
                           size: IconTile.dense),
                       title: const Text('Mon Abonnement & Formules Pro'),
-                      subtitle: const Text('Passerelle Flutterwave (Orange Money, MoMo, Carte)', style: TextStyle(fontSize: 12)),
+                      subtitle: const Text('Passerelle Flutterwave (Orange Money, MoMo, Carte)',
+                          style: TextStyle(fontSize: 12)),
                       trailing:
                           const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
                       onTap: () => GoRouter.of(context).push('/abonnement'),

@@ -14,9 +14,9 @@ import '../widgets/uni/archlord_mascot.dart';
 
 class _OPage {
   final String bgImage;
-  final Color accentColor;     // couleur principale de la page
-  final Color cardColor;       // fond de la card inférieure
-  final Color textColor;       // couleur du texte dans la card
+  final Color accentColor; // couleur principale de la page
+  final Color cardColor; // fond de la card inférieure
+  final Color textColor; // couleur du texte dans la card
   final String tagline;
   final String title;
   final String body;
@@ -51,7 +51,7 @@ class _Chip {
 const _kPages = [
   _OPage(
     bgImage: 'assets/onboarding/onboarding_1_bienvenue.webp',
-    accentColor: Color(0xFF1E3A8A),  // bleu marine
+    accentColor: Color(0xFF1E3A8A), // bleu marine
     cardColor: Color(0xFF1E3A8A),
     textColor: Colors.white,
     tagline: 'BIENVENUE',
@@ -68,7 +68,7 @@ const _kPages = [
   ),
   _OPage(
     bgImage: 'assets/onboarding/onboarding_2_univers.webp',
-    accentColor: Color(0xFF0D9488),  // teal
+    accentColor: Color(0xFF0D9488), // teal
     cardColor: Color(0xFF0D9488),
     textColor: Colors.white,
     tagline: 'COURS & NOTES',
@@ -84,7 +84,7 @@ const _kPages = [
   ),
   _OPage(
     bgImage: 'assets/onboarding/onboarding_3_connecte.webp',
-    accentColor: Color(0xFF7C3AED),  // violet
+    accentColor: Color(0xFF7C3AED), // violet
     cardColor: Color(0xFF7C3AED),
     textColor: Colors.white,
     tagline: 'MESSAGERIE',
@@ -100,7 +100,7 @@ const _kPages = [
   ),
   _OPage(
     bgImage: 'assets/onboarding/onboarding_4_offline.webp',
-    accentColor: Color(0xFFEA580C),  // corail / orange
+    accentColor: Color(0xFFEA580C), // corail / orange
     cardColor: Color(0xFFEA580C),
     textColor: Colors.white,
     tagline: 'KERNEL FORGE',
@@ -128,15 +128,13 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   final String? next;
   final VoidCallback? onFinished;
 
-  const OnboardingScreen(
-      {super.key, this.replay = false, this.next, this.onFinished});
+  const OnboardingScreen({super.key, this.replay = false, this.next, this.onFinished});
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
-    with SingleTickerProviderStateMixin {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with SingleTickerProviderStateMixin {
   final _pageCtrl = PageController();
   int _index = 0;
 
@@ -165,8 +163,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   Future<void> _finish() async {
     await ref.read(onboardingSeenProvider.notifier).markSeen();
     if (!mounted) return;
-    if (widget.onFinished != null) { widget.onFinished!(); return; }
-    if (widget.replay) { Navigator.of(context).maybePop(); return; }
+    if (widget.onFinished != null) {
+      widget.onFinished!();
+      return;
+    }
+    if (widget.replay) {
+      Navigator.of(context).maybePop();
+      return;
+    }
     context.go(_signedIn ? (widget.next ?? '/accueil') : '/login');
   }
 
@@ -207,24 +211,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   children: [
                     // Logo pill blanc sur fond accent
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.22),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Image.asset(
                         'assets/brand/uniflow_logo_horizontal.png',
-                        height: 22,
+                        height: 34,
                         fit: BoxFit.contain,
                         color: Colors.white,
                         colorBlendMode: BlendMode.srcIn,
                         errorBuilder: (_, __, ___) => const Text(
                           'UniFlow',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800),
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ),
@@ -239,17 +239,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                           onPressed: _finish,
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.white,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.20),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.20),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           ),
-                          child: const Text('Passer',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600)),
+                          child: const Text('Passer', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                         ),
                       ),
                     ),
@@ -260,7 +254,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
             // ── Footer avec card solide (pas de glass) ────────────────
             Positioned(
-              left: 0, right: 0, bottom: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               child: _Footer(
                 index: _index,
                 count: _kPages.length,
@@ -315,7 +311,10 @@ class _PageSlide extends StatelessWidget {
               ),
               // Fondu bas vers la couleur accent (transition douce vers la card)
               Positioned(
-                left: 0, right: 0, bottom: 0, height: 120,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 120,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -454,8 +453,7 @@ class _Footer extends StatelessWidget {
                 child: AnimatedContainer(
                   key: const ValueKey('onboarding-next'),
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(50),
@@ -542,16 +540,13 @@ class PageDots extends StatelessWidget {
           final active = i == index;
           return AnimatedContainer(
             key: ValueKey('dot-$i'),
-            duration: reduce
-                ? Duration.zero
-                : const Duration(milliseconds: 260),
+            duration: reduce ? Duration.zero : const Duration(milliseconds: 260),
             curve: Curves.easeOut,
             margin: const EdgeInsets.symmetric(horizontal: gap),
             width: active ? activeWidth : dotSize,
             height: dotSize,
             decoration: BoxDecoration(
-              color:
-                  active ? Colors.white : Colors.white.withValues(alpha: 0.40),
+              color: active ? Colors.white : Colors.white.withValues(alpha: 0.40),
               borderRadius: BorderRadius.circular(999),
             ),
           );

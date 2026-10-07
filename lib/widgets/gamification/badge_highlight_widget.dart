@@ -35,9 +35,8 @@ class BadgeHighlightWidget extends ConsumerWidget {
         // Dernier badge débloqué
         final latest = unlocked.isNotEmpty ? unlocked.last : null;
         // Prochain badge le plus avancé
-        final next = locked.isNotEmpty
-            ? (locked..sort((a, b) => b.progressPercent.compareTo(a.progressPercent))).first
-            : null;
+        final next =
+            locked.isNotEmpty ? (locked..sort((a, b) => b.progressPercent.compareTo(a.progressPercent))).first : null;
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -61,8 +60,7 @@ class BadgeHighlightWidget extends ConsumerWidget {
                 // En-tête
                 Row(
                   children: [
-                    const Icon(PhosphorIconsBold.medal,
-                        size: 16, color: AppColors.primaryBlue),
+                    const Icon(PhosphorIconsBold.medal, size: 16, color: AppColors.primaryBlue),
                     const SizedBox(width: 6),
                     const Text(
                       'Mes badges',
@@ -73,8 +71,7 @@ class BadgeHighlightWidget extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    _CounterChip(
-                        unlocked: unlocked.length, total: badges.length),
+                    _CounterChip(unlocked: unlocked.length, total: badges.length),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -171,11 +168,16 @@ class _BadgeCard extends StatelessWidget {
 
   Color get _rarityColor {
     switch (badge.rarity) {
-      case BadgeRarity.common:    return const Color(0xFF6B7280);
-      case BadgeRarity.uncommon:  return const Color(0xFF10B981);
-      case BadgeRarity.rare:      return const Color(0xFF3B82F6);
-      case BadgeRarity.epic:      return const Color(0xFF8B5CF6);
-      case BadgeRarity.legendary: return const Color(0xFFF59E0B);
+      case BadgeRarity.common:
+        return const Color(0xFF6B7280);
+      case BadgeRarity.uncommon:
+        return const Color(0xFF10B981);
+      case BadgeRarity.rare:
+        return const Color(0xFF3B82F6);
+      case BadgeRarity.epic:
+        return const Color(0xFF8B5CF6);
+      case BadgeRarity.legendary:
+        return const Color(0xFFF59E0B);
     }
   }
 
@@ -186,14 +188,10 @@ class _BadgeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: unlocked
-            ? color.withValues(alpha: 0.06)
-            : const Color(0xFFF9FAFB),
+        color: unlocked ? color.withValues(alpha: 0.06) : const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: unlocked
-              ? color.withValues(alpha: 0.3)
-              : const Color(0xFFE5E7EB),
+          color: unlocked ? color.withValues(alpha: 0.3) : const Color(0xFFE5E7EB),
           width: 1,
         ),
       ),
@@ -303,9 +301,7 @@ class _BadgeImage extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: color.withValues(alpha: unlocked ? 0.12 : 0.05),
-              border: Border.all(
-                  color: color.withValues(alpha: unlocked ? 0.4 : 0.15),
-                  width: 2),
+              border: Border.all(color: color.withValues(alpha: unlocked ? 0.4 : 0.15), width: 2),
             ),
           ),
           // Image ou icône fallback

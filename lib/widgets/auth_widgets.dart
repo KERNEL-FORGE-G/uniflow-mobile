@@ -207,7 +207,6 @@ class _Hero extends StatelessWidget {
   }
 }
 
-
 class _HeadlineText extends StatelessWidget {
   final AuthHeadline headline;
   final bool narrow;

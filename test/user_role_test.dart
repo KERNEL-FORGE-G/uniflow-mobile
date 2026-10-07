@@ -219,7 +219,18 @@ void main() {
       ]) {
         expect(canAccessPath(UniFlowRole.personal, chemin), isFalse, reason: chemin);
       }
-      for (final chemin in ['/matieres', '/taches', '/agenda', '/notes', '/forum', '/equipe', '/settings', '/messages', '/notifications', '/quetes']) {
+      for (final chemin in [
+        '/matieres',
+        '/taches',
+        '/agenda',
+        '/notes',
+        '/forum',
+        '/equipe',
+        '/settings',
+        '/messages',
+        '/notifications',
+        '/quetes'
+      ]) {
         expect(canAccessPath(UniFlowRole.personal, chemin), isTrue, reason: chemin);
       }
       expect(canAccessPath(UniFlowRole.personal, '/messages'), isTrue);

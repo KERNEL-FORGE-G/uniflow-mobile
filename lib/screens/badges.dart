@@ -36,16 +36,15 @@ class _BadgesBody extends StatefulWidget {
   State<_BadgesBody> createState() => _BadgesBodyState();
 }
 
-class _BadgesBodyState extends State<_BadgesBody>
-    with SingleTickerProviderStateMixin {
+class _BadgesBodyState extends State<_BadgesBody> with SingleTickerProviderStateMixin {
   late final TabController _tab;
 
   static const _categories = [
-    (BadgeCategory.assiduite,   'Assiduité'),
-    (BadgeCategory.academique,  'Académique'),
-    (BadgeCategory.social,      'Social'),
-    (BadgeCategory.special,     'Spécial'),
-    (BadgeCategory.communaute,  'Communauté'),
+    (BadgeCategory.assiduite, 'Assiduité'),
+    (BadgeCategory.academique, 'Académique'),
+    (BadgeCategory.social, 'Social'),
+    (BadgeCategory.special, 'Spécial'),
+    (BadgeCategory.communaute, 'Communauté'),
     (BadgeCategory.progression, 'Progression'),
   ];
 
@@ -61,15 +60,14 @@ class _BadgesBodyState extends State<_BadgesBody>
     super.dispose();
   }
 
-  List<BadgeWithProgress> _forCategory(BadgeCategory? cat) => cat == null
-      ? widget.badges
-      : widget.badges.where((b) => b.definition.category == cat).toList();
+  List<BadgeWithProgress> _forCategory(BadgeCategory? cat) =>
+      cat == null ? widget.badges : widget.badges.where((b) => b.definition.category == cat).toList();
 
   @override
   Widget build(BuildContext context) {
     final unlocked = widget.badges.where((b) => b.unlocked).length;
-    final total    = widget.badges.length;
-    final allDone  = unlocked == total && total > 0;
+    final total = widget.badges.length;
+    final allDone = unlocked == total && total > 0;
 
     return NestedScrollView(
       headerSliverBuilder: (ctx, inner) => [
@@ -135,15 +133,14 @@ class _Header extends StatelessWidget {
           colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)],
         ),
       ),
-      padding: EdgeInsets.fromLTRB(
-          20, MediaQuery.of(context).padding.top + 16, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 24),
       child: Row(
         children: [
           Container(
-            width: 44, height: 44,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                  colors: [Color(0xFFF59E0B), Color(0xFFEF4444)]),
+              gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFEF4444)]),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(PhosphorIconsBold.medal, color: Colors.white, size: 22),
@@ -152,15 +149,10 @@ class _Header extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('Mes badges',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5)),
+                  style:
+                      TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
               Text(
-                allDone
-                    ? 'Collection complète !'
-                    : '$unlocked sur $total obtenus',
+                allDone ? 'Collection complète !' : '$unlocked sur $total obtenus',
                 style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ]),
@@ -189,11 +181,9 @@ class _GlobalProgressBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Progression globale',
-                style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const Text('Progression globale', style: TextStyle(color: Colors.white70, fontSize: 12)),
             Text('${(pct * 100).round()}%',
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
           ],
         ),
         const SizedBox(height: 6),
@@ -221,8 +211,7 @@ class _BadgesGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (badges.isEmpty) {
       return const Center(
-        child: Text('Aucun badge dans cette catégorie',
-            style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
+        child: Text('Aucun badge dans cette catégorie', style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
       );
     }
     return CustomScrollView(
@@ -260,8 +249,7 @@ class _BadgeTileAppwrite extends StatefulWidget {
   State<_BadgeTileAppwrite> createState() => _BadgeTileAppwriteState();
 }
 
-class _BadgeTileAppwriteState extends State<_BadgeTileAppwrite>
-    with SingleTickerProviderStateMixin {
+class _BadgeTileAppwriteState extends State<_BadgeTileAppwrite> with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<double> _scale;
   late final Animation<double> _fade;
@@ -269,12 +257,10 @@ class _BadgeTileAppwriteState extends State<_BadgeTileAppwrite>
   @override
   void initState() {
     super.initState();
-    _anim = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450));
+    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 450));
     _scale = CurvedAnimation(parent: _anim, curve: Curves.elasticOut);
-    _fade  = CurvedAnimation(parent: _anim, curve: Curves.easeIn);
-    Future.delayed(
-        Duration(milliseconds: 40 + widget.index * 30), _anim.forward);
+    _fade = CurvedAnimation(parent: _anim, curve: Curves.easeIn);
+    Future.delayed(Duration(milliseconds: 40 + widget.index * 30), _anim.forward);
   }
 
   @override
@@ -315,8 +301,7 @@ class _BadgeTileAppwriteState extends State<_BadgeTileAppwrite>
               else
                 Text(
                   '${item.progressPercent}%',
-                  style: const TextStyle(
-                      fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                 ),
             ],
           ),
@@ -344,12 +329,10 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final svc       = ref.read(gamificationServiceProvider);
-    final def       = item.definition;
-    final unlocked  = item.unlocked;
-    final imageUrl  = def.imageFileId.isNotEmpty
-        ? svc.badgeImageUrl(def.imageFileId)
-        : null;
+    final svc = ref.read(gamificationServiceProvider);
+    final def = item.definition;
+    final unlocked = item.unlocked;
+    final imageUrl = def.imageFileId.isNotEmpty ? svc.badgeImageUrl(def.imageFileId) : null;
 
     final rarityColor = _rarityColor(def.rarity);
     final pct = item.progressPercent / 100.0;
@@ -385,11 +368,13 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
                 width: 1.5,
               ),
               boxShadow: unlocked
-                  ? [BoxShadow(
-                      color: rarityColor.withValues(alpha: 0.25),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    )]
+                  ? [
+                      BoxShadow(
+                        color: rarityColor.withValues(alpha: 0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      )
+                    ]
                   : [],
             ),
             child: ClipOval(
@@ -399,8 +384,7 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
                       fit: BoxFit.cover,
                       color: unlocked ? null : Colors.grey,
                       colorBlendMode: unlocked ? null : BlendMode.saturation,
-                      errorBuilder: (_, __, ___) =>
-                          _FallbackIcon(rarity: def.rarity, unlocked: unlocked),
+                      errorBuilder: (_, __, ___) => _FallbackIcon(rarity: def.rarity, unlocked: unlocked),
                     )
                   : _FallbackIcon(rarity: def.rarity, unlocked: unlocked),
             ),
@@ -452,10 +436,10 @@ class _AppwriteBadgeCircle extends ConsumerWidget {
   }
 
   Color _rarityColor(BadgeRarity r) => switch (r) {
-        BadgeRarity.common    => const Color(0xFF9CA3AF),
-        BadgeRarity.uncommon  => const Color(0xFF10B981),
-        BadgeRarity.rare      => const Color(0xFF3B82F6),
-        BadgeRarity.epic      => const Color(0xFF8B5CF6),
+        BadgeRarity.common => const Color(0xFF9CA3AF),
+        BadgeRarity.uncommon => const Color(0xFF10B981),
+        BadgeRarity.rare => const Color(0xFF3B82F6),
+        BadgeRarity.epic => const Color(0xFF8B5CF6),
         BadgeRarity.legendary => const Color(0xFFFFD700),
       };
 }
@@ -470,9 +454,7 @@ class _FallbackIcon extends StatelessWidget {
     return Icon(
       PhosphorIconsBold.medal,
       size: 22,
-      color: unlocked
-          ? const Color(0xFFF59E0B)
-          : const Color(0xFF4B5563),
+      color: unlocked ? const Color(0xFFF59E0B) : const Color(0xFF4B5563),
     );
   }
 }
@@ -485,7 +467,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final def      = item.definition;
+    final def = item.definition;
     final unlocked = item.unlocked;
 
     return Container(
@@ -493,14 +475,14 @@ class _BadgeDetailSheet extends ConsumerWidget {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: EdgeInsets.fromLTRB(
-          24, 20, 24, MediaQuery.of(context).padding.bottom + 24),
+      padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).padding.bottom + 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
               color: const Color(0xFFCBD5E1),
@@ -545,8 +527,7 @@ class _BadgeDetailSheet extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               'Obtenu le ${_fmtDate(item.userBadge!.unlockedAt)}',
-              style: const TextStyle(
-                  color: Color(0xFF64748B), fontSize: 12),
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ],
           const SizedBox(height: 16),
@@ -559,14 +540,10 @@ class _BadgeDetailSheet extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.star_rounded,
-                  size: 16, color: Color(0xFFF59E0B)),
+              const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
               const SizedBox(width: 6),
               Text('+${def.xpReward} XP',
-                  style: const TextStyle(
-                      color: Color(0xFFF59E0B),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700)),
+                  style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 14, fontWeight: FontWeight.w700)),
             ]),
           ),
         ],
@@ -587,10 +564,10 @@ class _RarityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (rarity) {
-      BadgeRarity.common    => (const Color(0xFF64748B), 'Commun'),
-      BadgeRarity.uncommon  => (const Color(0xFF10B981), 'Peu commun'),
-      BadgeRarity.rare      => (const Color(0xFF3B82F6), 'Rare'),
-      BadgeRarity.epic      => (const Color(0xFF8B5CF6), 'Épique'),
+      BadgeRarity.common => (const Color(0xFF64748B), 'Commun'),
+      BadgeRarity.uncommon => (const Color(0xFF10B981), 'Peu commun'),
+      BadgeRarity.rare => (const Color(0xFF3B82F6), 'Rare'),
+      BadgeRarity.epic => (const Color(0xFF8B5CF6), 'Épique'),
       BadgeRarity.legendary => (const Color(0xFFF59E0B), 'Légendaire'),
     };
     return Container(
@@ -600,9 +577,7 @@ class _RarityChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(label,
-          style: TextStyle(
-              color: color, fontSize: 12, fontWeight: FontWeight.w700)),
+      child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -616,14 +591,9 @@ class _DetailProgressBar extends StatelessWidget {
     final pct = item.progressPercent / 100.0;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(item.progressDetail,
-            style: const TextStyle(
-                color: Color(0xFF64748B), fontSize: 12)),
+        Text(item.progressDetail, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
         Text('${item.progressPercent}%',
-            style: const TextStyle(
-                color: Color(0xFF1E293B),
-                fontSize: 12,
-                fontWeight: FontWeight.w700)),
+            style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12, fontWeight: FontWeight.w700)),
       ]),
       const SizedBox(height: 6),
       ClipRRect(
@@ -647,8 +617,10 @@ class _TabDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
   const _TabDelegate(this.tabBar);
 
-  @override double get minExtent => tabBar.preferredSize.height;
-  @override double get maxExtent => tabBar.preferredSize.height;
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
 
   @override
   Widget build(BuildContext ctx, double shrink, bool overlaps) {
@@ -838,4 +810,3 @@ class _BadgesOfflineBody extends StatelessWidget {
     );
   }
 }
-

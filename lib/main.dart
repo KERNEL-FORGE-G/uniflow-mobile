@@ -170,13 +170,11 @@ class _SplashScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   // Logo texte dans un conteneur verre
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.22),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.4)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                     ),
                     child: const Text(
                       'UniFlow',

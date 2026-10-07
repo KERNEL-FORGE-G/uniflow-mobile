@@ -39,27 +39,39 @@ final libraryListProvider = FutureProvider<List<AcademicLibraryEntry>>((ref) asy
 /// Couleur d'accent selon le type de fichier.
 Color _typeColor(String type) {
   switch (type.toLowerCase()) {
-    case 'pdf':   return const Color(0xFFEF4444); // rouge
-    case 'video': return const Color(0xFF8B5CF6); // violet
-    case 'image': return const Color(0xFF10B981); // vert
+    case 'pdf':
+      return const Color(0xFFEF4444); // rouge
+    case 'video':
+      return const Color(0xFF8B5CF6); // violet
+    case 'image':
+      return const Color(0xFF10B981); // vert
     case 'doc':
-    case 'docx':  return const Color(0xFF3B82F6); // bleu
+    case 'docx':
+      return const Color(0xFF3B82F6); // bleu
     case 'ppt':
-    case 'pptx':  return const Color(0xFFF59E0B); // ambre
-    default:      return const Color(0xFF6B7280); // gris
+    case 'pptx':
+      return const Color(0xFFF59E0B); // ambre
+    default:
+      return const Color(0xFF6B7280); // gris
   }
 }
 
 IconData _typeIcon(String type) {
   switch (type.toLowerCase()) {
-    case 'pdf':   return PhosphorIconsDuotone.filePdf;
-    case 'video': return PhosphorIconsDuotone.fileVideo;
-    case 'image': return PhosphorIconsDuotone.image;
+    case 'pdf':
+      return PhosphorIconsDuotone.filePdf;
+    case 'video':
+      return PhosphorIconsDuotone.fileVideo;
+    case 'image':
+      return PhosphorIconsDuotone.image;
     case 'doc':
-    case 'docx':  return PhosphorIconsDuotone.fileDoc;
+    case 'docx':
+      return PhosphorIconsDuotone.fileDoc;
     case 'ppt':
-    case 'pptx':  return PhosphorIconsDuotone.filePpt;
-    default:      return PhosphorIconsDuotone.file;
+    case 'pptx':
+      return PhosphorIconsDuotone.filePpt;
+    default:
+      return PhosphorIconsDuotone.file;
   }
 }
 
@@ -120,8 +132,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends ConsumerState<LibraryScreen>
-    with SingleTickerProviderStateMixin {
+class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTickerProviderStateMixin {
   String? _enCours;
   String? _erreur;
   String _searchQuery = '';
@@ -190,10 +201,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       }
 
       if (res != null && res['ok'] == true && res['results'] is List) {
-        final list = (res['results'] as List)
-            .whereType<Map<String, dynamic>>()
-            .map(UniBookItem.fromJson)
-            .toList();
+        final list = (res['results'] as List).whereType<Map<String, dynamic>>().map(UniBookItem.fromJson).toList();
         if (mounted) {
           setState(() {
             _uniBookResults = list;
@@ -217,7 +225,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       setState(() => _erreur = '« ${entry.title} » n\'a pas de fichier joint.');
       return;
     }
-    setState(() { _enCours = entry.id; _erreur = null; });
+    setState(() {
+      _enCours = entry.id;
+      _erreur = null;
+    });
     try {
       final bytes = await ref.read(academicRepositoryProvider).downloadLibraryFile(fileId);
       final directory = await getApplicationDocumentsDirectory();
@@ -260,7 +271,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   Widget _buildContent(List<AcademicLibraryEntry> entries) {
     // Catégories uniques
-    final categories = ['Tous', ...{...entries.map((e) => e.category).where((c) => c.isNotEmpty)}];
+    final categories = [
+      'Tous',
+      ...{...entries.map((e) => e.category).where((c) => c.isNotEmpty)}
+    ];
     _selectedCategory ??= 'Tous';
 
     // Filtrage
@@ -287,10 +301,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         _buildSearchBar(),
         if (categories.length > 1) _buildCategoryChips(categories),
         if (_erreur != null) _buildErrorBanner(),
-        if (filtered.isEmpty)
-          _buildEmptyState()
-        else
-          ..._buildGroupedList(grouped),
+        if (filtered.isEmpty) _buildEmptyState() else ..._buildGroupedList(grouped),
         const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
       ],
     );
@@ -302,9 +313,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final isUniBook = _selectedMode == 1;
     final badgeLabel = isUniBook ? '$count ouvrages libres' : '$count ressources';
     final titleLabel = isUniBook ? 'Uni Book' : 'Bibliothèque';
-    final subtitleLabel = isUniBook
-        ? 'Bibliothèque ouverte — 30+ résultats par recherche'
-        : 'Supports de cours & polycopiés officiels';
+    final subtitleLabel =
+        isUniBook ? 'Bibliothèque ouverte — 30+ résultats par recherche' : 'Supports de cours & polycopiés officiels';
 
     return SliverToBoxAdapter(
       child: Container(
@@ -312,9 +322,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         height: 148,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isUniBook
-                ? const [Color(0xFF0F172A), Color(0xFF0D9488)]
-                : const [Color(0xFF1E3A8A), Color(0xFF0D9488)],
+            colors:
+                isUniBook ? const [Color(0xFF0F172A), Color(0xFF0D9488)] : const [Color(0xFF1E3A8A), Color(0xFF0D9488)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -630,8 +639,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             children: [
               const Padding(
                 padding: EdgeInsets.only(left: 14, right: 8),
-                child: Icon(PhosphorIconsBold.magnifyingGlass,
-                    color: Color(0xFF64748B), size: 18),
+                child: Icon(PhosphorIconsBold.magnifyingGlass, color: Color(0xFF64748B), size: 18),
               ),
               Expanded(
                 child: TextField(
@@ -762,8 +770,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             children: [
               const Padding(
                 padding: EdgeInsets.only(left: 14, right: 8),
-                child: Icon(PhosphorIconsBold.magnifyingGlass,
-                    color: Color(0xFF64748B), size: 18),
+                child: Icon(PhosphorIconsBold.magnifyingGlass, color: Color(0xFF64748B), size: 18),
               ),
               Expanded(
                 child: TextField(
@@ -872,7 +879,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
             child: Row(children: [
               Container(
-                width: 4, height: 16,
+                width: 4,
+                height: 16,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.topCenter,
@@ -948,8 +956,7 @@ class _LibraryCard extends StatefulWidget {
   State<_LibraryCard> createState() => _LibraryCardState();
 }
 
-class _LibraryCardState extends State<_LibraryCard>
-    with SingleTickerProviderStateMixin {
+class _LibraryCardState extends State<_LibraryCard> with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<double> _fade;
   late final Animation<Offset> _slide;
@@ -1026,8 +1033,7 @@ class _LibraryCardState extends State<_LibraryCard>
                               'assets/illustrations/course_books.jpg',
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Center(
-                                child: Icon(icon,
-                                    color: Colors.white, size: 24),
+                                child: Icon(icon, color: Colors.white, size: 24),
                               ),
                             ),
                           ),
@@ -1104,8 +1110,7 @@ class _LibraryCardState extends State<_LibraryCard>
                                 ),
                             ],
                           ),
-                          if (widget.entry.description != null &&
-                              widget.entry.description!.isNotEmpty) ...[
+                          if (widget.entry.description != null && widget.entry.description!.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(
                               widget.entry.description!,
@@ -1158,14 +1163,10 @@ class _DownloadButton extends StatelessWidget {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: isDownloading
-              ? const Color(0xFFF1F5F9)
-              : const Color(0xFFEFF6FF),
+          color: isDownloading ? const Color(0xFFF1F5F9) : const Color(0xFFEFF6FF),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDownloading
-                ? const Color(0xFFCBD5E1)
-                : const Color(0xFFBFDBFE),
+            color: isDownloading ? const Color(0xFFCBD5E1) : const Color(0xFFBFDBFE),
           ),
         ),
         child: isDownloading
@@ -1266,9 +1267,7 @@ class _UniBookCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                       decoration: BoxDecoration(
-                        color: book.format == 'EPUB'
-                            ? const Color(0xFFECFDF5)
-                            : const Color(0xFFEFF6FF),
+                        color: book.format == 'EPUB' ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -1276,9 +1275,7 @@ class _UniBookCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: book.format == 'EPUB'
-                              ? const Color(0xFF059669)
-                              : const Color(0xFF2563EB),
+                          color: book.format == 'EPUB' ? const Color(0xFF059669) : const Color(0xFF2563EB),
                         ),
                       ),
                     ),
@@ -1378,4 +1375,3 @@ class _UniBookCard extends StatelessWidget {
     );
   }
 }
-

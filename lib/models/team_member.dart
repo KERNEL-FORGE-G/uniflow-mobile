@@ -34,8 +34,10 @@ class TeamMember {
   /// Fichier de la photo dans le bucket `uniflow_assets`, vide s'il n'y en a
   /// pas encore.
   final String avatarFileId;
-
   final int displayOrder;
+  final String bio;
+  final String linkedin;
+  final String website;
 
   TeamMember({
     required this.id,
@@ -50,6 +52,9 @@ class TeamMember {
     required this.accent,
     required this.avatarFileId,
     required this.displayOrder,
+    this.bio = '',
+    this.linkedin = '',
+    this.website = '',
   });
 
   /// Construit un membre depuis un document Appwrite.
@@ -72,6 +77,9 @@ class TeamMember {
       accent: _text(data['accent']),
       avatarFileId: _text(data['avatarFileId']),
       displayOrder: _number(data['displayOrder']),
+      bio: _text(data['bio']),
+      linkedin: _text(data['linkedin']),
+      website: _text(data['website']),
     );
   }
 

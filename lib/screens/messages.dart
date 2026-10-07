@@ -14,7 +14,6 @@ import '../widgets/common.dart';
 import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 //  ÉCRAN PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,8 +25,7 @@ class MessagesScreen extends ConsumerStatefulWidget {
   ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _MessagesScreenState extends ConsumerState<MessagesScreen>
-    with SingleTickerProviderStateMixin {
+class _MessagesScreenState extends ConsumerState<MessagesScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
   bool _searchOpen = false;
   final _searchCtrl = TextEditingController();
@@ -56,8 +54,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
     try {
       final conv = await ref
           .read(messagingRepositoryProvider)
-          .openByUsername(
-              contact.username.isNotEmpty ? contact.username : contact.email);
+          .openByUsername(contact.username.isNotEmpty ? contact.username : contact.email);
       ref.invalidate(conversationsProvider);
       if (!mounted) return;
       context.push('/messages/${conv.id}', extra: conv);
@@ -101,9 +98,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
           ),
         ],
       ),
-      floatingActionButton: _tab.index == 0
-          ? _GradientFab(onPressed: _startConversation)
-          : null,
+      floatingActionButton: _tab.index == 0 ? _GradientFab(onPressed: _startConversation) : null,
     );
   }
 }
@@ -266,8 +261,7 @@ class _SearchBar extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onClose,
-          icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft,
-              color: Colors.white, size: 22),
+          icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, color: Colors.white, size: 22),
         ),
         Expanded(
           child: Container(
@@ -284,8 +278,7 @@ class _SearchBar extends StatelessWidget {
                 hintText: 'Rechercher…',
                 hintStyle: TextStyle(color: Colors.white60),
                 border: InputBorder.none,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
             ),
           ),
@@ -299,8 +292,7 @@ class _MoreMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: const PhosphorIcon(PhosphorIconsBold.squaresFour,
-          color: Colors.white, size: 22),
+      icon: const PhosphorIcon(PhosphorIconsBold.squaresFour, color: Colors.white, size: 22),
       color: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (_) => [
@@ -367,9 +359,7 @@ class _ConversationsTab extends ConsumerWidget {
             : list
                 .where((c) =>
                     c.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                    c.lastMessage
-                        .toLowerCase()
-                        .contains(searchQuery.toLowerCase()))
+                    c.lastMessage.toLowerCase().contains(searchQuery.toLowerCase()))
                 .toList();
 
         if (filtered.isEmpty) {
@@ -594,13 +584,11 @@ class _ActualitesTab extends ConsumerWidget {
             Center(
               child: Column(
                 children: [
-                  const PhosphorIcon(PhosphorIconsBold.warningCircle,
-                      size: 40, color: AppColors.danger),
+                  const PhosphorIcon(PhosphorIconsBold.warningCircle, size: 40, color: AppColors.danger),
                   const SizedBox(height: 12),
                   Text('Erreur chargement des actualités : $err',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13)),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                   const SizedBox(height: 16),
                   OutlinedButton(
                     onPressed: () => ref.refresh(newsListProvider),
@@ -620,8 +608,7 @@ class _ActualitesTab extends ConsumerWidget {
                 EmptyState(
                   icon: PhosphorIconsBold.broadcast,
                   title: 'Aucune actualité officielle',
-                  message:
-                      'Les annonces administratives publiées par l’établissement apparaîtront ici.',
+                  message: 'Les annonces administratives publiées par l’établissement apparaîtront ici.',
                   pose: UniPose.thinking,
                 ),
               ],
@@ -647,16 +634,12 @@ class _ActualitesTab extends ConsumerWidget {
                 ),
                 child: const Row(
                   children: [
-                    PhosphorIcon(PhosphorIconsBold.broadcast,
-                        color: Colors.white, size: 22),
+                    PhosphorIcon(PhosphorIconsBold.broadcast, color: Colors.white, size: 22),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Actualités officielles vérifiées par l’administration',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600),
+                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -721,32 +704,24 @@ class _OfficialNewsChannelCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(channel,
-                          style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14)),
+                          style:
+                              const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14)),
                       Text('${items.length} annonce${items.length > 1 ? 's' : ''}',
-                          style: const TextStyle(
-                              color: AppColors.textMuted, fontSize: 11)),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                      color: AppColors.teal.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12)),
+                      color: AppColors.teal.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
                   child: const Text('Officiel',
-                      style: TextStyle(
-                          color: AppColors.teal,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700)),
+                      style: TextStyle(color: AppColors.teal, fontSize: 11, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
           ),
-          const Divider(
-              color: AppColors.divider, height: 1, indent: 14, endIndent: 14),
+          const Divider(color: AppColors.divider, height: 1, indent: 14, endIndent: 14),
           for (int i = 0; i < items.length; i++) ...[
             InkWell(
               onTap: () => onTapItem(items[i]),
@@ -761,8 +736,7 @@ class _OfficialNewsChannelCard extends StatelessWidget {
                         width: 8,
                         height: 8,
                         margin: const EdgeInsets.only(top: 5, right: 8),
-                        decoration: const BoxDecoration(
-                            color: Color(0xFFD97706), shape: BoxShape.circle),
+                        decoration: const BoxDecoration(color: Color(0xFFD97706), shape: BoxShape.circle),
                       )
                     else
                       const SizedBox(width: 16),
@@ -773,16 +747,12 @@ class _OfficialNewsChannelCard extends StatelessWidget {
                           Text(items[i].title,
                               style: TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontWeight: (items[i].pinned || items[i].important)
-                                      ? FontWeight.w700
-                                      : FontWeight.w600,
+                                  fontWeight:
+                                      (items[i].pinned || items[i].important) ? FontWeight.w700 : FontWeight.w600,
                                   fontSize: 13)),
                           const SizedBox(height: 3),
                           Text(items[i].content,
-                              style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12,
-                                  height: 1.4),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis),
                         ],
@@ -790,22 +760,14 @@ class _OfficialNewsChannelCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      items[i].createdAt != null
-                          ? DateFormat('dd/MM').format(items[i].createdAt!.toLocal())
-                          : '',
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11),
+                      items[i].createdAt != null ? DateFormat('dd/MM').format(items[i].createdAt!.toLocal()) : '',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                     ),
                   ],
                 ),
               ),
             ),
-            if (i < items.length - 1)
-              const Divider(
-                  color: AppColors.divider,
-                  height: 1,
-                  indent: 60,
-                  endIndent: 14),
+            if (i < items.length - 1) const Divider(color: AppColors.divider, height: 1, indent: 60, endIndent: 14),
           ],
         ],
       ),
@@ -852,25 +814,21 @@ class _StatutsTab extends ConsumerWidget {
           padding: const EdgeInsets.all(24),
           children: [
             Center(
-              child: Text('Erreur : $err',
-                  style: const TextStyle(color: AppColors.danger)),
+              child: Text('Erreur : $err', style: const TextStyle(color: AppColors.danger)),
             ),
           ],
         ),
         data: (allStatuses) {
-          final myStatuses =
-              allStatuses.where((s) => s.userId == myUserId).toList();
+          final myStatuses = allStatuses.where((s) => s.userId == myUserId).toList();
           final myRecent = myStatuses.isNotEmpty ? myStatuses.first : null;
-          final others =
-              allStatuses.where((s) => s.userId != myUserId).toList();
+          final others = allStatuses.where((s) => s.userId != myUserId).toList();
 
           return ListView(
             padding: const EdgeInsets.only(bottom: 100),
             children: [
               // Mon statut
               ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 leading: Stack(
                   children: [
                     Container(
@@ -879,9 +837,7 @@ class _StatutsTab extends ConsumerWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: myRecent != null
-                              ? AppColors.teal
-                              : AppColors.glassBorder,
+                          color: myRecent != null ? AppColors.teal : AppColors.glassBorder,
                           width: 2.5,
                         ),
                       ),
@@ -893,12 +849,8 @@ class _StatutsTab extends ConsumerWidget {
                         ),
                         child: Center(
                           child: Text(
-                            (user?.name.isNotEmpty == true ? user!.name[0] : 'M')
-                                .toUpperCase(),
-                            style: const TextStyle(
-                                color: AppColors.teal,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800),
+                            (user?.name.isNotEmpty == true ? user!.name[0] : 'M').toUpperCase(),
+                            style: const TextStyle(color: AppColors.teal, fontSize: 20, fontWeight: FontWeight.w800),
                           ),
                         ),
                       ),
@@ -912,28 +864,20 @@ class _StatutsTab extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: AppColors.teal,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                              color: AppColors.background, width: 2),
+                          border: Border.all(color: AppColors.background, width: 2),
                         ),
-                        child: const Icon(Icons.add,
-                            size: 13, color: Colors.white),
+                        child: const Icon(Icons.add, size: 13, color: Colors.white),
                       ),
                     ),
                   ],
                 ),
                 title: const Text('Mon statut',
-                    style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15)),
+                    style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 15)),
                 subtitle: Text(
-                  myRecent != null
-                      ? myRecent.content
-                      : 'Appuyez pour partager un statut avec la promo',
+                  myRecent != null ? myRecent.content : 'Appuyez pour partager un statut avec la promo',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 12.5),
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5),
                 ),
                 trailing: myRecent != null
                     ? IconButton(
@@ -945,22 +889,19 @@ class _StatutsTab extends ConsumerWidget {
                 onTap: () => _showPostStatusSheet(context, ref),
               ),
 
-              const Divider(
-                  color: AppColors.divider, height: 1, indent: 72, endIndent: 0),
+              const Divider(color: AppColors.divider, height: 1, indent: 72, endIndent: 0),
 
               if (others.isNotEmpty) ...[
                 const _SectionLabel(label: 'Mises à jour récentes (48h)'),
                 for (final s in others) ...[
                   ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 6),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     leading: Container(
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border:
-                            Border.all(color: AppColors.primaryBlue, width: 2.2),
+                        border: Border.all(color: AppColors.primaryBlue, width: 2.2),
                       ),
                       child: Container(
                         margin: const EdgeInsets.all(2),
@@ -972,9 +913,7 @@ class _StatutsTab extends ConsumerWidget {
                           child: Text(
                             s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
                             style: const TextStyle(
-                                color: AppColors.primaryBlue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800),
+                                color: AppColors.primaryBlue, fontSize: 20, fontWeight: FontWeight.w800),
                           ),
                         ),
                       ),
@@ -985,16 +924,13 @@ class _StatutsTab extends ConsumerWidget {
                           child: Text(
                             s.name,
                             style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14.5),
+                                color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14.5),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (s.role.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.inputFill,
                               borderRadius: BorderRadius.circular(6),
@@ -1002,9 +938,7 @@ class _StatutsTab extends ConsumerWidget {
                             child: Text(
                               s.role,
                               style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w600),
+                                  fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                             ),
                           ),
                       ],
@@ -1013,23 +947,15 @@ class _StatutsTab extends ConsumerWidget {
                       s.content,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 12.5),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                     trailing: Text(
-                      s.createdAt != null
-                          ? DateFormat('HH:mm').format(s.createdAt!.toLocal())
-                          : '',
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11),
+                      s.createdAt != null ? DateFormat('HH:mm').format(s.createdAt!.toLocal()) : '',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                     ),
                     onTap: () => _showStatusDetail(context, s),
                   ),
-                  const Divider(
-                      color: AppColors.divider,
-                      height: 1,
-                      indent: 72,
-                      endIndent: 0),
+                  const Divider(color: AppColors.divider, height: 1, indent: 72, endIndent: 0),
                 ],
               ] else ...[
                 const Padding(
@@ -1038,10 +964,7 @@ class _StatutsTab extends ConsumerWidget {
                     child: Text(
                       'Aucun statut partagé pour le moment.\nSoyez le premier à partager une mise à jour !',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 13,
-                          height: 1.4),
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.4),
                     ),
                   ),
                 ),
@@ -1063,10 +986,7 @@ class _SectionLabel extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
         child: Text(label,
             style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.4)),
+                color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.4)),
       );
 }
 
@@ -1274,8 +1194,7 @@ class _StatusViewerDialog extends StatelessWidget {
                       ),
                       if (status.createdAt != null)
                         Text(
-                          DateFormat('dd MMMM à HH:mm', 'fr_FR')
-                              .format(status.createdAt!.toLocal()),
+                          DateFormat('dd MMMM à HH:mm', 'fr_FR').format(status.createdAt!.toLocal()),
                           style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11.5,
@@ -1342,8 +1261,7 @@ class _StatusViewerDialog extends StatelessWidget {
 class _ConversationTile extends StatelessWidget {
   final Conversation conversation;
   final bool showDivider;
-  const _ConversationTile(
-      {required this.conversation, this.showDivider = true});
+  const _ConversationTile({required this.conversation, this.showDivider = true});
 
   static String _time(String raw) {
     final parsed = DateTime.tryParse(raw);
@@ -1396,9 +1314,7 @@ class _ConversationTile extends StatelessWidget {
                                 conversation.name,
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontWeight: hasUnread
-                                      ? FontWeight.w700
-                                      : FontWeight.w600,
+                                  fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
                                   fontSize: 15,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -1408,12 +1324,8 @@ class _ConversationTile extends StatelessWidget {
                               _time(conversation.time),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: hasUnread
-                                    ? AppColors.teal
-                                    : AppColors.textMuted,
-                                fontWeight: hasUnread
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
+                                color: hasUnread ? AppColors.teal : AppColors.textMuted,
+                                fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
                               ),
                             ),
                           ],
@@ -1431,32 +1343,23 @@ class _ConversationTile extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: hasUnread
-                                      ? AppColors.textSecondary
-                                      : AppColors.textMuted,
-                                  fontWeight: hasUnread
-                                      ? FontWeight.w500
-                                      : FontWeight.normal,
+                                  color: hasUnread ? AppColors.textSecondary : AppColors.textMuted,
+                                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
                                 ),
                               ),
                             ),
                             if (hasUnread)
                               Container(
                                 margin: const EdgeInsets.only(left: 6),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 7, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: AppColors.teal,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
-                                  conversation.unread > 99
-                                      ? '99+'
-                                      : '${conversation.unread}',
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold),
+                                  conversation.unread > 99 ? '99+' : '${conversation.unread}',
+                                  style:
+                                      const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                                 ),
                               ),
                           ],
@@ -1565,8 +1468,7 @@ class _ConversationOptionsSheet extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: EdgeInsets.fromLTRB(
-          20, 12, 20, MediaQuery.of(context).padding.bottom + 20),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1575,30 +1477,18 @@ class _ConversationOptionsSheet extends StatelessWidget {
             child: Container(
               width: 36,
               height: 4,
-              decoration: BoxDecoration(
-                  color: AppColors.glassBorder,
-                  borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.glassBorder, borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 14),
           Text(conv.name,
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700)),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 14),
+          _OptionRow(icon: PhosphorIconsBold.tray, label: 'Archiver', onTap: () => Navigator.pop(context)),
           _OptionRow(
-              icon: PhosphorIconsBold.tray,
-              label: 'Archiver',
-              onTap: () => Navigator.pop(context)),
+              icon: PhosphorIconsBold.prohibit, label: 'Mettre en sourdine', onTap: () => Navigator.pop(context)),
           _OptionRow(
-              icon: PhosphorIconsBold.prohibit,
-              label: 'Mettre en sourdine',
-              onTap: () => Navigator.pop(context)),
-          _OptionRow(
-              icon: PhosphorIconsBold.mapPin,
-              label: 'Épingler la conversation',
-              onTap: () => Navigator.pop(context)),
+              icon: PhosphorIconsBold.mapPin, label: 'Épingler la conversation', onTap: () => Navigator.pop(context)),
           _OptionRow(
               icon: PhosphorIconsBold.trash,
               label: 'Supprimer',
@@ -1615,11 +1505,7 @@ class _OptionRow extends StatelessWidget {
   final String label;
   final Color? color;
   final VoidCallback onTap;
-  const _OptionRow(
-      {required this.icon,
-      required this.label,
-      this.color,
-      required this.onTap});
+  const _OptionRow({required this.icon, required this.label, this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1646,8 +1532,7 @@ class _GradientFab extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-            colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)]),
+        gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)]),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0D9488).withValues(alpha: 0.4),
@@ -1661,8 +1546,7 @@ class _GradientFab extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         tooltip: 'Nouvelle conversation',
-        child: const PhosphorIcon(PhosphorIconsFill.chatsCircle,
-            color: Colors.white, size: 26),
+        child: const PhosphorIcon(PhosphorIconsFill.chatsCircle, color: Colors.white, size: 26),
       ),
     );
   }
@@ -1689,25 +1573,19 @@ class _EmptyInbox extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)]),
+                gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)]),
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: const Icon(Icons.chat_bubble_outline_rounded,
-                  color: Colors.white, size: 36),
+              child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 36),
             ),
             const SizedBox(height: 20),
             const Text('Aucune conversation',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17)),
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 17)),
             const SizedBox(height: 8),
             const Text(
               'Cherchez un contact par son pseudo\npour démarrer un échange.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13.5, height: 1.5),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5, height: 1.5),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -1717,10 +1595,8 @@ class _EmptyInbox extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
@@ -1738,12 +1614,10 @@ class _NewConversationSheet extends ConsumerStatefulWidget {
   const _NewConversationSheet();
 
   @override
-  ConsumerState<_NewConversationSheet> createState() =>
-      _NewConversationSheetState();
+  ConsumerState<_NewConversationSheet> createState() => _NewConversationSheetState();
 }
 
-class _NewConversationSheetState
-    extends ConsumerState<_NewConversationSheet> {
+class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
   final _ctrl = TextEditingController();
   Timer? _debounce;
   List<ChatContact> _results = const [];
@@ -1770,16 +1644,13 @@ class _NewConversationSheetState
       return;
     }
     setState(() => _loading = true);
-    _debounce =
-        Timer(const Duration(milliseconds: 300), () => _search(term));
+    _debounce = Timer(const Duration(milliseconds: 300), () => _search(term));
   }
 
   Future<void> _search(String term) async {
     final id = ++_reqId;
     try {
-      final c = await ref
-          .read(messagingRepositoryProvider)
-          .searchContacts(term);
+      final c = await ref.read(messagingRepositoryProvider).searchContacts(term);
       if (!mounted || id != _reqId) return;
       setState(() {
         _results = c;
@@ -1799,8 +1670,7 @@ class _NewConversationSheetState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: const BoxDecoration(
           color: AppColors.surface,
@@ -1815,17 +1685,12 @@ class _NewConversationSheetState
               child: Container(
                 width: 36,
                 height: 4,
-                decoration: BoxDecoration(
-                    color: AppColors.glassBorder,
-                    borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(color: AppColors.glassBorder, borderRadius: BorderRadius.circular(2)),
               ),
             ),
             const SizedBox(height: 16),
             const Text('Nouvelle conversation',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18)),
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 14),
             Container(
               decoration: BoxDecoration(
@@ -1837,16 +1702,13 @@ class _NewConversationSheetState
                 controller: _ctrl,
                 autofocus: true,
                 onChanged: _onChanged,
-                style:
-                    const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
                 decoration: const InputDecoration(
                   hintText: '@pseudo ou email',
                   hintStyle: TextStyle(color: AppColors.textMuted),
-                  prefixIcon: PhosphorIcon(PhosphorIconsBold.magnifyingGlass,
-                      color: AppColors.textSecondary, size: 18),
+                  prefixIcon: PhosphorIcon(PhosphorIconsBold.magnifyingGlass, color: AppColors.textSecondary, size: 18),
                   border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                 ),
               ),
             ),
@@ -1860,44 +1722,29 @@ class _NewConversationSheetState
 
   Widget _buildResults() {
     if (_error != null) {
-      return Center(
-          child: Text(_error!,
-              style: const TextStyle(color: AppColors.danger, fontSize: 13)));
+      return Center(child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)));
     }
     if (_loading) return const LoadingView(label: 'Recherche…');
-    if (_ctrl.text
-            .trim()
-            .replaceFirst(RegExp(r'^@'), '')
-            .length <
-        2) {
+    if (_ctrl.text.trim().replaceFirst(RegExp(r'^@'), '').length < 2) {
       return const Center(
-          child: Text('Saisissez au moins 2 caractères.',
-              style:
-                  TextStyle(color: AppColors.textMuted, fontSize: 13)));
+          child: Text('Saisissez au moins 2 caractères.', style: TextStyle(color: AppColors.textMuted, fontSize: 13)));
     }
     if (_results.isEmpty) {
       return const Center(
-          child: Text('Aucun contact ne correspond.',
-              style:
-                  TextStyle(color: AppColors.textMuted, fontSize: 13)));
+          child: Text('Aucun contact ne correspond.', style: TextStyle(color: AppColors.textMuted, fontSize: 13)));
     }
     return ListView.separated(
       itemCount: _results.length,
-      separatorBuilder: (_, __) =>
-          Divider(color: AppColors.divider, height: 1),
+      separatorBuilder: (_, __) => Divider(color: AppColors.divider, height: 1),
       itemBuilder: (ctx, i) {
         final c = _results[i];
         return ListTile(
           leading: _Avatar(name: c.name, size: 44),
           title: Text(c.name,
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14)),
+              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
           subtitle: Text(
             c.username.isNotEmpty ? '@${c.username}' : c.email,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.tealLight),
+            style: const TextStyle(fontSize: 12, color: AppColors.tealLight),
           ),
           onTap: () => Navigator.of(ctx).pop(c),
         );

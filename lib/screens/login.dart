@@ -298,24 +298,22 @@ class _GoogleLogoPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final r = size.width / 2;
-    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = r * 0.35;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = r * 0.35;
 
     // Partie bleue (haut-droite)
     paint.color = const Color(0xFF4285F4);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
-        -0.3, 1.6, false, paint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), -0.3, 1.6, false, paint);
     // Partie rouge (haut-gauche)
     paint.color = const Color(0xFFEA4335);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
-        -1.9, 1.0, false, paint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), -1.9, 1.0, false, paint);
     // Partie jaune (bas-gauche)
     paint.color = const Color(0xFFFBBC05);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
-        2.1, 0.9, false, paint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), 2.1, 0.9, false, paint);
     // Partie verte (bas-droite)
     paint.color = const Color(0xFF34A853);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65),
-        3.0, 0.45, false, paint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), 3.0, 0.45, false, paint);
     // Barre horizontale du « G »
     paint.style = PaintingStyle.fill;
     paint.color = const Color(0xFF4285F4);

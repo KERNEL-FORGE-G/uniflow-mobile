@@ -314,9 +314,8 @@ class _PlanCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: plan.isPopular
-                ? const Color(0xFF0D9488).withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.04),
+            color:
+                plan.isPopular ? const Color(0xFF0D9488).withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -347,7 +346,6 @@ class _PlanCard extends StatelessWidget {
                 ),
               ),
             ),
-
           Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
@@ -388,7 +386,6 @@ class _PlanCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 14),
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -410,11 +407,9 @@ class _PlanCard extends StatelessWidget {
                     ],
                   ],
                 ),
-
                 const SizedBox(height: 14),
                 const Divider(height: 1),
                 const SizedBox(height: 14),
-
                 for (final feat in plan.features) ...[
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -437,9 +432,7 @@ class _PlanCard extends StatelessWidget {
                     ),
                   ),
                 ],
-
                 const SizedBox(height: 16),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -504,7 +497,6 @@ class _PaymentModalSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -527,9 +519,7 @@ class _PaymentModalSheet extends ConsumerWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 18),
-
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -567,9 +557,7 @@ class _PaymentModalSheet extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -578,10 +566,10 @@ class _PaymentModalSheet extends ConsumerWidget {
                 if (user == null) return;
                 Navigator.pop(context);
                 await ref.read(flutterwaveServiceProvider).openWhatsAppBilling(
-                  plan: plan,
-                  isAnnual: isAnnual,
-                  user: user,
-                );
+                      plan: plan,
+                      isAnnual: isAnnual,
+                      user: user,
+                    );
               },
               icon: const PhosphorIcon(PhosphorIconsFill.whatsappLogo, color: Colors.white, size: 20),
               label: const Text(
@@ -602,4 +590,3 @@ class _PaymentModalSheet extends ConsumerWidget {
     );
   }
 }
-

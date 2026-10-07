@@ -76,8 +76,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   DateTime? _lastBack;
 
   /// Index de l'onglet actif, ou -1 si la page courante vit dans le menu.
-  int _currentIndex(List<NavDestination> tabs) =>
-      tabs.indexWhere((t) => widget.location.startsWith(t.path));
+  int _currentIndex(List<NavDestination> tabs) => tabs.indexWhere((t) => widget.location.startsWith(t.path));
 
   void _openMenu(BuildContext context, List<NavDestination> entries) {
     showModalBottomSheet<void>(
@@ -134,89 +133,89 @@ class _AppShellState extends ConsumerState<AppShell> {
           builder: (context, constraints) => Stack(
             children: [
               Column(children: [const OfflineBanner(), Expanded(child: widget.child)]),
-            // Uni : le bouton flottant de l'assistant. Sa place dépend de ce
-            // que la page pose en bas de l'écran (voir `shell_pages.dart`) : il
-            // glisse dans le coin gauche quand la page a son propre bouton
-            // flottant et s'efface devant un composeur, au lieu de recouvrir
-            // le bouton d'envoi ou « Nouvelle conversation » comme avant. La
-            // position est toujours donnée par `left` pour que le glissement
-            // d'un coin à l'autre s'anime au changement de page.
-            if (dock != UniDock.hidden)
-              AnimatedPositioned(
-                duration: reduce ? Duration.zero : const Duration(milliseconds: 320),
-                curve: Curves.easeInOutCubic,
-                left: dock.leftIn(constraints.maxWidth),
-                bottom: UniDock.bottomInset,
-                child: UniLauncher(onOpen: () => showUniAssistant(context)),
-              ),
-            // Sa première apparition par le bord droit pour se présenter (une
-            // fois par lancement), au-dessus de la hauteur du bouton.
-            if (dock != UniDock.hidden)
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: UniDock.bottomInset + UniLauncher.size + 12),
-                  child: UniPeek(
-                    id: 'hello-shell',
-                    message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’appli ? Touche-moi.',
-                    onTap: () => showUniAssistant(context),
+              // Uni : le bouton flottant de l'assistant. Sa place dépend de ce
+              // que la page pose en bas de l'écran (voir `shell_pages.dart`) : il
+              // glisse dans le coin gauche quand la page a son propre bouton
+              // flottant et s'efface devant un composeur, au lieu de recouvrir
+              // le bouton d'envoi ou « Nouvelle conversation » comme avant. La
+              // position est toujours donnée par `left` pour que le glissement
+              // d'un coin à l'autre s'anime au changement de page.
+              if (dock != UniDock.hidden)
+                AnimatedPositioned(
+                  duration: reduce ? Duration.zero : const Duration(milliseconds: 320),
+                  curve: Curves.easeInOutCubic,
+                  left: dock.leftIn(constraints.maxWidth),
+                  bottom: UniDock.bottomInset,
+                  child: UniLauncher(onOpen: () => showUniAssistant(context)),
+                ),
+              // Sa première apparition par le bord droit pour se présenter (une
+              // fois par lancement), au-dessus de la hauteur du bouton.
+              if (dock != UniDock.hidden)
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: UniDock.bottomInset + UniLauncher.size + 12),
+                    child: UniPeek(
+                      id: 'hello-shell',
+                      message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’appli ? Touche-moi.',
+                      onTap: () => showUniAssistant(context),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
-      // Bord à bord : la barre blanche se prolonge sous la barre de navigation
-      // système (SafeArea) et annonce des icônes sombres pour celle-ci — c'est
-      // la région en bas de l'écran qui en décide.
-      bottomNavigationBar: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: AppSystemUi.surClair,
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: Container(
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.cardWhite,
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(color: AppColors.inputBorder, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: Row(
-                  children: [
-                    for (var i = 0; i < tabs.length; i++)
-                      Expanded(
-                        child: _NavTab(
-                          icon: tabs[i].icon,
-                          label: tabs[i].label,
-                          selected: i == current,
-                          onTap: () => context.go(tabs[i].path),
-                        ),
-                      ),
-                    Expanded(
-                      child: _MenuTab(
-                        selected: current == -1 && menuActive,
-                        onTap: () => _openMenu(context, menu),
-                      ),
+        // Bord à bord : la barre blanche se prolonge sous la barre de navigation
+        // système (SafeArea) et annonce des icônes sombres pour celle-ci — c'est
+        // la région en bas de l'écran qui en décide.
+        bottomNavigationBar: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: AppSystemUi.surClair,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Container(
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.cardWhite,
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: AppColors.inputBorder, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
                     ),
                   ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < tabs.length; i++)
+                        Expanded(
+                          child: _NavTab(
+                            icon: tabs[i].icon,
+                            label: tabs[i].label,
+                            selected: i == current,
+                            onTap: () => context.go(tabs[i].path),
+                          ),
+                        ),
+                      Expanded(
+                        child: _MenuTab(
+                          selected: current == -1 && menuActive,
+                          onTap: () => _openMenu(context, menu),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 /// Un onglet de la barre du bas.

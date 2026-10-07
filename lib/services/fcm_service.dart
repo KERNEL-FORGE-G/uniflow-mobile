@@ -29,12 +29,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> _showFcmNotification(RemoteMessage message) async {
   final notification = message.notification;
-  final title = notification?.title
-      ?? message.data['title']?.toString()
-      ?? 'UniFlow';
-  final body = notification?.body
-      ?? message.data['body']?.toString()
-      ?? '';
+  final title = notification?.title ?? message.data['title']?.toString() ?? 'UniFlow';
+  final body = notification?.body ?? message.data['body']?.toString() ?? '';
   if (title.isEmpty && body.isEmpty) return;
   await LocalNotifications.showUrgent(title: title, body: body);
 }
@@ -107,8 +103,7 @@ class FcmService {
   Future<void> _setupForegroundHandler() async {
     // Sur Android, les messages en premier plan n'affichent pas de notification
     // système par défaut -- on la déclenche manuellement.
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,

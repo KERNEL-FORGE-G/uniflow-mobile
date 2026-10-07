@@ -16,14 +16,14 @@ import '../data/quests_catalog_250.dart';
 
 // ─── Constantes ─────────────────────────────────────────────────────────────
 
-const String _databaseId     = 'uniflow';
-const String _badgesCatalog   = 'badges_catalog';
-const String _userBadges      = 'user_badges';
-const String _questsCatalog   = 'quests_catalog';
-const String _userQuestProg   = 'user_quest_progress';
-const String _userXp          = 'user_xp';
-const String _leaderboard     = 'leaderboard';
-const String _bucketId        = 'uniflow_assets';
+const String _databaseId = 'uniflow';
+const String _badgesCatalog = 'badges_catalog';
+const String _userBadges = 'user_badges';
+const String _questsCatalog = 'quests_catalog';
+const String _userQuestProg = 'user_quest_progress';
+const String _userXp = 'user_xp';
+const String _leaderboard = 'leaderboard';
+const String _bucketId = 'uniflow_assets';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Service
@@ -70,22 +70,22 @@ class GamificationService {
 
   /// Charge tous les badges du catalogue depuis Appwrite.
   Future<List<BadgeDefinition>> fetchBadgeCatalog() => _listAll(
-    _badgesCatalog,
-    BadgeDefinition.fromDocument,
-    queries: [Query.orderAsc('sortOrder')],
-  );
+        _badgesCatalog,
+        BadgeDefinition.fromDocument,
+        queries: [Query.orderAsc('sortOrder')],
+      );
 
   /// Charge les badges débloqués par [userId].
   Future<List<UserBadge>> fetchUserBadges(String userId) => _listAll(
-    _userBadges,
-    UserBadge.fromDocument,
-    queries: [Query.equal('userId', userId)],
-  );
+        _userBadges,
+        UserBadge.fromDocument,
+        queries: [Query.equal('userId', userId)],
+      );
 
   /// Charge le catalogue + les badges utilisateur et les fusionne.
   Future<List<BadgeWithProgress>> fetchBadgesWithProgress(String userId) async {
-    final catalog   = await fetchBadgeCatalog();
-    final unlocked  = await fetchUserBadges(userId);
+    final catalog = await fetchBadgeCatalog();
+    final unlocked = await fetchUserBadges(userId);
     final unlockedIds = {for (final b in unlocked) b.badgeId: b};
 
     return catalog.map((def) {
@@ -314,8 +314,7 @@ class UserXp {
     );
   }
 
-  double get progressPercent =>
-    xpToNextLevel > 0 ? (xpInCurrentLevel / xpToNextLevel).clamp(0.0, 1.0) : 0.0;
+  double get progressPercent => xpToNextLevel > 0 ? (xpInCurrentLevel / xpToNextLevel).clamp(0.0, 1.0) : 0.0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

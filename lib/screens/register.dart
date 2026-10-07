@@ -138,9 +138,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            university
-                ? 'Compte rattaché à votre université.'
-                : 'Espace personnel pour organiser vos propres études.',
+            university ? 'Compte rattaché à votre université.' : 'Espace personnel pour organiser vos propres études.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodySmall,
           ),

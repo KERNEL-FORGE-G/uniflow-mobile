@@ -32,18 +32,18 @@ class QuestCatalogItem {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'period': period,
-    'category': category,
-    'targetValue': targetValue,
-    'xpReward': xpReward,
-    'iconName': iconName,
-    'colorHex': colorHex,
-    'monthAffinity': monthAffinity,
-    'criteriaType': criteriaType,
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'period': period,
+        'category': category,
+        'targetValue': targetValue,
+        'xpReward': xpReward,
+        'iconName': iconName,
+        'colorHex': colorHex,
+        'monthAffinity': monthAffinity,
+        'criteriaType': criteriaType,
+      };
 }
 
 /// Les 500 quêtes complètes du catalogue UniFlow.
@@ -6562,7 +6562,8 @@ class QuestAutoAdjuster {
   static List<QuestCatalogItem> getDailyQuests(DateTime date, {int count = 6}) {
     final daily = kAllQuests500.where((q) => q.period == 'daily').toList();
     if (daily.isEmpty) return const [];
-    final dayOfYear = int.parse('${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}');
+    final dayOfYear =
+        int.parse('${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}');
     final selected = <QuestCatalogItem>[];
     for (var i = 0; i < count; i++) {
       final idx = (dayOfYear * 7 + i * 13) % daily.length;
@@ -6574,13 +6575,9 @@ class QuestAutoAdjuster {
   /// Quêtes mensuelles actives pour le mois en cours (ajustées au mois de l'année).
   static List<QuestCatalogItem> getMonthlyQuests(DateTime date, {int count = 8}) {
     final currentMonth = date.month;
-    final monthSpecific = kAllQuests500
-        .where((q) => q.period == 'monthly' && q.monthAffinity == currentMonth)
-        .toList();
-    final general = kAllQuests500
-        .where((q) => q.period == 'monthly' && q.monthAffinity == 0)
-        .toList();
-    
+    final monthSpecific = kAllQuests500.where((q) => q.period == 'monthly' && q.monthAffinity == currentMonth).toList();
+    final general = kAllQuests500.where((q) => q.period == 'monthly' && q.monthAffinity == 0).toList();
+
     final result = [...monthSpecific, ...general];
     if (result.length <= count) return result;
     return result.take(count).toList();

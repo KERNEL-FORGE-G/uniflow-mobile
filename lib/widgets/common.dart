@@ -150,7 +150,8 @@ class SearchField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
-            prefixIcon: PhosphorIcon(PhosphorIconsBold.magnifyingGlass, size: 18, color: AppColors.primaryBlue.withValues(alpha: 0.5)),
+            prefixIcon: PhosphorIcon(PhosphorIconsBold.magnifyingGlass,
+                size: 18, color: AppColors.primaryBlue.withValues(alpha: 0.5)),
             filled: false,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -262,9 +263,7 @@ class SectionCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        side: bordered
-            ? BorderSide(color: accentBorder ?? AppColors.inputBorder, width: 0.8)
-            : BorderSide.none,
+        side: bordered ? BorderSide(color: accentBorder ?? AppColors.inputBorder, width: 0.8) : BorderSide.none,
       ),
       shadowColor: const Color(0x0D000000),
       elevation: 2,

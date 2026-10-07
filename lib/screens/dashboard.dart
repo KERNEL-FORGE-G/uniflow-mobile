@@ -746,7 +746,8 @@ class _TodaySessions extends StatelessWidget {
                           children: [
                             Text(
                               'Pas de cours aujourd\'hui',
-                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppColors.textPrimary),
+                              style:
+                                  TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppColors.textPrimary),
                             ),
                             SizedBox(height: 2),
                             Text(

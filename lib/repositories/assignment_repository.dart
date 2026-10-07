@@ -305,10 +305,7 @@ class AssignmentRepository {
     // `AppwriteException.message` est nullable : une exception sans message
     // ne doit pas produire « null » à l'écran.
     final raw = e.message ?? 'Erreur Appwrite (code ${e.code ?? 'inconnu'}).';
-    if (raw.contains('reads limit') ||
-        raw.contains('billing cycle') ||
-        raw.contains('budget cap') ||
-        e.code == 429) {
+    if (raw.contains('reads limit') || raw.contains('billing cycle') || raw.contains('budget cap') || e.code == 429) {
       return 'Le quota cloud est temporairement atteint. Vos données locales restent disponibles.';
     }
     switch (e.code) {

@@ -106,8 +106,7 @@ class _CardContent extends StatelessWidget {
                   // En-tête : titre + niveau
                   Row(
                     children: [
-                      const Icon(PhosphorIconsBold.sparkle,
-                          size: 16, color: AppColors.primaryBlue),
+                      const Icon(PhosphorIconsBold.sparkle, size: 16, color: AppColors.primaryBlue),
                       const SizedBox(width: 6),
                       const Expanded(
                         child: Text(
@@ -206,10 +205,7 @@ class _XpBar extends StatelessWidget {
           children: [
             Text(
               '${xp.xpInCurrentLevel} XP',
-              style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryBlue),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primaryBlue),
             ),
             Text(
               '${xp.xpToNextLevel} XP',
@@ -254,8 +250,7 @@ class _QuestLine extends StatelessWidget {
                 backgroundColor: const Color(0xFFE5E7EB),
                 color: pct >= 100 ? const Color(0xFF10B981) : AppColors.primaryBlue,
               ),
-              if (pct >= 100)
-                const Icon(Icons.check, size: 11, color: Color(0xFF10B981)),
+              if (pct >= 100) const Icon(Icons.check, size: 11, color: Color(0xFF10B981)),
             ],
           ),
         ),
@@ -296,17 +291,14 @@ class _CardShimmer extends StatefulWidget {
   State<_CardShimmer> createState() => _CardShimmerState();
 }
 
-class _CardShimmerState extends State<_CardShimmer>
-    with SingleTickerProviderStateMixin {
+class _CardShimmerState extends State<_CardShimmer> with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1200))
-      ..repeat(reverse: true);
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
     _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
   }
 
