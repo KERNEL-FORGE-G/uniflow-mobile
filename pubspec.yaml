@@ -85,3 +85,5 @@ flutter:
     - assets/illustrations/
     # Scans officiels des emplois du temps (ICT4D, SIGL, Faculté des Sciences)
     - assets/emplois_du_temps/
+    # Photos et mascottes des membres de l'équipe KERNEL FORGE
+    - assets/team/
