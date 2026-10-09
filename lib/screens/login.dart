@@ -118,7 +118,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           : _busy
               ? UniPose.thinking
               : UniPose.wave,
-      headline: const AuthHeadline('Connectez-vous pour rester ', 'au fil', ' de vos cours, devoirs et notes.'),
+      headline: const AuthHeadline('Bienvenue 👋\nConnectez-vous pour rester ', 'au fil', ' de vos cours.'),
       child: AuthCard(
         children: [
           AuthSheetTitle(

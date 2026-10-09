@@ -102,8 +102,37 @@ class AuthScaffold extends StatelessWidget {
                               children: [
                                 child,
                                 const SizedBox(height: 22),
+                                // Badge soutien technologique Axora
+                                Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryBlue.withValues(alpha: 0.06),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppColors.primaryBlue.withValues(alpha: 0.14),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.verified_outlined, size: 11, color: AppColors.primaryBlue.withValues(alpha: 0.55)),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          'Avec le soutien technologique de Axora',
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            color: AppColors.primaryBlue.withValues(alpha: 0.65),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
                                 const Text(
-                                  'UniFlow · KERNEL FORGE',
+                                  'UniFlow · KERNEL FORGE · 2026',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                                 ),

@@ -1607,12 +1607,15 @@ class _UniBookCard extends StatelessWidget {
                       GestureDetector(
                         onTap: () async {
                           final uri = Uri.parse(book.downloadUrl!);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          } else {
+                          try {
+                            final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            if (!launched && context.mounted) {
+                              await launchUrl(uri, mode: LaunchMode.platformDefault);
+                            }
+                          } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Impossible d\'ouvrir le lien de téléchargement.')),
+                                SnackBar(content: Text('Impossible d\'ouvrir : ${book.title}')),
                               );
                             }
                           }
