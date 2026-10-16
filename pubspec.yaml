@@ -1,89 +1,92 @@
 name: uniflow_mobile
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
+description: UniFlow - Gestion académique (Flutter)
+publish_to: 'none'
 version: 1.0.0+1
-
 environment:
-  sdk: ^3.13.1
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=3.19.0"
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^1.0.6
+  go_router: ^14.2.0
+  flutter_riverpod: ^2.5.1
+  google_fonts: ^6.2.1
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.17
+  connectivity_plus: ^7.3.1
+  workmanager: ^0.9.0+3
+  freezed_annotation: ^2.4.1
+  flutter_dotenv: ^6.0.1
+  appwrite: ^26.2.0
+  image_picker: ^1.1.2
+  intl: ^0.19.0
+  url_launcher: ^6.3.2
+  file_picker: ^13.0.0
+  flutter_local_notifications: ^22.3.1
+  open_filex: ^4.7.0
+  path_provider: ^2.1.6
+  mobile_scanner: ^7.4.2
+  qr_flutter: ^4.1.0
+  geolocator: ^14.0.3
+  flutter_secure_storage: ^11.2.0
+  # Firebase Cloud Messaging -- push notifications en arrière-plan / app fermée.
+  # firebase_core est requis comme base SDK ; firebase_messaging gère FCM.
+  firebase_core: ^3.6.0
+  firebase_messaging: ^15.1.3
+  # Polices Phosphor uniquement (`fontPackage: 'phosphor_flutter'`). Ne pas
+  # importer son code Dart : il étend `IconData`, classe `final` depuis
+  # Flutter 3.47, et ne compile plus. Les glyphes sont recopiés dans
+  # `lib/widgets/phosphor.dart` par `tool/generate_phosphor_glyphs.dart`.
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Sonde réseau : `flutter test` court-circuite HTTP (tout appel rend 400),
+  # ce qui rend invisible une panne d'API. Ces tests-là s'exécutent sur
+  # l'appareil, avec le vrai réseau, et montrent l'erreur réelle.
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  drift_dev: ^2.14.0
+  build_runner: ^2.4.8
+  # Pas de `flutter_launcher_icons` ici, volontairement : les icônes sont
+  # produites par `tools/generer-icones-uniflow.py`, seul propriétaire du jeu
+  # d'icônes. La configuration précédente nommait `android: "launcher_icon"`
+  # et écrivait `ios: true` — un dossier `ios/` qui n'existe pas — alors que le
+  # manifeste et `res/mipmap-*/` disent `ic_launcher`. Lancé, il aurait créé un
+  # second jeu d'icônes parallèle, et l'application aurait affiché l'ancien logo
+  # selon la densité retenue par le lanceur. Il ignore de toute façon les
+  # icônes adaptatives (`mipmap-anydpi-v26`) que le script, lui, sait générer.
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
-  flutter_lints: ^6.0.0
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  assets:
+    - .env
+    # Logos de marque transparents (l'écusson court et le logo long). Le PNG à
+    # fond blanc opaque `assets/logo.png` qu'ils remplacent est supprimé : il
+    # pesait 872 Ko dans l'APK et posait une tuile blanche sur les fonds
+    # sombres.
+    - assets/brand/
+    # Uni, la mascotte (12 poses WebP, ~60 Ko chacune), son avatar et le logo
+    # KERNEL FORGE : embarqués pour s'afficher hors ligne et sur les écrans
+    # d'erreur, là où rien ne peut plus être téléchargé.
+    - assets/mascot/
+    - assets/mascots/
+    - assets/assistant/
+    - assets/logos/
+    - assets/onboarding/
+    # Les six badges de l'apprenant (WebP détourés) : affichés hors ligne sur
+    # l'accueil, ils ne peuvent pas dépendre du réseau.
+    - assets/badges/
+    # Illustrations 3D générées pour le redesign "Book Lending" : hero banner,
+    # thumbnails de cours pour les cartes d'accueil.
+    - assets/illustrations/
+    # Scans officiels des emplois du temps (ICT4D, SIGL, Faculté des Sciences)
+    - assets/emplois_du_temps/
+    # Photos et mascottes des membres de l'équipe KERNEL FORGE
+    - assets/team/
+    # Icônes 3D de navigation (mêmes illustrations que le web et le desktop)
+    - assets/icons/nav/

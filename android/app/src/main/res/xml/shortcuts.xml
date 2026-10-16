@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Raccourcis statiques du lanceur (appui long sur l'icône, Android 7.1+).
+
+     Chaque raccourci lance MainActivity avec une action VIEW et une donnée
+     `uniflow:///<route>` : l'embedding Flutter transmet cette URI comme route
+     initiale (démarrage à froid) ou la pousse au routeur si l'application est
+     déjà ouverte, et `launchLocationFromLink` (lib/router/app_router.dart) la
+     ramène à l'adresse interne. La forme avec trois barres est volontaire :
+     go_router n'apparie que le chemin, et `uniflow://emploi-du-temps` aurait un
+     hôte et un chemin vide.
+
+     Sans session, la redirection habituelle envoie sur la connexion ; le
+     raccourci ne contourne rien. Le test test/android_natif_test.dart vérifie
+     que chaque donnée mène à une route déclarée. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="emploi_du_temps"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_emploi_du_temps"
+        android:shortcutShortLabel="@string/raccourci_emploi_du_temps_court"
+        android:shortcutLongLabel="@string/raccourci_emploi_du_temps_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="uniflow:///emploi-du-temps"
+            android:targetPackage="com.uniflow.kernelforge"
+            android:targetClass="com.uniflow.kernelforge.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="messages"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_messages"
+        android:shortcutShortLabel="@string/raccourci_messages_court"
+        android:shortcutLongLabel="@string/raccourci_messages_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="uniflow:///messages"
+            android:targetPackage="com.uniflow.kernelforge"
+            android:targetClass="com.uniflow.kernelforge.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="notifications"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_notifications"
+        android:shortcutShortLabel="@string/raccourci_notifications_court"
+        android:shortcutLongLabel="@string/raccourci_notifications_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="uniflow:///notifications"
+            android:targetPackage="com.uniflow.kernelforge"
+            android:targetClass="com.uniflow.kernelforge.MainActivity" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,483 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../offline/offline_settings_section.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import '../widgets/phosphor.dart';
+
+import '../app_info.dart';
+import '../services/profile_photo_service.dart';
+import '../utils/avatar.dart';
+import '../widgets/common.dart';
+import '../widgets/uni_icons.dart';
+import '../theme/app_theme.dart';
+import '../providers/providers.dart';
+import '../providers/session_controller.dart';
+import 'delete_account.dart';
+import '../repositories/auth_repository.dart';
+
+class SettingsScreen extends ConsumerStatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _uploading = false;
+  String? _photoError;
+
+  /// Vrai pendant l'enregistrement du pseudo.
+  bool _savingUsername = false;
+  String? _usernameError;
+
+  /// Ouvre la boîte de dialogue de création / modification du pseudo.
+  ///
+  /// Le pseudo est l'adresse de la messagerie : il ne peut pas être vide, et
+  /// c'est le serveur qui garantit son unicité.
+  ///
+  /// La boîte est un widget à état, et non un `showDialog` construit à la volée
+  /// avec un `TextEditingController` local. Ce dernier montage — utilisé ici
+  /// jusqu'ici — libérait le contrôleur dès le retour de `showDialog`, alors que
+  /// la route de dialogue est encore montée le temps de son animation de
+  /// sortie : son `TextField` se reconstruisait sur un contrôleur disposé, et
+  /// l'utilisateur recevait une page d'erreur rouge —
+  /// « A TextEditingController was used after being disposed ». Le contrôleur
+  /// appartient désormais à l'état du widget, qui le libère quand la route a
+  /// réellement disparu.
+  Future<void> _editUsername() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    final submitted = await showDialog<String>(
+      context: context,
+      builder: (ctx) => _DialoguePseudo(pseudoActuel: user.username ?? ''),
+    );
+    if (submitted == null || !mounted) return;
+
+    final normalized = normalizeUsername(submitted);
+    if (normalized == null) {
+      setState(() => _usernameError = 'Pseudo invalide : 3 à 32 caractères, lettres minuscules, chiffres, '
+          'point, tiret ou souligné, en commençant par une lettre ou un chiffre.');
+      return;
+    }
+    if (normalized == user.username) {
+      setState(() => _usernameError = null);
+      return;
+    }
+
+    setState(() {
+      _savingUsername = true;
+      _usernameError = null;
+    });
+    try {
+      final updated = await ref.read(authRepositoryProvider).updateUsername(user.id, normalized);
+      if (!mounted) return;
+      ref.read(currentUserProvider.notifier).state = updated;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pseudo enregistré : @$normalized')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _usernameError = error.toString());
+    } finally {
+      if (mounted) setState(() => _savingUsername = false);
+    }
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Se déconnecter ?'),
+        content: const Text('Vous devrez ressaisir vos identifiants pour revenir.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Se déconnecter', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    // Séquence unique (session serveur, cookies, providers, fichiers) : voir
+    // `SessionController`. La garde du routeur renvoie ensuite à la connexion.
+    await ref.read(sessionControllerProvider).signOut();
+  }
+
+  Future<void> _pickAndUpload() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    setState(() => _photoError = null);
+
+    final ImagePicker picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      // Le redimensionnement évite d'envoyer une photo de 12 Mpx alors que
+      // l'avatar s'affiche au plus en 96 px : le quota du bucket et la
+      // connexion de l'utilisateur en profitent tous les deux.
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 88,
+    );
+    if (picked == null) return;
+
+    final invalid = validateAvatarPath(picked.path);
+    if (invalid != null) {
+      setState(() => _photoError = invalid);
+      return;
+    }
+
+    setState(() => _uploading = true);
+    try {
+      await ref.uploadAvatar(File(picked.path), user);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo de profil mise à jour.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) setState(() => _photoError = error.toString());
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _removePhoto() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null || user.avatarFileId == null || user.avatarFileId!.isEmpty) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Retirer la photo ?'),
+        content: const Text('Vos initiales réapparaîtront à la place.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Retirer', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() {
+      _uploading = true;
+      _photoError = null;
+    });
+    try {
+      await ref.removeAvatar(user);
+    } catch (error) {
+      if (mounted) setState(() => _photoError = error.toString());
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider);
+    final hasPhoto = user?.avatarFileId != null && user!.avatarFileId!.isNotEmpty;
+
+    return Column(
+      children: [
+        const GradientHeader(title: 'Réglages', subtitle: 'Préférences de l\'application'),
+        Expanded(
+          child: ListView(
+            padding: AppInsets.pageList,
+            children: [
+              SectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: _PhotoAvatar(
+                        initials: user == null ? '?' : initialsOf(user.name),
+                        avatarFileId: user?.avatarFileId,
+                        uploading: _uploading,
+                      ),
+                      title: Text(user?.name ?? 'Non connecté', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(
+                        user == null
+                            ? 'Aucune session active'
+                            : (user.username == null || user.username!.isEmpty
+                                ? '${user.role} · ${user.email}'
+                                : '@${user.username} · ${user.role}'),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    if (user != null) ...[
+                      const SizedBox(height: 8),
+                      // `Wrap` et non `Row` : « Changer la photo » et « Retirer »
+                      // ne tiennent pas sur une même ligne à 320 px de large, et
+                      // la ligne débordait de 44 px. Ici le second bouton passe
+                      // simplement à la ligne suivante.
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: _uploading ? null : _pickAndUpload,
+                            icon: const PhosphorIcon(PhosphorIconsBold.camera, size: 18),
+                            label: Text(hasPhoto ? 'Changer la photo' : 'Ajouter une photo'),
+                          ),
+                          if (hasPhoto)
+                            TextButton(
+                              onPressed: _uploading ? null : _removePhoto,
+                              child: const Text('Retirer', style: TextStyle(color: AppColors.danger)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'JPEG, PNG ou WebP · 5 Mo maximum',
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                      if (_photoError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _photoError!,
+                          style: const TextStyle(fontSize: 12, color: AppColors.danger),
+                        ),
+                      ],
+                    ],
+                    const Divider(height: 24),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.at,
+                          color: AppColors.primaryBlue,
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
+                      title: const Text('Pseudo de messagerie'),
+                      subtitle: Text(
+                        user == null || user.username == null || user.username!.isEmpty
+                            ? 'Aucun pseudo : vous n\'êtes pas joignable'
+                            : '@${user.username}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: _savingUsername
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
+                      onTap: user == null || _savingUsername ? null : _editUsername,
+                    ),
+                    if (_usernameError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          _usernameError!,
+                          style: const TextStyle(fontSize: 12, color: AppColors.danger),
+                        ),
+                      ),
+                    const Divider(height: 24),
+                    const OfflineSettingsSection(),
+                    const Divider(height: 24),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.creditCard,
+                          color: Color(0xFF0D9488),
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
+                      title: const Text('Mon Abonnement & Formules Pro'),
+                      subtitle: const Text('Passerelle Flutterwave (Orange Money, MoMo, Carte)',
+                          style: TextStyle(fontSize: 12)),
+                      trailing:
+                          const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
+                      onTap: () => GoRouter.of(context).push('/abonnement'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.usersFour,
+                          color: AppColors.primaryBlue,
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
+                      title: const Text('L\'Équipe KERNEL FORGE'),
+                      trailing:
+                          const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
+                      onTap: () => GoRouter.of(context).push('/equipe'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      key: const ValueKey('settings-about'),
+                      contentPadding: EdgeInsets.zero,
+                      leading: const IconTile(
+                          icon: PhosphorIconsDuotone.info,
+                          color: AppColors.primaryBlue,
+                          variant: IconTileVariant.soft,
+                          size: IconTile.dense),
+                      title: const Text('À propos d\'UniFlow'),
+                      subtitle: const Text(appVersionLabel, style: TextStyle(fontSize: 12)),
+                      trailing:
+                          const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
+                      onTap: () => GoRouter.of(context).push('/a-propos'),
+                    ),
+                    if (user != null) ...[
+                      const Divider(height: 1),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const IconTile(
+                            icon: PhosphorIconsDuotone.signOut,
+                            color: AppColors.danger,
+                            variant: IconTileVariant.soft,
+                            size: IconTile.dense),
+                        title: const Text('Se déconnecter', style: TextStyle(color: AppColors.danger)),
+                        onTap: _logout,
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const IconTile(
+                            icon: PhosphorIconsDuotone.trash,
+                            color: AppColors.textMuted,
+                            variant: IconTileVariant.soft,
+                            size: IconTile.dense),
+                        title: const Text('Supprimer mon compte'),
+                        subtitle: const Text('Définitif, en deux confirmations', style: TextStyle(fontSize: 12)),
+                        trailing:
+                            const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18, color: AppColors.textSecondary),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const DeleteAccountScreen()),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Boîte de dialogue de saisie du pseudo.
+///
+/// Widget à état, pour que le `TextEditingController` vive exactement aussi
+/// longtemps que le champ qui l'utilise — voir le commentaire de
+/// `_SettingsScreenState._editUsername`.
+class _DialoguePseudo extends StatefulWidget {
+  /// Pseudo en place, vide s'il n'y en a pas encore.
+  final String pseudoActuel;
+
+  const _DialoguePseudo({required this.pseudoActuel});
+
+  @override
+  State<_DialoguePseudo> createState() => _DialoguePseudoState();
+}
+
+class _DialoguePseudoState extends State<_DialoguePseudo> {
+  late final TextEditingController _controller = TextEditingController(text: widget.pseudoActuel);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final creation = widget.pseudoActuel.isEmpty;
+    return AlertDialog(
+      title: Text(creation ? 'Créer votre pseudo' : 'Changer de pseudo'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Vos contacts vous trouvent par ce pseudo dans la messagerie.',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              prefixText: '@',
+              hintText: 'prenom.nom',
+              helperText: '3 à 32 caractères : lettres, chiffres, . _ -',
+            ),
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          // Le pseudo part tel quel : la normalisation et le refus des cas
+          // invalides appartiennent à l'écran, qui les applique de la même
+          // façon quelle que soit la manière dont la boîte s'est fermée.
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: const Text('Enregistrer'),
+        ),
+      ],
+    );
+  }
+}
+
+/// L'avatar du profil, surmonté d'un voile pendant le téléversement pour que
+/// l'attente soit visible sans masquer l'image en cours de remplacement.
+class _PhotoAvatar extends StatelessWidget {
+  final String initials;
+  final String? avatarFileId;
+  final bool uploading;
+
+  const _PhotoAvatar({
+    required this.initials,
+    required this.avatarFileId,
+    required this.uploading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final avatar = Avatar(initials: initials, avatarFileId: avatarFileId, size: 52);
+    if (!uploading) return avatar;
+
+    return SizedBox(
+      width: 52,
+      height: 52,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          avatar,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.45),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icône adaptative : le lanceur redimensionne et masque (cercle, goutte,
+     carré arrondi...) la superposition de trois couches PNG de 108dp :
+       - fond      : tuile claire, dégradé radial blanc -> bleu très pâle ;
+       - avant     : l'écusson en couleurs pleines, à 57 %, dans la zone sûre
+                     de 66dp (au-delà, la pointe de la toque est rognée) ;
+       - monochrome: la silhouette blanche, teintée par le système pour les
+                     icônes thématiques d'Android 13+.
+     L'aplat bleu marine précédent avalait la toque, de la même couleur ;
+     voir tools/generer-icones-uniflow.py, qui régénère tout ceci. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_monochrome" />
+</adaptive-icon>

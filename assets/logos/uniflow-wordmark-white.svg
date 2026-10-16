@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 140" fill="none">
+  <defs>
+    <!-- Dynamic Circuit Gradient from Deep Navy to Radiant Emerald Teal -->
+    <linearGradient id="uf-circuit-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="45%" stop-color="#2563EB" />
+      <stop offset="80%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+
+    <!-- Emerald Teal to Bright Mint for Mortarboard & Arrow -->
+    <linearGradient id="uf-cap-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D9488" />
+      <stop offset="60%" stop-color="#14B8A8" />
+      <stop offset="100%" stop-color="#2DD4BF" />
+    </linearGradient>
+
+    <linearGradient id="uf-arrow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+
+    <!-- Soft Glow Filter -->
+    <filter id="uf-subtle-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0D9488" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- EMBLEM ICON GROUP (U-Loop + Cap + Growth Arrow) -->
+  <g transform="translate(18, 12)">
+    <!-- Main Outer U Circuit Track -->
+    <path d="M 34 52 C 24 74, 28 104, 52 116 C 76 128, 104 118, 114 92 C 120 78, 120 62, 118 48" 
+          fill="none" 
+          stroke="url(#uf-circuit-grad)" 
+          stroke-width="16" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <!-- Sleek Ascending Growth Arrow Tip -->
+    <path d="M 100 58 L 118 30 L 136 58 Z" fill="url(#uf-arrow-grad)" filter="url(#uf-subtle-glow)" />
+
+    <!-- Modern Dynamic Circuit Nodes & Pulses on Left Arm -->
+    <path d="M 32 75 C 42 80, 52 88, 62 96" fill="none" stroke="#2563EB" stroke-width="3.5" stroke-linecap="round" />
+    <path d="M 40 90 C 50 95, 60 102, 72 108" fill="none" stroke="#0284C7" stroke-width="3.5" stroke-linecap="round" />
+    <circle cx="62" cy="96" r="3.5" fill="#2563EB" />
+    <circle cx="72" cy="108" r="3.5" fill="#0284C7" />
+    <circle cx="32" cy="75" r="2.8" fill="#FFFFFF" />
+    <circle cx="40" cy="90" r="2.8" fill="#FFFFFF" />
+
+    <!-- Sleek Graduation Mortarboard Diamond Cap -->
+    <polygon points="76,8 126,30 76,52 26,30" fill="url(#uf-cap-grad)" filter="url(#uf-subtle-glow)" />
+    <!-- Under Cap Base -->
+    <path d="M 46 40 L 46 54 C 46 64, 106 64, 106 54 L 106 40 Z" fill="#1E3A8A" opacity="0.92" />
+    <!-- Center Button & Hanging Tassel -->
+    <circle cx="76" cy="30" r="4.2" fill="#FFFFFF" />
+    <path d="M 76 30 Q 36 34 26 52" fill="none" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round" />
+    <polygon points="23,52 29,52 27,66 21,66" fill="#14B8A8" />
+  </g>
+
+  <!-- TYPOGRAPHY : UniFlow -->
+  <g transform="translate(170, 88)">
+    <text x="0" y="0" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="64" font-weight="900" fill="#1E3A8A" letter-spacing="-2">Uni<tspan fill="#0D9488">Flow</tspan></text>
+    <text x="4" y="24" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="700" fill="#64748B" letter-spacing="3.5">ÉCOSYSTÈME AUTONOME</text>
+  </g>
+</svg>

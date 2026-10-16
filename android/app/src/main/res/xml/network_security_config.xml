@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Autorise le trafic HTTP clair vers le VPS Appwrite auto-hébergé.
+     Le certificat SSL de vps.kernelforge.codes est expiré/absent ;
+     HTTP est utilisé uniquement en debug/dev jusqu'au renouvellement SSL. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">vps.kernelforge.codes</domain>
+    </domain-config>
+</network-security-config>
