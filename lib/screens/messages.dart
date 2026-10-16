@@ -295,10 +295,10 @@ class _MoreMenu extends StatelessWidget {
       icon: const PhosphorIcon(PhosphorIconsBold.squaresFour, color: Colors.white, size: 22),
       color: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      itemBuilder: (_) => [
+      itemBuilder: (_) => const [
         PopupMenuItem(
           value: 'archive',
-          child: Row(children: const [
+          child: Row(children: [
             PhosphorIcon(PhosphorIconsBold.tray, size: 16, color: AppColors.textSecondary),
             SizedBox(width: 10),
             Text('Archives', style: TextStyle(color: AppColors.textPrimary)),
@@ -306,7 +306,7 @@ class _MoreMenu extends StatelessWidget {
         ),
         PopupMenuItem(
           value: 'starred',
-          child: Row(children: const [
+          child: Row(children: [
             PhosphorIcon(PhosphorIconsBold.star, size: 16, color: AppColors.textSecondary),
             SizedBox(width: 10),
             Text('Messages étoilés', style: TextStyle(color: AppColors.textPrimary)),
@@ -314,7 +314,7 @@ class _MoreMenu extends StatelessWidget {
         ),
         PopupMenuItem(
           value: 'settings',
-          child: Row(children: const [
+          child: Row(children: [
             PhosphorIcon(PhosphorIconsBold.gearSix, size: 16, color: AppColors.textSecondary),
             SizedBox(width: 10),
             Text('Paramètres', style: TextStyle(color: AppColors.textPrimary)),
@@ -1104,11 +1104,11 @@ class _PostStatusSheetState extends ConsumerState<_PostStatusSheet> {
                 fillColor: AppColors.inputFill,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: AppColors.inputBorder),
+                  borderSide: const BorderSide(color: AppColors.inputBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: AppColors.inputBorder),
+                  borderSide: const BorderSide(color: AppColors.inputBorder),
                 ),
               ),
             ),
@@ -1373,7 +1373,7 @@ class _ConversationTile extends StatelessWidget {
           ),
         ),
         if (showDivider)
-          Divider(
+          const Divider(
             color: AppColors.divider,
             height: 1,
             indent: 80,
@@ -1735,7 +1735,7 @@ class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
     }
     return ListView.separated(
       itemCount: _results.length,
-      separatorBuilder: (_, __) => Divider(color: AppColors.divider, height: 1),
+      separatorBuilder: (_, __) => const Divider(color: AppColors.divider, height: 1),
       itemBuilder: (ctx, i) {
         final c = _results[i];
         return ListTile(

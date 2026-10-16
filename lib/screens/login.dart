@@ -12,13 +12,13 @@ import '../widgets/phosphor.dart';
 import '../widgets/uni/uni_mascot.dart';
 import '../widgets/feedback.dart';
 
-/// Écran de connexion Appwrite.
+/// Écran de connexion Appwrite unifié.
 ///
-/// Sans lui, l'application démarrait sur le tableau de bord sans jamais créer
-/// de session : toutes les lectures partaient en anonyme et Appwrite les
-/// refusait, laissant des écrans vides sans explication.
-///
-/// Connexion sécurisée 100% autonome pour les étudiants, délégués et enseignants indépendants.
+/// Permet l'accès aux deux mondes UniFlow :
+/// 1. Espace Académique : rattaché à une université (UY1...), pour Étudiants,
+///    Enseignants et Administration.
+/// 2. Espace Indépendant : 100% autonome pour Étudiants, Délégués et Enseignants
+///    hors université partenaire.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -29,7 +29,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
-  final UniFlowAccountType _type = UniFlowAccountType.personal;
+  UniFlowAccountType _type = UniFlowAccountType.university;
   bool _busy = false;
   bool _obscure = true;
   String? _error;
@@ -37,8 +37,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _email.text = 'independant@uniflow.test';
-    _password.text = 'password123';
+    _applyTypeDefaults(_type);
+  }
+
+  void _applyTypeDefaults(UniFlowAccountType type) {
+    if (type == UniFlowAccountType.university) {
+      _email.text = 'ict@uy1.cm';
+      _password.text = 'password123';
+    } else {
+      _email.text = 'independant@uniflow.test';
+      _password.text = 'password123';
+    }
   }
 
   @override
@@ -48,8 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  /// Traduit une exception Appwrite en message lisible plutôt que de laisser
-  /// remonter un « Unauthorized » brut.
+  /// Traduit une exception Appwrite en message lisible.
   String _readable(Object error) {
     if (error is AuthException) return error.message;
     if (error is AppwriteException) return loginErrorMessage(error);
@@ -67,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _email.text.trim();
     final password = _password.text;
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _error = 'Renseignez votre e-mail et votre mot de passe.');
+      setState(() => _error = 'Renseignez votre identifiant et votre mot de passe.');
       return;
     }
 
@@ -84,14 +92,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (user == null) {
         throw AuthException(
           'Session créée, mais aucun profil UniFlow n\'est associé à ce compte. '
-          'Contactez l\'administration de votre université.',
+          'Contactez le support ou l\'administration.',
         );
       }
       ref.read(currentUserProvider.notifier).state = user;
       ref.read(authStatusProvider.notifier).state = AuthStatus.signedIn;
-      // Le redirect du routeur bascule alors automatiquement sur /accueil.
-      // Un étudiant inscrit avant la publication des cours de sa filière est
-      // raccordé ici, en arrière-plan, sans retarder l'entrée.
       unawaited(auth.retryAcademicProvisioning(user));
     } catch (e) {
       if (!mounted) return;
@@ -105,99 +110,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (mounted) setState(() => _busy = false);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AuthScaffold(
-      // Uni accueille, réfléchit pendant la connexion et s'excuse sur une
-      // erreur : l'état se lit avant même le message.
-      pose: _error != null
-          ? UniPose.sorry
-          : _busy
-              ? UniPose.thinking
-              : UniPose.wave,
-      headline: const AuthHeadline('Bienvenue.\nConnectez-vous pour rester ', 'au fil', ' de vos cours.'),
-      child: AuthCard(
-        children: [
-          AuthSheetTitle(
-            title: 'Connexion',
-            prompt: 'Pas encore de compte ?',
-            actionLabel: 'S\'inscrire',
-            onAction: _busy ? null : () => context.push('/register?type=${_type.wireValue}'),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Votre espace personnel : matières, tâches, agenda.',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodySmall,
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 16),
-            FeedbackBanner(kind: FeedbackKind.failure, message: _error!),
-          ],
-          const SizedBox(height: 18),
-          TextField(
-            controller: _email,
-            enabled: !_busy,
-            keyboardType: TextInputType.emailAddress,
-            autocorrect: false,
-            textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              hintText: 'vous@exemple.com',
-              prefixIcon: PhosphorIcon(PhosphorIconsBold.envelope, size: 20),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _password,
-            enabled: !_busy,
-            obscureText: _obscure,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _busy ? null : _submit(),
-            decoration: InputDecoration(
-              labelText: 'Mot de passe',
-              hintText: '••••••••',
-              prefixIcon: const PhosphorIcon(PhosphorIconsBold.lock, size: 20),
-              // Œil pour révéler le mot de passe : sur un clavier tactile, la
-              // saisie masquée est la première source d'échec de connexion.
-              suffixIcon: IconButton(
-                onPressed: () => setState(() => _obscure = !_obscure),
-                tooltip: _obscure ? 'Afficher le mot de passe' : 'Masquer le mot de passe',
-                icon: PhosphorIcon(_obscure ? PhosphorIconsBold.eye : PhosphorIconsBold.eyeSlash, size: 20),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: _busy ? null : () => context.push('/mot-de-passe-oublie'),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text('Mot de passe oublié ?', style: AppTextStyles.link),
-            ),
-          ),
-          const SizedBox(height: 16),
-          GradientButton(label: 'Se connecter', isLoading: _busy, onPressed: _busy ? null : _submit),
-          const SizedBox(height: 16),
-          const Row(children: [
-            Expanded(child: Divider()),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text('ou', style: AppTextStyles.bodySmall),
-            ),
-            Expanded(child: Divider()),
-          ]),
-          const SizedBox(height: 12),
-          _GoogleSignInButton(busy: _busy, onPressed: _signInWithGoogle),
-        ],
-      ),
-    );
-  }
-
   Future<void> _signInWithGoogle() async {
     setState(() {
       _busy = true;
@@ -206,8 +118,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final auth = ref.read(authRepositoryProvider);
       await auth.loginWithGoogle();
-      // Le deep link redirige le navigateur vers l'app ; Appwrite crée la
-      // session côté serveur. On relit l'utilisateur après le retour.
       final user = await auth.getCurrentUser();
       if (user == null) {
         throw AuthException('Connexion Google réussie, mais aucun profil UniFlow trouvé.');
@@ -223,6 +133,259 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
     if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isUni = _type == UniFlowAccountType.university;
+
+    return AuthScaffold(
+      pose: _error != null
+          ? UniPose.sorry
+          : _busy
+              ? UniPose.thinking
+              : UniPose.wave,
+      headline: const AuthHeadline('Bienvenue.\nConnectez-vous pour rester ', 'au fil', ' de vos cours.'),
+      child: AuthCard(
+        children: [
+          AuthSheetTitle(
+            title: 'Connexion',
+            prompt: 'Pas encore de compte ?',
+            actionLabel: 'S\'inscrire',
+            onAction: _busy ? null : () => context.push('/register?type=${_type.wireValue}'),
+          ),
+          const SizedBox(height: 14),
+
+          // ── Sélecteur de type d'espace (Académique vs Indépendant) ──
+          AccountTypeSelector(
+            value: _type,
+            onChanged: _busy
+                ? null
+                : (newType) {
+                    setState(() {
+                      _type = newType;
+                      _error = null;
+                      _applyTypeDefaults(newType);
+                    });
+                  },
+          ),
+          const SizedBox(height: 10),
+
+          // ── Description contextuelle de l'espace sélectionné ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isUni
+                  ? AppColors.primaryBlue.withValues(alpha: 0.05)
+                  : const Color(0xFF0D9488).withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isUni
+                    ? AppColors.primaryBlue.withValues(alpha: 0.12)
+                    : const Color(0xFF0D9488).withValues(alpha: 0.18),
+              ),
+            ),
+            child: Row(
+              children: [
+                PhosphorIcon(
+                  isUni ? PhosphorIconsBold.buildings : PhosphorIconsBold.globe,
+                  color: isUni ? AppColors.primaryBlue : const Color(0xFF0D9488),
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isUni
+                        ? 'Espace Académique : Étudiants, Enseignants et Administration UY1.'
+                        : 'Espace Indépendant : Espace d\'apprentissage et tutorat autonome.',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isUni ? AppColors.primaryBlue : const Color(0xFF0D9488),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (_error != null) ...[
+            const SizedBox(height: 14),
+            FeedbackBanner(kind: FeedbackKind.failure, message: _error!),
+          ],
+          const SizedBox(height: 16),
+
+          // ── Champ Identifiant / Email ──
+          TextField(
+            controller: _email,
+            enabled: !_busy,
+            keyboardType: TextInputType.emailAddress,
+            autocorrect: false,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: isUni ? 'Email universitaire ou matricule' : 'Adresse e-mail',
+              hintText: isUni ? 'ict@uy1.cm ou 21T2345' : 'vous@exemple.com',
+              prefixIcon: PhosphorIcon(
+                isUni ? PhosphorIconsBold.identificationBadge : PhosphorIconsBold.envelope,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // ── Champ Mot de passe ──
+          TextField(
+            controller: _password,
+            enabled: !_busy,
+            obscureText: _obscure,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _busy ? null : _submit(),
+            decoration: InputDecoration(
+              labelText: 'Mot de passe',
+              hintText: '••••••••',
+              prefixIcon: const PhosphorIcon(PhosphorIconsBold.lock, size: 20),
+              suffixIcon: IconButton(
+                onPressed: () => setState(() => _obscure = !_obscure),
+                tooltip: _obscure ? 'Afficher le mot de passe' : 'Masquer le mot de passe',
+                icon: PhosphorIcon(_obscure ? PhosphorIconsBold.eye : PhosphorIconsBold.eyeSlash, size: 20),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _busy ? null : () => context.push('/mot-de-passe-oublie'),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Mot de passe oublié ?', style: AppTextStyles.link),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Bouton de connexion principal ──
+          GradientButton(
+            label: isUni ? 'Se connecter à l\'Université' : 'Se connecter à l\'Espace Indépendant',
+            icon: isUni ? PhosphorIconsBold.buildings : PhosphorIconsBold.arrowRight,
+            isLoading: _busy,
+            onPressed: _busy ? null : _submit,
+          ),
+
+          // ── Raccourcis démo pour test rapide ──
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            alignment: WrapAlignment.center,
+            children: [
+              if (isUni) ...[
+                _DemoChip(
+                  label: 'Étudiant ICT4D',
+                  onTap: _busy
+                      ? null
+                      : () {
+                          setState(() {
+                            _email.text = 'ict@uy1.cm';
+                            _password.text = 'password123';
+                            _error = null;
+                          });
+                        },
+                ),
+                _DemoChip(
+                  label: 'Enseignant UY1',
+                  onTap: _busy
+                      ? null
+                      : () {
+                          setState(() {
+                            _email.text = 'prof@uy1.cm';
+                            _password.text = 'password123';
+                            _error = null;
+                          });
+                        },
+                ),
+                _DemoChip(
+                  label: 'Admin FS',
+                  onTap: _busy
+                      ? null
+                      : () {
+                          setState(() {
+                            _email.text = 'admin@uy1.cm';
+                            _password.text = 'password123';
+                            _error = null;
+                          });
+                        },
+                ),
+              ] else ...[
+                _DemoChip(
+                  label: 'Étudiant Indépendant',
+                  onTap: _busy
+                      ? null
+                      : () {
+                          setState(() {
+                            _email.text = 'independant@uniflow.test';
+                            _password.text = 'password123';
+                            _error = null;
+                          });
+                        },
+                ),
+              ],
+            ],
+          ),
+
+          if (!isUni) ...[
+            const SizedBox(height: 14),
+            const Row(children: [
+              Expanded(child: Divider()),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('ou', style: AppTextStyles.bodySmall),
+              ),
+              Expanded(child: Divider()),
+            ]),
+            const SizedBox(height: 12),
+            _GoogleSignInButton(busy: _busy, onPressed: _signInWithGoogle),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DemoChip extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+
+  const _DemoChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.inputFill,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const PhosphorIcon(PhosphorIconsBold.lightning, size: 12, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -247,7 +410,6 @@ class _GoogleSignInButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo Google SVG inline (24×24, couleurs officielles)
             SizedBox(
               width: 20,
               height: 20,
@@ -269,7 +431,6 @@ class _GoogleSignInButton extends StatelessWidget {
   }
 }
 
-/// Peint le logo Google (4 couleurs, 4 arcs) en Flutter.
 class _GoogleLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -279,19 +440,19 @@ class _GoogleLogoPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = r * 0.35;
 
-    // Partie bleue (haut-droite)
+    // Bleu
     paint.color = const Color(0xFF4285F4);
     canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), -0.3, 1.6, false, paint);
-    // Partie rouge (haut-gauche)
+    // Rouge
     paint.color = const Color(0xFFEA4335);
     canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), -1.9, 1.0, false, paint);
-    // Partie jaune (bas-gauche)
+    // Jaune
     paint.color = const Color(0xFFFBBC05);
     canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), 2.1, 0.9, false, paint);
-    // Partie verte (bas-droite)
+    // Vert
     paint.color = const Color(0xFF34A853);
     canvas.drawArc(Rect.fromCircle(center: center, radius: r * 0.65), 3.0, 0.45, false, paint);
-    // Barre horizontale du « G »
+    // Barre horizontale du G
     paint.style = PaintingStyle.fill;
     paint.color = const Color(0xFF4285F4);
     canvas.drawRect(

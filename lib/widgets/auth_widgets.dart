@@ -369,34 +369,50 @@ class BrandChip extends StatelessWidget {
     return Hero(
       tag: 'uniflow-brand',
       child: Container(
-        padding: const EdgeInsets.fromLTRB(5, 5, 14, 5),
+        padding: const EdgeInsets.fromLTRB(6, 6, 16, 6),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.14),
+          color: Colors.white.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 30,
-              height: 30,
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: AppColors.cardWhite, shape: BoxShape.circle),
-              // L'aplat clair sous l'écusson est indispensable : son mortier est
-              // bleu marine et disparaîtrait sur le dégradé du bandeau.
-              child: Image.asset(
-                'assets/brand/uniflow_marque.png',
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-                errorBuilder: (_, __, ___) =>
-                    const PhosphorIcon(PhosphorIconsFill.graduationCap, color: AppColors.primaryBlue, size: 18),
+              width: 32,
+              height: 32,
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: AppColors.cardWhite,
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Image.asset(
+                  'assets/brand/uniflow_logo_final.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (_, __, ___) =>
+                      const PhosphorIcon(PhosphorIconsFill.graduationCap, color: AppColors.primaryBlue, size: 18),
+                ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             const Text(
               'UniFlow',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.2),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                letterSpacing: 0.3,
+              ),
             ),
           ],
         ),

@@ -201,8 +201,12 @@ class ReferenceRepository {
   /// Toutes les filières actives, toutes universités : pour l'administrateur
   /// de la plateforme, qui n'appartient à aucune.
   Future<List<AcademicProgram>> allPrograms() async {
-    final all = await _list('academic_programs', AcademicProgram.fromDocument, queries: [Query.orderAsc('name')]);
-    return all.where((p) => p.active).toList();
+    try {
+      final all = await _list('academic_programs', AcademicProgram.fromDocument, queries: [Query.orderAsc('name')]);
+      return all.where((p) => p.active).toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<List<Classroom>> classrooms(String universityCode) =>
