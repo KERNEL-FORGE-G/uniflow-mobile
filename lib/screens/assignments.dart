@@ -38,8 +38,7 @@ class AssignmentBoard {
 
   List<Assignment> get done => assignments.where((a) => submissions.containsKey(a.id)).toList();
 
-  List<Assignment> get graded =>
-      assignments.where((a) => submissions[a.id]?.score != null).toList();
+  List<Assignment> get graded => assignments.where((a) => submissions[a.id]?.score != null).toList();
 
   bool get isEmpty => assignments.isEmpty;
 }

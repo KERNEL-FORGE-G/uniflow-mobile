@@ -38,7 +38,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   Widget build(BuildContext context) {
     final scope = ref.watch(effectiveScopeProvider);
     final schedules = ref.watch(scopedSchedulesProvider);
-    final needsSelection = scope.selectable && !scope.filterByProgram;
     final courses = ref.watch(scopedCoursesProvider).value ?? const <AcademicCourse>[];
 
     return Scaffold(
@@ -94,7 +93,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                             Expanded(
                               child: Text(
                                 'Affichage officiel Faculté des Sciences UY1 (ICT4D L3 & Masters).',
-                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.primaryBlue),
+                                style: TextStyle(
+                                    fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.primaryBlue),
                               ),
                             ),
                           ],
@@ -105,76 +105,74 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
                       onSelect: (d) => setState(() => _day = d),
                     ),
-                              if (slots.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: hasParallel
-                                          ? AppColors.warning.withValues(alpha: 0.12)
-                                          : AppColors.teal.withValues(alpha: 0.10),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: hasParallel
-                                            ? AppColors.warning.withValues(alpha: 0.35)
-                                            : AppColors.teal.withValues(alpha: 0.30),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        PhosphorIcon(
-                                          hasParallel
-                                              ? PhosphorIconsFill.warning
-                                              : PhosphorIconsFill.checkCircle,
-                                          size: 16,
-                                          color: hasParallel ? AppColors.warning : AppColors.teal,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            hasParallel
-                                                ? 'Alerte créneau : séances en parallèle détectées (vérifiez votre groupe TD/TP).'
-                                                : '${slots.length} séance(s) programmée(s) · Aucun conflit de salle détecté.',
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w700,
-                                              color: hasParallel ? const Color(0xFFB45309) : AppColors.teal,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                    if (slots.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: hasParallel
+                                ? AppColors.warning.withValues(alpha: 0.12)
+                                : AppColors.teal.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: hasParallel
+                                  ? AppColors.warning.withValues(alpha: 0.35)
+                                  : AppColors.teal.withValues(alpha: 0.30),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              PhosphorIcon(
+                                hasParallel ? PhosphorIconsFill.warning : PhosphorIconsFill.checkCircle,
+                                size: 16,
+                                color: hasParallel ? AppColors.warning : AppColors.teal,
+                              ),
+                              const SizedBox(width: 8),
                               Expanded(
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 220),
-                                  child: slots.isEmpty
-                                      ? EmptyState(
-                                          key: ValueKey('vide-$_day'),
-                                          icon: PhosphorIconsDuotone.coffee,
-                                          pose: UniPose.sleeping,
-                                          title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
-                                        )
-                                      : Builder(
-                                          key: ValueKey('jour-$_day'),
-                                          builder: (context) {
-                                            return StaggeredList(
-                                              itemCount: dayBlocks.length,
-                                              itemBuilder: (context, index) =>
-                                                  _TimeBlock(block: dayBlocks[index], courses: courses),
-                                            );
-                                          },
-                                        ),
+                                child: Text(
+                                  hasParallel
+                                      ? 'Alerte créneau : séances en parallèle détectées (vérifiez votre groupe TD/TP).'
+                                      : '${slots.length} séance(s) programmée(s) · Aucun conflit de salle détecté.',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: hasParallel ? const Color(0xFFB45309) : AppColors.teal,
+                                  ),
                                 ),
                               ),
                             ],
-                          );
-                        },
+                          ),
+                        ),
                       ),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: slots.isEmpty
+                            ? EmptyState(
+                                key: ValueKey('vide-$_day'),
+                                icon: PhosphorIconsDuotone.coffee,
+                                pose: UniPose.sleeping,
+                                title: 'Pas de cours ${dayLabel(_days[_day - 1]).toLowerCase()}',
+                              )
+                            : Builder(
+                                key: ValueKey('jour-$_day'),
+                                builder: (context) {
+                                  return StaggeredList(
+                                    itemCount: dayBlocks.length,
+                                    itemBuilder: (context, index) =>
+                                        _TimeBlock(block: dayBlocks[index], courses: courses),
+                                  );
+                                },
+                              ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),

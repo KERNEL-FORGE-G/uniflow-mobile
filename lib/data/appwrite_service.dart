@@ -130,9 +130,8 @@ class AppwriteService {
     realtime = Realtime(client);
 
     databaseId = dotenv.isInitialized ? (dotenv.maybeGet('APPWRITE_DATABASE_ID') ?? 'uniflow') : 'uniflow';
-    independantDatabaseId = dotenv.isInitialized
-        ? (dotenv.maybeGet('INDEPENDANT_DATABASE_ID') ?? 'independant')
-        : 'independant';
+    independantDatabaseId =
+        dotenv.isInitialized ? (dotenv.maybeGet('INDEPENDANT_DATABASE_ID') ?? 'independant') : 'independant';
     // `maybeGet` : une `.env` antérieure à l'ajout d'une variable ne doit pas
     // faire échouer le démarrage de l'application ; les valeurs de repli sont
     // celles du schéma (`uniflow-we/scripts/appwrite-schema.mjs`).
