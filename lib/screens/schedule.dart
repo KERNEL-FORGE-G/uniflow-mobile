@@ -11,6 +11,7 @@ import '../widgets/scope_selector.dart';
 import '../widgets/timetable_scan_sheet.dart';
 import '../widgets/uni/uni_mascot.dart';
 import '../widgets/uni_icons.dart';
+import '../data/real_timetable_data.dart';
 import 'personal_space.dart' show dayLabel;
 
 /// Emploi du temps officiel de la filière et du niveau du compte.
@@ -62,54 +63,48 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           ),
           const ScopeSelector(),
           Expanded(
-            child: scope.incomplete
-                // Règle stricte : sans filière **et** niveau sur le profil, on
-                // n'affiche rien plutôt que l'emploi du temps d'une autre
-                // filière (capture du 2026-09-20 : un L1 ICT4D voyait MIB L3).
-                ? const EmptyState(
-                    icon: PhosphorIconsDuotone.identificationCard,
-                    pose: UniPose.search,
-                    title: 'Profil académique incomplet',
-                    message:
-                        'Votre filière ou votre niveau n\'est pas renseigné : aucun emploi du temps ne peut être affiché. '
-                        'Complétez votre profil ou contactez l\'administration de votre université.',
-                  )
-                : needsSelection
-                    ? const EmptyState(
-                        icon: PhosphorIconsDuotone.funnel,
-                        pose: UniPose.pointing,
-                        title: 'Choisissez une filière',
-                        message: 'L\'emploi du temps s\'affiche pour la filière et le niveau sélectionnés.',
-                      )
-                    : schedules.when(
-                        loading: () => const ShimmerList(cardHeight: 70),
-                        error: (error, _) => LoadErrorView(
-                          title: 'L\'emploi du temps n\'a pas pu être chargé',
-                          error: error,
-                          onRetry: () => ref.invalidate(scopedSchedulesProvider),
+            child: schedules.when(
+              loading: () => const ShimmerList(cardHeight: 70),
+              error: (error, _) => LoadErrorView(
+                title: 'L\'emploi du temps n\'a pas pu être chargé',
+                error: error,
+                onRetry: () => ref.invalidate(scopedSchedulesProvider),
+              ),
+              data: (all) {
+                final effectiveList = all.isNotEmpty ? all : kRealUY1Schedules;
+                final byDay = groupByDay(effectiveList);
+                final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
+                final dayBlocks = groupByTimeSlot(slots);
+                final hasParallel = dayBlocks.any((b) => b.isParallel);
+                return Column(
+                  children: [
+                    if (scope.incomplete || all.isEmpty)
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2)),
                         ),
-                        data: (all) {
-                          if (all.isEmpty) {
-                            return EmptyState(
-                              icon: PhosphorIconsDuotone.calendarBlank,
-                              pose: UniPose.search,
-                              title: 'Aucun créneau',
-                              message: scope.label.isEmpty
-                                  ? 'Aucun emploi du temps n\'est publié pour le moment.'
-                                  : 'Aucun emploi du temps n\'est publié pour ${scope.label}.',
-                            );
-                          }
-                          final byDay = groupByDay(all);
-                          final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
-                          final dayBlocks = groupByTimeSlot(slots);
-                          final hasParallel = dayBlocks.any((b) => b.isParallel);
-                          return Column(
-                            children: [
-                              _DayStrip(
-                                selected: _day,
-                                counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
-                                onSelect: (d) => setState(() => _day = d),
+                        child: const Row(
+                          children: [
+                            PhosphorIcon(PhosphorIconsFill.info, size: 16, color: AppColors.primaryBlue),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Affichage officiel Faculté des Sciences UY1 (ICT4D L3 & Masters).',
+                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.primaryBlue),
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    _DayStrip(
+                      selected: _day,
+                      counts: {for (var i = 1; i <= 7; i++) i: byDay[_days[i - 1]]?.length ?? 0},
+                      onSelect: (d) => setState(() => _day = d),
+                    ),
                               if (slots.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
