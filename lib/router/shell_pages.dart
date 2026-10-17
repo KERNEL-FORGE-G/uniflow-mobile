@@ -46,6 +46,7 @@ import '../screens/teachers_list.dart';
 import '../screens/teams.dart';
 import '../screens/ue_detail.dart';
 import '../screens/ues_list.dart';
+import '../screens/visio_conference.dart';
 
 /// Ce qu'une page pose au bord inférieur de l'écran, là où vit Uni.
 enum BottomEdge {
@@ -174,6 +175,7 @@ final List<ShellPage> shellPages = [
   ShellPage(path: '/inscriptions', builder: (_) => const EnrollmentsScreen()),
   ShellPage(path: '/presence', builder: (_) => const PresenceScreen()),
   ShellPage(path: '/emploi-du-temps', builder: (_) => const ScheduleScreen()),
+  ShellPage.every(path: '/visio', builder: (_) => const VisioConferenceScreen(), edge: BottomEdge.composer),
   // L'administration crée des comptes depuis un bouton flottant.
   ShellPage.every(path: '/comptes', builder: (_) => const AccountsScreen(), edge: BottomEdge.fab),
   // Les notes personnelles s'ajoutent depuis un bouton flottant ; les notes

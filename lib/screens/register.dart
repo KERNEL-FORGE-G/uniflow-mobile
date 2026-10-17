@@ -552,7 +552,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             isLoading: _busy,
             onPressed: _busy ? null : _submit,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.inputBorder),
+            ),
+            child: const Row(
+              children: [
+                Text('ℹ️', style: TextStyle(fontSize: 13)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Les e-mails de bienvenue ou de confirmation peuvent arriver dans vos Spams / Courriers indésirables.',
+                    style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary, height: 1.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
 
           TextButton.icon(
             onPressed: _busy ? null : _openWeb,

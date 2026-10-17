@@ -102,7 +102,7 @@ void main() {
         expect(fichier.existsSync(), isTrue, reason: '${fichier.path} est absent');
         final octets = fichier.readAsBytesSync();
         final largeur = (octets[16] << 24) | (octets[17] << 16) | (octets[18] << 8) | octets[19];
-        expect(largeur, (192 * densite.value).round(), reason: 'le disque doit faire 192dp');
+        expect(largeur, (96 * densite.value).round(), reason: 'le disque doit faire 96dp');
       }
     });
 

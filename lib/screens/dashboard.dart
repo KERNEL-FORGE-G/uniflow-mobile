@@ -215,7 +215,9 @@ class _LearnerHome extends ConsumerWidget {
       children: [
         // ── Bannière hero « Book Lending » — mascotte + CTA ───────────────
         const _DashHeroBanner(),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
+        const _MeetQuickBanner(),
+        const SizedBox(height: 14),
 
         // ── Actions rapides vers tous les modules (style Book Lending) ────
         _ActionGrid(actions: role == UniFlowRole.delegate ? _delegateActions : _studentActions),
@@ -387,7 +389,9 @@ class _TeacherHome extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _DashHeroBanner(),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
+        const _MeetQuickBanner(),
+        const SizedBox(height: 14),
         SectionTitle(title: 'Vue d\'ensemble', icon: UniIcons.statistics()),
         Row(
           children: [
@@ -1526,3 +1530,97 @@ String _shortDate(DateTime? date) {
   const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   return '${local.day} ${months[local.month - 1]}';
 }
+
+/// Carte d'accès direct Visio LAN 0 ms & Scanner QR Meet
+class _MeetQuickBanner extends StatelessWidget {
+  const _MeetQuickBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const PhosphorIcon(PhosphorIconsFill.videoCamera, color: Color(0xFF0D9488), size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Flexible(
+                      child: Text(
+                        'Visio & Point Réception QR',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'LAN 0 ms',
+                        style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF059669)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Flashez l\'écran Desktop pour synchroniser ou rejoindre',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: () => context.push('/visio'),
+            icon: const PhosphorIcon(PhosphorIconsBold.scan, size: 14),
+            label: const Text('Rejoindre', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

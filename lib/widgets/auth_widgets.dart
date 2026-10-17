@@ -556,34 +556,186 @@ class AccountTypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.inputFill,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _Segment(
-              selected: value == UniFlowAccountType.university,
-              icon: UniIcons.university,
-              title: 'Universitaire',
-              onTap: onChanged == null ? null : () => onChanged!(UniFlowAccountType.university),
-            ),
+    final isUni = value == UniFlowAccountType.university;
+    final isPersonal = value == UniFlowAccountType.personal;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'CHOISISSEZ VOTRE TYPE D\'ESPACE',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.6,
           ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _Segment(
-              selected: value == UniFlowAccountType.personal,
-              icon: UniIcons.profile,
-              title: 'Compte indépendant',
-              onTap: onChanged == null ? null : () => onChanged!(UniFlowAccountType.personal),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            // Carte 1 : Compte Universitaire
+            Expanded(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onChanged == null ? null : () => onChanged!(UniFlowAccountType.university),
+                  borderRadius: BorderRadius.circular(16),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isUni ? AppColors.primaryBlue.withValues(alpha: 0.08) : AppColors.cardWhite,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isUni ? AppColors.primaryBlue : AppColors.inputBorder,
+                        width: isUni ? 2.0 : 1.0,
+                      ),
+                      boxShadow: isUni
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              )
+                            ]
+                          : [],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: isUni ? AppColors.primaryBlue : AppColors.surface,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: PhosphorIcon(
+                                PhosphorIconsBold.buildings,
+                                size: 18,
+                                color: isUni ? Colors.white : AppColors.textSecondary,
+                              ),
+                            ),
+                            if (isUni)
+                              const PhosphorIcon(
+                                PhosphorIconsFill.checkCircle,
+                                size: 18,
+                                color: AppColors.primaryBlue,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Universitaire',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Faculté des Sciences UY1',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 10),
+            // Carte 2 : Compte Indépendant
+            Expanded(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onChanged == null ? null : () => onChanged!(UniFlowAccountType.personal),
+                  borderRadius: BorderRadius.circular(16),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isPersonal ? const Color(0xFF0D9488).withValues(alpha: 0.08) : AppColors.cardWhite,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isPersonal ? const Color(0xFF0D9488) : AppColors.inputBorder,
+                        width: isPersonal ? 2.0 : 1.0,
+                      ),
+                      boxShadow: isPersonal
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              )
+                            ]
+                          : [],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: isPersonal ? const Color(0xFF0D9488) : AppColors.surface,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: PhosphorIcon(
+                                PhosphorIconsBold.userCircle,
+                                size: 18,
+                                color: isPersonal ? Colors.white : AppColors.textSecondary,
+                              ),
+                            ),
+                            if (isPersonal)
+                              const PhosphorIcon(
+                                PhosphorIconsFill.checkCircle,
+                                size: 18,
+                                color: Color(0xFF0D9488),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Indépendant',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Espace libre & personnel',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

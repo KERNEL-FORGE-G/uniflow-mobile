@@ -67,6 +67,18 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> with SingleTick
     }
   }
 
+  Future<void> _createGroupConversation() async {
+    final group = await showModalBottomSheet<Conversation>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _NewGroupSheet(),
+    );
+    if (group == null || !mounted) return;
+    ref.invalidate(conversationsProvider);
+    context.push('/messages/${group.id}', extra: group);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,6 +94,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> with SingleTick
               if (!_searchOpen) _searchCtrl.clear();
             }),
             onNewConversation: _startConversation,
+            onNewGroup: _createGroupConversation,
           ),
           Expanded(
             child: TabBarView(
@@ -90,6 +103,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> with SingleTick
                 _ConversationsTab(
                   searchQuery: _searchCtrl.text,
                   onNewConversation: _startConversation,
+                  onNewGroup: _createGroupConversation,
                 ),
                 const _ActualitesTab(),
                 const _StatutsTab(),
@@ -98,7 +112,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> with SingleTick
           ),
         ],
       ),
-      floatingActionButton: _tab.index == 0 ? _GradientFab(onPressed: _startConversation) : null,
+      floatingActionButton: _tab.index == 0 ? _GradientFab(onPressed: _startConversation, onLongPress: _createGroupConversation) : null,
     );
   }
 }
@@ -113,6 +127,7 @@ class _WhatsAppHeader extends ConsumerStatefulWidget {
   final TextEditingController searchCtrl;
   final VoidCallback onToggleSearch;
   final VoidCallback onNewConversation;
+  final VoidCallback onNewGroup;
 
   const _WhatsAppHeader({
     required this.tab,
@@ -120,6 +135,7 @@ class _WhatsAppHeader extends ConsumerStatefulWidget {
     required this.searchCtrl,
     required this.onToggleSearch,
     required this.onNewConversation,
+    required this.onNewGroup,
   });
 
   @override
@@ -155,6 +171,7 @@ class _WhatsAppHeaderState extends ConsumerState<_WhatsAppHeader> {
                         unread: unread,
                         onSearch: widget.onToggleSearch,
                         onNew: widget.onNewConversation,
+                        onNewGroup: widget.onNewGroup,
                       ),
               ),
             ),
@@ -184,11 +201,13 @@ class _TitleBar extends StatelessWidget {
   final int unread;
   final VoidCallback onSearch;
   final VoidCallback onNew;
+  final VoidCallback onNewGroup;
 
   const _TitleBar({
     required this.unread,
     required this.onSearch,
     required this.onNew,
+    required this.onNewGroup,
   });
 
   @override
@@ -244,7 +263,7 @@ class _TitleBar extends StatelessWidget {
             size: 22,
           ),
         ),
-        _MoreMenu(),
+        _MoreMenu(onNewGroup: onNewGroup),
       ],
     );
   }
@@ -289,6 +308,9 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _MoreMenu extends StatelessWidget {
+  final VoidCallback onNewGroup;
+  const _MoreMenu({required this.onNewGroup});
+
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
@@ -296,6 +318,14 @@ class _MoreMenu extends StatelessWidget {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (_) => const [
+        PopupMenuItem(
+          value: 'new_group',
+          child: Row(children: [
+            PhosphorIcon(PhosphorIconsBold.usersThree, size: 16, color: AppColors.teal),
+            SizedBox(width: 10),
+            Text('Nouveau groupe', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          ]),
+        ),
         PopupMenuItem(
           value: 'archive',
           child: Row(children: [
@@ -322,7 +352,11 @@ class _MoreMenu extends StatelessWidget {
         ),
       ],
       onSelected: (v) {
-        if (v == 'settings') context.push('/settings');
+        if (v == 'new_group') {
+          onNewGroup();
+        } else if (v == 'settings') {
+          context.push('/settings');
+        }
       },
     );
   }
@@ -335,10 +369,12 @@ class _MoreMenu extends StatelessWidget {
 class _ConversationsTab extends ConsumerWidget {
   final String searchQuery;
   final VoidCallback onNewConversation;
+  final VoidCallback onNewGroup;
 
   const _ConversationsTab({
     required this.searchQuery,
     required this.onNewConversation,
+    required this.onNewGroup,
   });
 
   @override
@@ -359,11 +395,13 @@ class _ConversationsTab extends ConsumerWidget {
             : list
                 .where((c) =>
                     c.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                    c.lastMessage.toLowerCase().contains(searchQuery.toLowerCase()))
+                    c.lastMessage.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                    c.username.toLowerCase().contains(searchQuery.toLowerCase().replaceFirst(RegExp(r'^@'), '')) ||
+                    c.description.toLowerCase().contains(searchQuery.toLowerCase()))
                 .toList();
 
         if (filtered.isEmpty) {
-          return _EmptyInbox(onStart: onNewConversation);
+          return _EmptyInbox(onStart: onNewConversation, onNewGroup: onNewGroup);
         }
 
         return RefreshIndicator(
@@ -1299,8 +1337,26 @@ class _ConversationTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
-                  // Avatar
-                  _Avatar(name: conversation.name, size: 52),
+                  // Avatar ou Icône de Groupe
+                  conversation.isGroup
+                      ? Container(
+                          width: 52,
+                          height: 52,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF0D9488), Color(0xFF10B981)],
+                            ),
+                          ),
+                          child: const Center(
+                            child: PhosphorIcon(
+                              PhosphorIconsFill.usersThree,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                        )
+                      : _Avatar(name: conversation.name, size: 52),
                   const SizedBox(width: 12),
                   // Contenu
                   Expanded(
@@ -1310,14 +1366,38 @@ class _ConversationTile extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                conversation.name,
-                                style: TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
-                                  fontSize: 15,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      conversation.name,
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
+                                        fontSize: 15,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (conversation.isGroup) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.teal.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        'Groupe',
+                                        style: TextStyle(
+                                          color: AppColors.teal,
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                             Text(
@@ -1338,7 +1418,9 @@ class _ConversationTile extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                conversation.lastMessage,
+                                conversation.lastMessage.isNotEmpty
+                                    ? conversation.lastMessage
+                                    : (conversation.isGroup ? 'Groupe créé' : 'Nouvelle conversation'),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -1525,7 +1607,8 @@ class _OptionRow extends StatelessWidget {
 
 class _GradientFab extends StatelessWidget {
   final VoidCallback onPressed;
-  const _GradientFab({required this.onPressed});
+  final VoidCallback? onLongPress;
+  const _GradientFab({required this.onPressed, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
@@ -1541,12 +1624,16 @@ class _GradientFab extends StatelessWidget {
           ),
         ],
       ),
-      child: FloatingActionButton(
-        onPressed: onPressed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        tooltip: 'Nouvelle conversation',
-        child: const PhosphorIcon(PhosphorIconsFill.chatsCircle, color: Colors.white, size: 26),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onLongPress: onLongPress,
+        child: FloatingActionButton(
+          onPressed: onPressed,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          tooltip: 'Nouvelle conversation (appui long: nouveau groupe)',
+          child: const PhosphorIcon(PhosphorIconsFill.chatsCircle, color: Colors.white, size: 26),
+        ),
       ),
     );
   }
@@ -1558,7 +1645,8 @@ class _GradientFab extends StatelessWidget {
 
 class _EmptyInbox extends StatelessWidget {
   final VoidCallback onStart;
-  const _EmptyInbox({required this.onStart});
+  final VoidCallback onNewGroup;
+  const _EmptyInbox({required this.onStart, required this.onNewGroup});
 
   @override
   Widget build(BuildContext context) {
@@ -1583,21 +1671,39 @@ class _EmptyInbox extends StatelessWidget {
                 style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 17)),
             const SizedBox(height: 8),
             const Text(
-              'Cherchez un contact par son pseudo\npour démarrer un échange.',
+              'Discutez en tête-à-tête par pseudo\nou créez un groupe sans limite de membres.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5, height: 1.5),
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onStart,
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Nouvelle conversation'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF0D9488),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                FilledButton.icon(
+                  onPressed: onStart,
+                  icon: const PhosphorIcon(PhosphorIconsBold.plus, size: 18),
+                  label: const Text('Contact'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: onNewGroup,
+                  icon: const PhosphorIcon(PhosphorIconsBold.usersThree, size: 18),
+                  label: const Text('Nouveau groupe'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D9488),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1752,3 +1858,276 @@ class _NewConversationSheetState extends ConsumerState<_NewConversationSheet> {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  FEUILLE NOUVEAU GROUPE (WhatsApp - Sans limite de membres)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _NewGroupSheet extends ConsumerStatefulWidget {
+  const _NewGroupSheet();
+
+  @override
+  ConsumerState<_NewGroupSheet> createState() => _NewGroupSheetState();
+}
+
+class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
+  final _nameCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  final _searchCtrl = TextEditingController();
+
+  final List<ChatContact> _selectedMembers = [];
+  List<ChatContact> _searchResults = [];
+  bool _searching = false;
+  bool _creating = false;
+  String? _error;
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _descCtrl.dispose();
+    _searchCtrl.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String val) {
+    _debounce?.cancel();
+    final term = val.trim().replaceFirst(RegExp(r'^@'), '');
+    if (term.length < 2) {
+      setState(() {
+        _searchResults = [];
+        _searching = false;
+      });
+      return;
+    }
+    setState(() => _searching = true);
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        final res = await ref.read(messagingRepositoryProvider).searchContacts(term);
+        if (!mounted) return;
+        final selectedIds = _selectedMembers.map((m) => m.userId).toSet();
+        setState(() {
+          _searchResults = res.where((c) => !selectedIds.contains(c.userId)).toList();
+          _searching = false;
+        });
+      } catch (_) {
+        if (mounted) setState(() => _searching = false);
+      }
+    });
+  }
+
+  Future<void> _submit() async {
+    final name = _nameCtrl.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = 'Renseignez un nom de groupe.');
+      return;
+    }
+    setState(() {
+      _creating = true;
+      _error = null;
+    });
+
+    try {
+      final memberIdentifiers = _selectedMembers
+          .map((m) => m.username.isNotEmpty ? '@${m.username}' : m.userId)
+          .toList();
+
+      final group = await ref.read(messagingRepositoryProvider).createGroup(
+            name: name,
+            description: _descCtrl.text.trim(),
+            members: memberIdentifiers,
+          );
+
+      if (!mounted) return;
+      Navigator.of(context).pop(group);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _creating = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(color: AppColors.glassBorder, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.teal.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: PhosphorIcon(PhosphorIconsFill.usersThree, color: AppColors.teal, size: 22),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Nouveau groupe',
+                            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+                        Text('Style WhatsApp · Sans limite de membres',
+                            style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Nom du groupe
+              TextField(
+                controller: _nameCtrl,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                decoration: InputDecoration(
+                  labelText: 'Nom du groupe *',
+                  hintText: 'ex: Promotion ICT4D',
+                  filled: true,
+                  fillColor: AppColors.inputFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Description du groupe
+              TextField(
+                controller: _descCtrl,
+                maxLines: 2,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  labelText: 'Description (facultative)',
+                  hintText: 'Objectif du groupe...',
+                  filled: true,
+                  fillColor: AppColors.inputFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 14),
+              // Membres sélectionnés
+              if (_selectedMembers.isNotEmpty) ...[
+                const Text('Membres ajoutés :',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _selectedMembers.map((member) {
+                    return Chip(
+                      backgroundColor: AppColors.teal.withValues(alpha: 0.12),
+                      label: Text(
+                        member.username.isNotEmpty ? '@${member.username}' : member.name,
+                        style: const TextStyle(color: AppColors.teal, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      deleteIcon: const PhosphorIcon(PhosphorIconsBold.x, size: 14, color: AppColors.teal),
+                      onDeleted: () {
+                        setState(() => _selectedMembers.remove(member));
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+              ],
+              // Champ de recherche par @pseudo
+              TextField(
+                controller: _searchCtrl,
+                onChanged: _onSearchChanged,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'Ajouter par @pseudo ou nom...',
+                  prefixIcon: const PhosphorIcon(PhosphorIconsBold.userPlus, color: AppColors.teal, size: 20),
+                  filled: true,
+                  fillColor: AppColors.inputFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+              ),
+              if (_searching)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                ),
+              if (_searchResults.isNotEmpty)
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 150),
+                  margin: const EdgeInsets.only(top: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: _searchResults.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.divider),
+                    itemBuilder: (_, i) {
+                      final c = _searchResults[i];
+                      return ListTile(
+                        dense: true,
+                        leading: _Avatar(name: c.name, size: 32),
+                        title: Text(c.name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+                        subtitle: Text(c.username.isNotEmpty ? '@${c.username}' : c.email,
+                            style: const TextStyle(color: AppColors.teal, fontSize: 11)),
+                        trailing: const PhosphorIcon(PhosphorIconsBold.plusCircle, color: AppColors.teal, size: 20),
+                        onTap: () {
+                          setState(() {
+                            _selectedMembers.add(c);
+                            _searchResults.remove(c);
+                            _searchCtrl.clear();
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _creating ? null : _submit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.teal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: _creating
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Créer le groupe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

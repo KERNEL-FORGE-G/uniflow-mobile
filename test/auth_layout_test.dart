@@ -76,7 +76,7 @@ void main() {
       await tester.pumpWidget(bare(Scaffold(
         body: AccountTypeSelector(value: UniFlowAccountType.university, onChanged: (t) => chosen = t),
       )));
-      await tester.tap(find.text('Compte indépendant'));
+      await tester.tap(find.text('Indépendant'));
       expect(chosen, UniFlowAccountType.personal);
     });
   });

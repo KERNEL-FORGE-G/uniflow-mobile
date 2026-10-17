@@ -18,10 +18,22 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
 
 class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   bool _isAnnual = false;
-  String _selectedPlanCode = 'PRO_STUDENT';
+  String _selectedPlanCode = 'personal_cm';
 
   void _openPaymentSheet(SubscriptionPlanInfo plan) {
     if (plan.monthlyAmount == 0) {
+      if (plan.code == 'campus') {
+        final user = ref.read(currentUserProvider);
+        if (user != null) {
+          ref.read(flutterwaveServiceProvider).openWhatsAppBilling(
+                plan: plan,
+                isAnnual: false,
+                user: user,
+              );
+        }
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Cette formule académique standard est déjà active sur votre compte.'),

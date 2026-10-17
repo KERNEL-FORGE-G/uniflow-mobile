@@ -260,31 +260,50 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     ),
                   ),
                   // Avatar + infos contact
-                  Stack(
-                    children: [
-                      Avatar(
-                        initials: conversation == null ? '?' : initialsOf(conversation.name),
-                        avatarFileId: conversation?.avatarFileId,
-                        size: 38,
+                  if (conversation?.isGroup == true)
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF0D9488), Color(0xFF10B981)],
+                        ),
                       ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 11,
-                          height: 11,
-                          decoration: BoxDecoration(
-                            color: AppColors.success,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.cardWhite,
-                              width: 1.5,
+                      child: const Center(
+                        child: PhosphorIcon(
+                          PhosphorIconsFill.usersThree,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    )
+                  else
+                    Stack(
+                      children: [
+                        Avatar(
+                          initials: conversation == null ? '?' : initialsOf(conversation.name),
+                          avatarFileId: conversation?.avatarFileId,
+                          size: 38,
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 11,
+                            height: 11,
+                            decoration: BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.cardWhite,
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -323,17 +342,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     ),
                   ),
                   // Actions
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.phone_rounded,
-                      color: AppColors.teal,
-                      size: 20,
+                  if (conversation?.isGroup != true)
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.phone_rounded,
+                        color: AppColors.teal,
+                        size: 20,
+                      ),
+                      tooltip: 'Appeler',
                     ),
-                    tooltip: 'Appeler',
-                  ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () => _showConversationMenu(context, conversation),
                     icon: const Icon(
                       Icons.more_vert_rounded,
                       color: AppColors.textSecondary,
@@ -383,6 +403,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           itemCount: messages.length,
                           itemBuilder: (context, index) => _Bubble(
                             message: messages[index],
+                            isGroup: conversation?.isGroup == true,
                             onOpenAttachment: _openAttachment,
                           ),
                         ),
@@ -407,6 +428,148 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             onSend: _send,
           ),
         ],
+      ),
+    );
+  }
+
+  void _showConversationMenu(BuildContext context, Conversation? conversation) {
+    if (conversation == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetCtx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(bottomSheetCtx).padding.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(color: AppColors.glassBorder, borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(conversation.name,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
+            if (conversation.isGroup) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Groupe · ${conversation.memberCount} membres',
+                style: const TextStyle(color: AppColors.teal, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              if (conversation.description.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  conversation.description,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ],
+              const SizedBox(height: 14),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const PhosphorIcon(PhosphorIconsBold.userPlus, size: 20, color: AppColors.teal),
+                title: const Text('Inviter des membres par @pseudo', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                onTap: () {
+                  Navigator.pop(bottomSheetCtx);
+                  _showAddMemberDialog(context, conversation.id);
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const PhosphorIcon(PhosphorIconsBold.signOut, size: 20, color: AppColors.danger),
+                title: const Text('Quitter le groupe', style: TextStyle(color: AppColors.danger, fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () async {
+                  Navigator.pop(bottomSheetCtx);
+                  final ok = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Quitter le groupe'),
+                      content: Text('Voulez-vous vraiment quitter « ${conversation.name} » ?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+                          child: const Text('Quitter'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (ok == true && mounted) {
+                    try {
+                      await ref.read(messagingRepositoryProvider).leaveGroup(conversation.id);
+                      ref.invalidate(conversationsProvider);
+                      navigator.maybePop();
+                    } catch (e) {
+                      messenger.showSnackBar(SnackBar(content: Text('Erreur: $e')));
+                    }
+                  }
+                },
+              ),
+            ] else ...[
+              const SizedBox(height: 14),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const PhosphorIcon(PhosphorIconsBold.user, size: 20, color: AppColors.textSecondary),
+                title: Text(conversation.handle, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddMemberDialog(BuildContext context, String groupId) {
+    final searchCtrl = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: const Text('Inviter dans le groupe'),
+            content: TextField(
+              controller: searchCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: '@pseudo du contact',
+                prefixIcon: PhosphorIcon(PhosphorIconsBold.userPlus, size: 20, color: AppColors.teal),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+              FilledButton(
+                onPressed: () async {
+                  final text = searchCtrl.text.trim();
+                  if (text.isEmpty) return;
+                  Navigator.pop(ctx);
+                  try {
+                    await ref.read(messagingRepositoryProvider).addGroupMembers(groupId, [text]);
+                    ref.invalidate(conversationsProvider);
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('$text a été ajouté au groupe !'), backgroundColor: AppColors.success),
+                    );
+                    _load();
+                  } catch (e) {
+                    messenger.showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.danger));
+                  }
+                },
+                child: const Text('Ajouter'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -446,9 +609,14 @@ class _EmptyThread extends StatelessWidget {
 
 class _Bubble extends StatelessWidget {
   final ChatMessage message;
+  final bool isGroup;
   final Future<void> Function(ChatMessage) onOpenAttachment;
 
-  const _Bubble({required this.message, required this.onOpenAttachment});
+  const _Bubble({
+    required this.message,
+    this.isGroup = false,
+    required this.onOpenAttachment,
+  });
 
   /// Heure d'envoi, ou chaîne vide si l'horodatage est illisible : mieux vaut
   /// une bulle sans heure qu'une exception au milieu du fil.
@@ -462,10 +630,6 @@ class _Bubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final mine = message.mine;
     final foreground = mine ? Colors.white : AppColors.textPrimary;
-    // Un message urgent se signale par un liseré, pas par une couleur de fond :
-    // la couleur porte déjà l'information « envoyé » / « reçu ». Sur la bulle
-    // bleue, le rouge d'alerte ne se lit pas : l'ambre de la palette prend le
-    // relais.
     final urgentInk = mine ? AppColors.warning : AppColors.danger;
     final border = message.urgent ? Border.all(color: urgentInk, width: 2) : null;
 
@@ -490,6 +654,18 @@ class _Bubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
+            // Dans un groupe style WhatsApp, afficher le nom de l'expéditeur au-dessus du message
+            if (isGroup && !mine && message.senderName.isNotEmpty) ...[
+              Text(
+                message.senderName,
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+            ],
             if (message.urgent) ...[
               Row(
                 mainAxisSize: MainAxisSize.min,

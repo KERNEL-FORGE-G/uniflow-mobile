@@ -194,12 +194,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Single
             // ── Logo + bouton Passer en haut ──────────────────────────
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
                 child: Row(
                   children: [
                     // Logo pill blanc sur fond accent
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.22),
                         borderRadius: BorderRadius.circular(24),
@@ -209,22 +209,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Single
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(5),
                             child: Image.asset(
                               'assets/brand/uniflow_logo_final.png',
-                              height: 24,
-                              width: 24,
+                              height: 20,
+                              width: 20,
                               fit: BoxFit.contain,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 5),
                           const Text(
                             'UniFlow',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 15,
+                              fontSize: 13,
                               fontWeight: FontWeight.w800,
-                              letterSpacing: 0.3,
+                              letterSpacing: 0.2,
                             ),
                           ),
                         ],
@@ -242,10 +242,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Single
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Colors.white.withValues(alpha: 0.20),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           ),
-                          child: const Text('Passer', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                          child: const Text('Passer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
                         ),
                       ),
                     ),
@@ -390,14 +392,18 @@ class _Footer extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Titre
-          Text(
-            page.title,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              height: 1.15,
-              letterSpacing: -0.3,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              page.title,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                height: 1.15,
+                letterSpacing: -0.3,
+              ),
             ),
           ),
           const SizedBox(height: 8),

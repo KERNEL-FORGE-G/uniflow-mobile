@@ -54,6 +54,7 @@ class GamificationService {
     for (;;) {
       final q = [...queries, Query.limit(100)];
       if (cursor != null) q.add(Query.cursorAfter(cursor));
+      // ignore: deprecated_member_use
       final page = await _databases.listDocuments(
         databaseId: _databaseId,
         collectionId: collection,
@@ -204,6 +205,7 @@ class GamificationService {
   /// XP et niveau de l'utilisateur.
   Future<UserXp?> fetchUserXp(String userId) async {
     try {
+      // ignore: deprecated_member_use
       final page = await _databases.listDocuments(
         databaseId: _databaseId,
         collectionId: _userXp,

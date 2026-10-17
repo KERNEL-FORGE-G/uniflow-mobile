@@ -29,6 +29,8 @@ class ChatMessage {
   final String text;
   final String time;
   final String senderId;
+  final String senderName;
+  final String senderUsername;
 
   /// Pièce jointe éventuelle. `fileId` vide signifie « message texte seul ».
   final String fileId;
@@ -50,6 +52,8 @@ class ChatMessage {
     required this.text,
     required this.time,
     required this.senderId,
+    this.senderName = '',
+    this.senderUsername = '',
     this.fileId = '',
     this.fileName = '',
     this.fileSize = 0,
@@ -78,6 +82,8 @@ class ChatMessage {
       text: json['text'] ?? '',
       time: json['time'] ?? '',
       senderId: json['senderId'] ?? '',
+      senderName: json['senderName'] ?? '',
+      senderUsername: json['senderUsername'] ?? '',
       fileId: json['fileId'] ?? '',
       fileName: json['fileName'] ?? '',
       fileSize: (json['fileSize'] as num?)?.toInt() ?? 0,
@@ -165,17 +171,12 @@ class Conversation {
   final String id;
 
   /// Identifiant Appwrite du correspondant.
-  ///
-  /// Nécessaire pour accorder au fichier téléversé la lecture aux deux
-  /// participants : Appwrite n'accorde au créateur que les permissions qu'il
-  /// demande explicitement.
   final String userId;
   final String name;
   final String role;
   final String email;
 
-  /// Pseudo du correspondant : c'est le référent affiché, l'email ne servant
-  /// plus que de repli pour les comptes antérieurs au backfill.
+  /// Pseudo du correspondant : c'est le référent affiché.
   final String username;
   final String avatarFileId;
   final bool online;
@@ -183,6 +184,13 @@ class Conversation {
   final String time;
   final int unread;
   final List<ChatMessage> messages;
+
+  /// Attributs de groupe de discussion (style WhatsApp)
+  final bool isGroup;
+  final String groupId;
+  final String description;
+  final String adminId;
+  final int memberCount;
 
   Conversation({
     required this.id,
@@ -197,10 +205,20 @@ class Conversation {
     required this.time,
     required this.unread,
     required this.messages,
+    this.isGroup = false,
+    this.groupId = '',
+    this.description = '',
+    this.adminId = '',
+    this.memberCount = 1,
   });
 
-  /// Libellé du correspondant : le pseudo s'il existe, l'email sinon.
-  String get handle => username.isNotEmpty ? '@$username' : email;
+  /// Libellé du correspondant ou nom du groupe.
+  String get handle {
+    if (isGroup) {
+      return memberCount > 1 ? 'Groupe · $memberCount membres' : 'Groupe';
+    }
+    return username.isNotEmpty ? '@$username' : email;
+  }
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
     final rawMessages = json['messages'];
@@ -216,6 +234,11 @@ class Conversation {
       lastMessage: json['preview'] ?? '',
       time: json['time'] ?? '',
       unread: json['unread'] ?? 0,
+      isGroup: json['isGroup'] == true || (json['id'] as String? ?? '').startsWith('grp_'),
+      groupId: json['groupId'] ?? json['id'] ?? '',
+      description: json['description'] ?? '',
+      adminId: json['adminId'] ?? '',
+      memberCount: (json['memberCount'] as num?)?.toInt() ?? 1,
       messages: rawMessages is List
           ? rawMessages.whereType<Map>().map((item) => ChatMessage.fromJson(Map<String, dynamic>.from(item))).toList()
           : const [],
@@ -389,6 +412,56 @@ class MessagingRepository {
   /// Dernière conversation reçue en réponse à un envoi.
   Conversation? _lastUpdate;
   Conversation? get lastUpdate => _lastUpdate;
+
+  /// Crée un nouveau groupe style WhatsApp (sans limite de membres).
+  Future<Conversation> createGroup({
+    required String name,
+    String description = '',
+    List<String> members = const [],
+  }) async {
+    final data = await _invoke({
+      'action': 'create_group',
+      'name': name,
+      'description': description,
+      'members': members,
+    });
+    final group = data['group'] ?? data['conversation'];
+    if (group is! Map) {
+      throw MessagingException('Groupe créé, mais réponse illisible.');
+    }
+    return Conversation.fromJson(Map<String, dynamic>.from(group));
+  }
+
+  /// Invite un ou plusieurs membres dans un groupe existant.
+  Future<Conversation> addGroupMembers(String groupId, List<String> members) async {
+    final data = await _invoke({
+      'action': 'add_group_members',
+      'groupId': groupId,
+      'members': members,
+    });
+    final group = data['group'] ?? data['conversation'];
+    if (group is! Map) {
+      throw MessagingException('Membres ajoutés, mais réponse illisible.');
+    }
+    return Conversation.fromJson(Map<String, dynamic>.from(group));
+  }
+
+  /// Quitte un groupe.
+  Future<void> leaveGroup(String groupId) async {
+    await _invoke({
+      'action': 'leave_group',
+      'groupId': groupId,
+    });
+  }
+
+  /// Récupère les infos et la liste complète des membres d'un groupe.
+  Future<Map<String, dynamic>> getGroupInfo(String groupId) async {
+    final data = await _invoke({
+      'action': 'group_info',
+      'groupId': groupId,
+    });
+    return data['group'] is Map ? Map<String, dynamic>.from(data['group']) : {};
+  }
 
   /// Téléverse une pièce jointe dans le bucket unique `uniflow_assets`.
   ///

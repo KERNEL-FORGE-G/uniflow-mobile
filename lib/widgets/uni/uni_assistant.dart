@@ -6,17 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/appwrite_provider.dart';
 import '../../providers/providers.dart';
+import '../../services/groq_service.dart';
 import '../phosphor.dart';
 import 'uni_mascot.dart';
 
 /// Uni, l'assistant conversationnel d'UniFlow, côté mobile.
 ///
-/// Le modèle (Gemini 3.1 Flash-Lite, repli Mistral) n'est jamais appelé
-/// depuis l'application : tout passe par le service `/assistant` de la
-/// Function `uniflow-api`, qui porte les clés et connaît le profil du compte
-/// (filière, niveau, UE, emploi du temps). Le client n'envoie que
-/// l'historique des tours (`messages`), la plateforme (`mobile`) et
-/// l'intention vocale.
+/// Le modèle (API GROQ Llama 3.3 / GPT-OSS 120B) est interrogé en priorité
+/// avec haute vélocité et sécurité. Le client envoie l'historique des tours
+/// (`messages`), la plateforme (`mobile`) et l'intention vocale.
 
 class UniTurn {
   final String role; // 'user' | 'assistant'
@@ -136,6 +134,32 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
           .reversed
           .map((t) => {'role': t.role, 'content': t.content})
           .toList();
+
+      // Tentative prioritaire ultra-rapide via l'API Groq officielle UniFlow (Llama 3.3 70B)
+      String? groqReply;
+      try {
+        groqReply = await GroqService.ask(history);
+      } catch (_) {
+        groqReply = null;
+      }
+
+      if (groqReply != null && groqReply.trim().isNotEmpty) {
+        state = state.copyWith(
+          turns: [
+            ...state.turns,
+            UniTurn(role: 'assistant', content: groqReply.trim()),
+          ],
+          pending: false,
+          provider: 'groq (llama-3.3-70b)',
+          suggestions: const [
+            'Quel est mon emploi du temps ?',
+            'Explique-moi les crédits LMD',
+            'Qui a créé UniFlow ?',
+          ],
+        );
+        return;
+      }
+
       final data = await _call({'action': 'chat', 'messages': history, 'voice': voice});
       if (data['ok'] != true) {
         throw StateError((data['message'] as String?) ?? 'Uni n’a pas pu répondre.');
@@ -408,7 +432,7 @@ class _UniAssistantSheetState extends ConsumerState<UniAssistantSheet> {
                 ? 'Réfléchit…'
                 : state.error != null
                     ? 'Quelque chose a coincé'
-                    : 'En ligne · ${state.provider == 'mistral' ? 'Mistral' : 'Gemini 3.1 Flash-Lite'}',
+                    : 'En ligne · Propulsé par GROQ',
             onClear: state.turns.length > 1
                 ? () {
                     ref.read(uniAssistantProvider.notifier).clear();

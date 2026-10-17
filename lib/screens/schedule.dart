@@ -70,14 +70,21 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 onRetry: () => ref.invalidate(scopedSchedulesProvider),
               ),
               data: (all) {
-                final effectiveList = all.isNotEmpty ? all : kRealUY1Schedules;
+                final prog = scope.program.trim().toUpperCase();
+                final lvl = scope.level.trim().toUpperCase();
+                final source = all.isNotEmpty ? all : kRealUY1Schedules;
+                final effectiveList = source.where((s) {
+                  if (prog.isNotEmpty && s.program.trim().toUpperCase() != prog) return false;
+                  if (lvl.isNotEmpty && s.level.trim().toUpperCase() != lvl) return false;
+                  return true;
+                }).toList();
                 final byDay = groupByDay(effectiveList);
                 final slots = byDay[_days[_day - 1]] ?? const <AcademicSchedule>[];
                 final dayBlocks = groupByTimeSlot(slots);
                 final hasParallel = dayBlocks.any((b) => b.isParallel);
                 return Column(
                   children: [
-                    if (scope.incomplete || all.isEmpty)
+                    if (scope.program.isNotEmpty && scope.level.isNotEmpty)
                       Container(
                         margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -86,15 +93,15 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2)),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            PhosphorIcon(PhosphorIconsFill.info, size: 16, color: AppColors.primaryBlue),
-                            SizedBox(width: 8),
+                            const PhosphorIcon(PhosphorIconsFill.graduationCap, size: 16, color: AppColors.primaryBlue),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Affichage officiel Faculté des Sciences UY1 (ICT4D L3 & Masters).',
-                                style: TextStyle(
-                                    fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.primaryBlue),
+                                'Planning officiel : ${scope.program} · ${scope.level} (Faculté des Sciences UY1)',
+                                style: const TextStyle(
+                                    fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryBlue),
                               ),
                             ),
                           ],

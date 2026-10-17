@@ -71,8 +71,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               kind: FeedbackKind.success,
               title: 'E-mail envoyé',
               message: 'Si un compte existe pour ${_email.text.trim()}, un lien de '
-                  'réinitialisation vient de lui être envoyé. Il ouvre la page de '
-                  'changement de mot de passe du site UniFlow.',
+                  'réinitialisation vient de lui être envoyé.\n\n'
+                  '⚠️ ATTENTION SPAM : Pensez impérativement à vérifier votre dossier '
+                  '« Spam / Courrier indésirable » ou « Promotions » dans votre boîte de messagerie '
+                  '(Gmail, Outlook, Yahoo). L\'expéditeur officiel est uniflow@kernelforge.codes.',
               actionLabel: 'Retour à la connexion',
               onAction: _back,
             )
@@ -106,6 +108,27 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ),
             const SizedBox(height: 20),
             GradientButton(label: 'Envoyer le lien', isLoading: _busy, onPressed: _busy ? null : _submit),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: const Row(
+                children: [
+                  Text('💡', style: TextStyle(fontSize: 14)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Pensez à vérifier vos Spams / Courriers indésirables si l\'email n\'apparaît pas rapidement.',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ],
       ),

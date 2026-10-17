@@ -82,13 +82,27 @@ IconData _typeIcon(String type) {
 
 String _typeLabel(String type) => type.isEmpty ? 'Fichier' : type.toUpperCase();
 
-// ─── Modèle Uni Book ──────────────────────────────────────────────────────────
+// ─── Modèle Uni Book (100% Z-Library) ──────────────────────────────────────────
+
+const List<Map<String, String>> kZLibLanguages = [
+  {'code': 'all', 'name': 'Toutes', 'flag': '🌐'},
+  {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
+  {'code': 'en', 'name': 'Anglais', 'flag': '🇬🇧'},
+  {'code': 'es', 'name': 'Espagnol', 'flag': '🇪🇸'},
+  {'code': 'de', 'name': 'Allemand', 'flag': '🇩🇪'},
+  {'code': 'it', 'name': 'Italien', 'flag': '🇮🇹'},
+  {'code': 'pt', 'name': 'Portugais', 'flag': '🇵🇹'},
+  {'code': 'ru', 'name': 'Russe', 'flag': '🇷🇺'},
+  {'code': 'ar', 'name': 'Arabe', 'flag': '🇸🇦'},
+  {'code': 'zh', 'name': 'Chinois', 'flag': '🇨🇳'},
+];
 
 class UniBookItem {
   final String id;
   final String title;
   final List<String> authors;
   final String category;
+  final String language;
   final String? coverUrl;
   final String? downloadUrl;
   final String format;
@@ -99,22 +113,25 @@ class UniBookItem {
   final bool cachedInBucket;
   final String? appwriteDocId;
   final String? appwriteFileId;
+  final String? size;
 
   const UniBookItem({
     required this.id,
     required this.title,
     required this.authors,
     required this.category,
+    this.language = 'Français',
     this.coverUrl,
     this.downloadUrl,
     this.format = 'PDF',
-    this.source = 'Uni Book',
+    this.source = 'Z-Library',
     this.year,
     this.description,
     this.downloadsCount = 100,
     this.cachedInBucket = false,
     this.appwriteDocId,
     this.appwriteFileId,
+    this.size,
   });
 
   factory UniBookItem.fromJson(Map<String, dynamic> json) {
@@ -123,16 +140,18 @@ class UniBookItem {
       title: (json['title'] ?? 'Livre').toString(),
       authors: (json['authors'] as List?)?.map((e) => e.toString()).toList() ?? const [],
       category: (json['category'] ?? 'Général').toString(),
+      language: (json['language'] ?? 'Français').toString(),
       coverUrl: json['coverUrl'] as String?,
       downloadUrl: json['downloadUrl'] as String?,
       format: (json['format'] ?? 'PDF').toString(),
-      source: (json['source'] ?? 'Uni Book').toString(),
+      source: (json['source'] ?? 'Z-Library').toString(),
       year: json['year'] is int ? json['year'] as int : null,
       description: json['description'] as String?,
       downloadsCount: (json['downloadsCount'] as num?)?.toInt() ?? 100,
       cachedInBucket: json['cachedInBucket'] == true,
       appwriteDocId: json['appwriteDocId'] as String?,
       appwriteFileId: json['appwriteFileId'] as String?,
+      size: json['size'] as String?,
     );
   }
 }
@@ -153,12 +172,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
   String? _selectedCategory;
   late final AnimationController _headerAnim;
 
-  // Mode Uni Book
+  // Mode Uni Book (100% Z-Library)
   int _selectedMode = 0; // 0 = Supports de cours, 1 = Uni Book
   List<UniBookItem> _uniBookResults = [];
   bool _isLoadingUniBook = false;
   String _uniBookQuery = '';
   String _selectedUniBookCategory = 'Tous';
+  String _selectedLanguage = 'Toutes';
+  String _selectedSort = 'popular';
   String? _cachingBookId;
 
   @override
@@ -168,7 +189,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
-    _searchUniBook(query: 'sciences');
+    _searchUniBook(query: 'sciences', language: 'Toutes', sortBy: 'popular');
   }
 
   @override
@@ -177,12 +198,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
     super.dispose();
   }
 
-  Future<void> _searchUniBook({String? query, String? category}) async {
+  Future<void> _searchUniBook({String? query, String? category, String? language, String? sortBy}) async {
     final isRunningInTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
     if (isRunningInTest) return;
 
     final q = (query ?? _uniBookQuery).trim();
     final cat = category ?? _selectedUniBookCategory;
+    final lang = language ?? _selectedLanguage;
+    final sort = sortBy ?? _selectedSort;
+
     setState(() {
       _isLoadingUniBook = true;
       _erreur = null;
@@ -194,6 +218,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
           'action': 'search',
           'query': q,
           'category': cat,
+          'language': lang == 'Toutes' ? '' : lang,
+          'sortBy': sort,
           'limit': 35,
         });
       } catch (_) {
@@ -204,11 +230,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
       if (res == null || res['ok'] != true) {
         try {
           final client = HttpClient();
-          final uri = Uri.parse('https://uniflow.kernelforge.codes/api/books').replace(queryParameters: {
+          final qParams = <String, String>{
             'q': q,
             'category': cat,
             'limit': '35',
-          });
+            'sortBy': sort,
+          };
+          if (lang != 'Toutes' && lang.isNotEmpty) {
+            qParams['language'] = lang;
+          }
+          final uri = Uri.parse('https://uniflow.kernelforge.codes/api/books').replace(queryParameters: qParams);
           final req = await client.getUrl(uri).timeout(const Duration(seconds: 6));
           final resp = await req.close().timeout(const Duration(seconds: 6));
           if (resp.statusCode == 200) {
@@ -220,7 +251,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
 
       final rawList = res?['books'] ?? res?['results'];
       if (res != null && res['ok'] == true && rawList is List) {
-        final list = rawList.whereType<Map>().map((m) => UniBookItem.fromJson(Map<String, dynamic>.from(m))).toList();
+        var list = rawList.whereType<Map>().map((m) => UniBookItem.fromJson(Map<String, dynamic>.from(m))).toList();
+        if (sort == 'language') {
+          list.sort((a, b) => a.language.compareTo(b.language));
+        }
         if (mounted) {
           setState(() {
             _uniBookResults = list;
@@ -776,6 +810,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
         _buildModeSwitcher(),
         _buildUniBookSearchBar(),
         _buildUniBookCategoryChips(uniBookCategories),
+        _buildUniBookLanguageAndSortBar(),
         if (_erreur != null) _buildErrorBanner(),
         if (_isLoadingUniBook)
           _buildUniBookSkeletonList()
@@ -977,6 +1012,290 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  // ── Barre de filtre et de tri par langue Z-Library ─────────────────────────
+
+  Widget _buildUniBookLanguageAndSortBar() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8, bottom: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(PhosphorIconsBold.globe, size: 14, color: Color(0xFF1E3A8A)),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Langue Z-Library :',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Bouton de tri
+                  GestureDetector(
+                    onTap: _showSortDialog,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(PhosphorIconsBold.funnel, size: 12, color: Color(0xFF1E3A8A)),
+                          const SizedBox(width: 4),
+                          Text(
+                            _selectedSort == 'language'
+                                ? '🌐 Tri Langue'
+                                : _selectedSort == 'recent'
+                                    ? '📅 Récents'
+                                    : _selectedSort == 'title'
+                                        ? '🔤 Titre'
+                                        : '🔥 Populaires',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 32,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: kZLibLanguages.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                itemBuilder: (context, i) {
+                  if (i == kZLibLanguages.length) {
+                    // Option saisie libre de langue
+                    final isCustom = !kZLibLanguages.any((l) => l['name'] == _selectedLanguage);
+                    return GestureDetector(
+                      onTap: _showLanguageSearchDialog,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isCustom ? const Color(0xFF1E3A8A) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isCustom ? const Color(0xFF1E3A8A) : const Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              PhosphorIconsBold.magnifyingGlass,
+                              size: 11,
+                              color: isCustom ? Colors.white : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isCustom ? _selectedLanguage : 'Saisir langue…',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: isCustom ? FontWeight.w700 : FontWeight.w600,
+                                color: isCustom ? Colors.white : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final item = kZLibLanguages[i];
+                  final isSelected = _selectedLanguage == item['name'];
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedLanguage = item['name']!);
+                      _searchUniBook(language: item['name']!);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF1E3A8A) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? const Color(0xFF1E3A8A) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(item['flag'] ?? '', style: const TextStyle(fontSize: 11)),
+                          const SizedBox(width: 4),
+                          Text(
+                            item['name']!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected ? Colors.white : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSearchDialog() {
+    final ctrl = TextEditingController(text: _selectedLanguage == 'Toutes' ? '' : _selectedLanguage);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(PhosphorIconsBold.globe, color: Color(0xFF1E3A8A), size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Langue Z-Library',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Saisissez le nom ou le code d’une langue (ex: Français, English, Español, Deutsch, Arabe, Chinois...) :',
+              style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Nom ou code de la langue…',
+                prefixIcon: const Icon(PhosphorIconsBold.magnifyingGlass, size: 16),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() => _selectedLanguage = 'Toutes');
+              _searchUniBook(language: 'Toutes');
+            },
+            child: const Text('Toutes'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final val = ctrl.text.trim();
+              Navigator.pop(ctx);
+              if (val.isNotEmpty) {
+                setState(() => _selectedLanguage = val);
+                _searchUniBook(language: val);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E3A8A),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Appliquer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSortDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Trier les livres Z-Library',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: const Icon(PhosphorIconsBold.globe, color: Color(0xFF1E3A8A)),
+                title: const Text('Trier par langue (Alphabétique)', style: TextStyle(fontWeight: FontWeight.w600)),
+                trailing: _selectedSort == 'language' ? const Icon(PhosphorIconsBold.check, color: Color(0xFF1E3A8A)) : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() => _selectedSort = 'language');
+                  _searchUniBook(sortBy: 'language');
+                },
+              ),
+              ListTile(
+                leading: const Icon(PhosphorIconsBold.sparkle, color: Color(0xFFEA580C)),
+                title: const Text('Plus populaires (Téléchargements)', style: TextStyle(fontWeight: FontWeight.w600)),
+                trailing: _selectedSort == 'popular' ? const Icon(PhosphorIconsBold.check, color: Color(0xFF1E3A8A)) : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() => _selectedSort = 'popular');
+                  _searchUniBook(sortBy: 'popular');
+                },
+              ),
+              ListTile(
+                leading: const Icon(PhosphorIconsBold.calendarBlank, color: Color(0xFF0D9488)),
+                title: const Text('Plus récents (Année)', style: TextStyle(fontWeight: FontWeight.w600)),
+                trailing: _selectedSort == 'recent' ? const Icon(PhosphorIconsBold.check, color: Color(0xFF1E3A8A)) : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() => _selectedSort = 'recent');
+                  _searchUniBook(sortBy: 'recent');
+                },
+              ),
+              ListTile(
+                leading: const Icon(PhosphorIconsBold.translate, color: Color(0xFF475569)),
+                title: const Text('Titre A-Z', style: TextStyle(fontWeight: FontWeight.w600)),
+                trailing: _selectedSort == 'title' ? const Icon(PhosphorIconsBold.check, color: Color(0xFF1E3A8A)) : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() => _selectedSort = 'title');
+                  _searchUniBook(sortBy: 'title');
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1521,6 +1840,45 @@ class _UniBookCard extends StatelessWidget {
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: book.format == 'EPUB' ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(PhosphorIconsBold.globe, size: 9, color: Color(0xFF1E3A8A)),
+                          const SizedBox(width: 3),
+                          Text(
+                            book.language,
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
+                      ),
+                      child: const Text(
+                        'Z-Library',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF92400E),
                         ),
                       ),
                     ),

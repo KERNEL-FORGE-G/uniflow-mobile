@@ -232,6 +232,12 @@ const List<NavDestination> navDestinations = [
     roles: {..._learnersAndTeacher, UniFlowRole.admin},
   ),
   NavDestination(
+    path: '/visio',
+    label: 'Visioconférence',
+    icon: UniIcons.video,
+    roles: everyRole,
+  ),
+  NavDestination(
     path: '/etudiants',
     label: 'Étudiants',
     icon: UniIcons.students,

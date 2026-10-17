@@ -25,7 +25,6 @@ const Map<String, Set<String>> allowedMaterialIcons = {
     'send_rounded',
     'done_all_rounded',
     'chat_bubble_outline_rounded',
-    'add_rounded',
   },
   'screens/badges.dart': {'lock_rounded', 'star_rounded'},
   'widgets/gamification/badge_highlight_widget.dart': {'lock'},
